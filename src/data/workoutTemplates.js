@@ -199,13 +199,36 @@ export const SPLIT_TEMPLATES = {
   },
 };
 
+// ─── Modificadores por objetivo ───────────────────────────────────────
+
+const GOAL_MODIFIERS = {
+  hipertrofia:     { repsLo: 8,  repsHi: 12, restMult: 1.0, setsDelta:  0 },
+  forca:           { repsLo: 4,  repsHi: 6,  restMult: 2.0, setsDelta:  1 },
+  emagrecimento:   { repsLo: 15, repsHi: 20, restMult: 0.6, setsDelta:  0 },
+  condicionamento: { repsLo: 15, repsHi: 25, restMult: 0.4, setsDelta: -1 },
+  recomposicao:    { repsLo: 10, repsHi: 15, restMult: 0.8, setsDelta:  0 },
+};
+
+function applyGoal(ex, goal) {
+  const mod = GOAL_MODIFIERS[goal];
+  if (!mod) return ex;
+  if (typeof ex.reps === 'string' && ex.reps.includes('s')) return ex; // prancha, etc.
+  const reps = mod.repsLo === mod.repsHi ? `${mod.repsLo}` : `${mod.repsLo}-${mod.repsHi}`;
+  return {
+    ...ex,
+    reps,
+    rest:  Math.max(30, Math.round((ex.rest ?? 60) * mod.restMult)),
+    sets:  Math.max(1, (ex.sets ?? 3) + mod.setsDelta),
+  };
+}
+
 // ─── Gerador ──────────────────────────────────────────────────────────
 
 /**
  * Gera customWorkouts[] e cycleOrder[] a partir de um template de divisão.
- * Retorna também o defaultCycleGoal sugerido.
+ * goal (opcional): ajusta rep ranges e descanso conforme o objetivo do usuário.
  */
-export function generateWorkoutsFromTemplate(splitKey) {
+export function generateWorkoutsFromTemplate(splitKey, goal = null) {
   const template = SPLIT_TEMPLATES[splitKey];
   if (!template) return { workouts: [], cycleOrder: [], defaultCycleGoal: 4 };
 
@@ -213,10 +236,10 @@ export function generateWorkoutsFromTemplate(splitKey) {
   const rand = Math.random().toString(36).slice(2, 6);
   const workouts = template.workouts.map((wt, wi) => {
     const id = `custom_${ts}${rand}_${wi}`;
-    const exercises = wt.exKeys.map((key, ei) => ({
-      ...EX[key],
-      id: `tpl_${ts}${rand}_${wi}_${ei}`,
-    }));
+    const exercises = wt.exKeys.map((key, ei) => {
+      const base = { ...EX[key], id: `tpl_${ts}${rand}_${wi}_${ei}` };
+      return goal ? applyGoal(base, goal) : base;
+    });
     return {
       id,
       label:       wt.label,
@@ -232,6 +255,8 @@ export function generateWorkoutsFromTemplate(splitKey) {
 
   return { workouts, cycleOrder, defaultCycleGoal: template.defaultCycleGoal };
 }
+
+export { GOAL_MODIFIERS };
 
 /**
  * Retorna um resumo legível do split para preview no onboarding.

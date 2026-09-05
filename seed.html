@@ -52,12 +52,12 @@
   <div class="text-center mb-6">
     <div class="text-[10px] font-black tracking-[.2em] text-red-500 mb-1">⬡ NINJINHA BOM DE BRIGA ⬡</div>
     <h1 class="text-3xl font-black tracking-tight">SEED DE DADOS</h1>
-    <p class="text-[11px] text-zinc-500 mt-2">v6.5.1 · 15/07/2026 · grava tudo no localStorage</p>
+    <p class="text-[11px] text-zinc-500 mt-2">v6.7 · Set/2026 · grava tudo no localStorage</p>
     <div class="mt-3 flex gap-2 justify-center flex-wrap">
       <span class="badge" style="background:rgba(239,68,68,.15);border:1px solid rgba(239,68,68,.3);color:#f87171">Cláudio Santana · 33 anos</span>
       <span class="badge" style="background:rgba(39,39,42,.8);border:1px solid #3f3f46;color:#71717a">Personal: Pedro Henrique Vaz</span>
       <span class="badge" style="background:rgba(39,39,42,.8);border:1px solid #3f3f46;color:#a1a1aa">Avaliação: 07/02/2026</span>
-      <span class="badge" style="background:rgba(34,197,94,.1);border:1px solid rgba(34,197,94,.3);color:#4ade80">PPL Duplo · v6.5.1</span>
+      <span class="badge" style="background:rgba(34,197,94,.1);border:1px solid rgba(34,197,94,.3);color:#4ade80">PPL Duplo · v6.7 · 208s/ciclo</span>
     </div>
     <a href="index.html" class="text-[10px] text-red-500/50 hover:text-red-400 mt-3 inline-block">← voltar ao app</a>
   </div>
@@ -71,6 +71,7 @@
       <div>✓ <b>bodyWeights</b> — 81,25 kg (fev/2026) + peso atual informado</div>
       <div>✓ <b>userName / projectName</b> — CLÁUDIO SANTANA · NINJINHA BOM DE BRIGA</div>
       <div>✓ <b>cycleOrder</b> — Push A → Legs A → Pull A → OFF → Push B → Legs B → Pull B → OFF</div>
+      <div>✓ <b>workouts</b> — PPL v6.7 · 208 séries/ciclo redesenhado para V-Taper (built-in IDs 1–6)</div>
       <div>✓ <b>personalGoals</b> — 6 metas de 12 meses baseadas na auditoria</div>
       <div>✓ <b>activeCommute</b> — 1,1 km · caminhada · 4,8 km/h</div>
       <div>✓ <b>activityLevel</b> — 1,725 (moderado · 4-5×/sem)</div>
@@ -161,24 +162,24 @@
 
   <!-- Protocolo PPL -->
   <div class="glass space-y-3">
-    <div class="section-title">Ciclo PPL Duplo — v6.5.1 (ordem do personal)</div>
+    <div class="section-title">Ciclo PPL Duplo — v6.7 · 208 séries/ciclo (V-Taper redesign)</div>
     <div class="glass" style="background:rgba(239,68,68,.04);border-color:rgba(239,68,68,.2)">
       <div class="text-[9px] text-red-400/80 font-bold mb-3">CICLO A — Push → Legs → Pull → OFF</div>
       <div class="grid grid-cols-4 gap-2 mb-4">
         <div class="ppl-card ppl-A">
-          <div class="label">Pos 1</div>
+          <div class="label">Pos 1 · 32s</div>
           <div class="title">Push A</div>
-          <div class="sub">Peito + Delt</div>
+          <div class="sub">Peito Sup + Delt Lat</div>
         </div>
         <div class="ppl-card ppl-A">
-          <div class="label">Pos 2</div>
+          <div class="label">Pos 2 · 34s</div>
           <div class="title">Legs A</div>
-          <div class="sub">Quadríceps</div>
+          <div class="sub">Quadríceps + Post.</div>
         </div>
         <div class="ppl-card ppl-A">
-          <div class="label">Pos 3</div>
+          <div class="label">Pos 3 · 36s</div>
           <div class="title">Pull A</div>
-          <div class="sub">Largura Costas</div>
+          <div class="sub">Largura · V-Taper</div>
         </div>
         <div class="ppl-card" style="border-color:#27272a;opacity:.5">
           <div class="label">Pos 4</div>
@@ -189,19 +190,19 @@
       <div class="text-[9px] text-blue-400/80 font-bold mb-3">CICLO B — Push → Legs → Pull → OFF</div>
       <div class="grid grid-cols-4 gap-2">
         <div class="ppl-card ppl-B">
-          <div class="label">Pos 5</div>
+          <div class="label">Pos 5 · 36s</div>
           <div class="title">Push B</div>
-          <div class="sub">Ombros + Peito</div>
+          <div class="sub">Delt Lat + Peito</div>
         </div>
         <div class="ppl-card ppl-B">
-          <div class="label">Pos 6</div>
+          <div class="label">Pos 6 · 38s</div>
           <div class="title">Legs B</div>
           <div class="sub">Posterior + Glúteo</div>
         </div>
         <div class="ppl-card ppl-B">
-          <div class="label">Pos 7</div>
+          <div class="label">Pos 7 · 32s</div>
           <div class="title">Pull B</div>
-          <div class="sub">Costas V + Trap</div>
+          <div class="sub">Espessura + Trapézio</div>
         </div>
         <div class="ppl-card" style="border-color:#27272a;opacity:.5">
           <div class="label">Pos 8</div>
@@ -212,7 +213,8 @@
     </div>
     <div class="text-[9px] text-zinc-600">
       IDs built-in: Push A=1 · Legs A=2 · Pull A=3 · Push B=4 · Legs B=5 · Pull B=6<br>
-      cycleOrder gravado: <span class="text-red-400 font-mono">['1','2','3',null,'4','5','6',null]</span>
+      cycleOrder gravado: <span class="text-red-400 font-mono">['1','2','3',null,'4','5','6',null]</span><br>
+      <span class="text-amber-600/80">⚠ Afundo Smith no Legs B: começar SEMPRE pelo lado E (déficit 1,5cm)</span>
     </div>
   </div>
 
@@ -296,7 +298,7 @@
       <div class="ppl-card"><div class="label">BMR</div><div class="title">~1.921 kcal</div></div>
       <div class="ppl-card"><div class="label">TDEE</div><div class="title">~3.314 kcal</div></div>
       <div class="ppl-card"><div class="label">Alvo bulk</div><div class="title">3.500-3.700</div></div>
-      <div class="ppl-card"><div class="label">Proteína</div><div class="title">158 g/dia</div></div>
+      <div class="ppl-card"><div class="label">Proteína</div><div class="title">160-180 g/dia</div></div>
       <div class="ppl-card"><div class="label">Gordura</div><div class="title">~90 g/dia</div></div>
       <div class="ppl-card"><div class="label">Carbo</div><div class="title">~540 g/dia</div></div>
     </div>

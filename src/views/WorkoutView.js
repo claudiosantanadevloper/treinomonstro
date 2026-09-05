@@ -321,23 +321,25 @@ function renderExerciseCard(wId, ex, idx, wLogs, lastSets, prs, loadTarget = nul
 
             <!-- Contexto de Progressão: última sessão -->
             ${lastCtx ? `
-              <div class="mt-1.5">
-                <div class="flex items-center justify-between gap-2">
-                  <span class="text-[8px] text-zinc-600 font-bold uppercase tracking-wider flex items-center gap-1">
-                    <i data-lucide="history" class="w-2.5 h-2.5"></i>
+              <div class="mt-2 px-2.5 py-2 rounded-xl bg-zinc-900/60 border border-zinc-800/60">
+                <div class="flex items-center justify-between gap-2 mb-1">
+                  <span class="text-[9px] text-zinc-500 font-bold uppercase tracking-wider flex items-center gap-1">
+                    <i data-lucide="history" class="w-3 h-3"></i>
                     Última · ${lastCtx.timeAgo}
-                    <button data-action="show-hint" data-payload="recovery"
-                            class="w-3 h-3 rounded-full border border-zinc-700 text-zinc-600 flex items-center justify-center text-[7px] font-black leading-none active:scale-90 transition-all">i</button>
                   </span>
                   <button data-action="auto-fill" data-wid="${wId}" data-exid="${ex.id}"
-                          class="text-[9px] font-bold text-theme-primary/60 hover:text-theme-primary
-                                 flex items-center gap-0.5 active:scale-90 transition-all
-                                 bg-theme-dim/50 px-1.5 py-0.5 rounded border border-theme-dim/30">
-                    <i data-lucide="copy" class="w-2.5 h-2.5"></i> repetir
+                          class="text-[9px] font-bold text-theme-primary/70 hover:text-theme-primary
+                                 flex items-center gap-1 active:scale-90 transition-all
+                                 bg-theme-dim/60 px-2 py-0.5 rounded-lg border border-theme-dim/40">
+                    <i data-lucide="copy" class="w-2.5 h-2.5"></i> Repetir
                   </button>
                 </div>
-                <div class="flex items-center gap-x-2 flex-wrap mt-0.5">
-                  ${lastCtx.done.map(s => `<span class="text-[10px] font-mono text-zinc-500">${s.w} × ${s.r}</span>`).join('<span class="text-zinc-700 text-[9px]">·</span>')}
+                <div class="flex items-center gap-x-3 flex-wrap">
+                  ${lastCtx.done.map((s, i) => `
+                    <span class="text-[11px] font-mono font-bold text-zinc-300">
+                      <span class="text-zinc-600 text-[9px] mr-0.5">${i + 1}×</span>${s.w}<span class="text-zinc-600">kg</span>
+                      <span class="text-zinc-700 mx-0.5">·</span>${s.r}<span class="text-zinc-600">rep</span>
+                    </span>`).join('')}
                 </div>
               </div>` : ''}
 
@@ -506,7 +508,16 @@ export function renderWorkout(state, workout) {
       <div class="border-l-4 border-theme-accent pl-4 py-2 bg-gradient-to-r from-theme-dim to-transparent">
         <div class="flex items-start justify-between">
           <h1 class="text-3xl font-black uppercase italic tracking-tighter text-white">${workout.title}</h1>
-          <span id="workout-ex-counter" class="text-xs font-mono text-zinc-500 shrink-0 ml-2 mt-1">${doneEx}/${totalEx} · ${doneSetsInit}/${totalSetsInit}s</span>
+          <div class="flex items-center gap-2 shrink-0 ml-2 mt-1">
+            <span id="workout-ex-counter" class="text-xs font-mono text-zinc-500">${doneEx}/${totalEx} · ${doneSetsInit}/${totalSetsInit}s</span>
+            <button data-action="navigate-from-workout" data-payload="treinar"
+                    title="Pausar e voltar ao dashboard"
+                    class="ripple-target flex items-center gap-1 px-2 py-1 rounded-lg border border-zinc-700/50
+                           text-zinc-600 text-[9px] font-bold hover:text-zinc-400 hover:border-zinc-600
+                           active:scale-90 transition-all whitespace-nowrap">
+              <i data-lucide="chevron-left" class="w-3 h-3"></i> Pausar
+            </button>
+          </div>
         </div>
         <p class="text-xs text-theme-primary font-mono tracking-widest uppercase flex items-center gap-2 mt-1">
           <span class="w-2 h-2 bg-theme-primary rounded-full animate-pulse inline-block"></span>
@@ -720,14 +731,6 @@ export function patchSetRow(wId, exId, idx, log, ex, vibrationEnabled = true, pr
       btn.innerHTML = `<i data-lucide="rotate-ccw" class="w-4 h-4"></i>`;
       btn.dataset.undoWindow = '1';
       if (window.lucide) lucide.createIcons({ nodes: [btn] });
-      setTimeout(() => {
-        if (btn.dataset.undoWindow === '1') {
-          delete btn.dataset.undoWindow;
-          btn.className = `ripple-target shrink-0 w-12 h-12 rounded-xl flex items-center justify-center transition-all active:scale-90 bg-green-900/30 text-green-400 border-2 border-green-700/60 shadow-[0_0_12px_rgba(34,197,94,0.25)]`;
-          btn.innerHTML = `<i data-lucide="check" class="w-5 h-5"></i>`;
-          if (window.lucide) lucide.createIcons({ nodes: [btn] });
-        }
-      }, 3000);
     }, 400);
     // Auto-scroll para próxima série pendente
     setTimeout(() => {
@@ -1059,6 +1062,11 @@ export function mountWorkout(container, handler) {
   delegate(container, '[data-action="finish-workout"]', 'click', (e, el) => {
     createRipple(e, el);
     handler('finish-workout');
+  });
+
+  delegate(container, '[data-action="navigate-from-workout"]', 'click', (e, el) => {
+    createRipple(e, el);
+    handler('navigate-from-workout', { tab: el.dataset.payload ?? 'treinar' });
   });
 
   container.addEventListener('input', e => {

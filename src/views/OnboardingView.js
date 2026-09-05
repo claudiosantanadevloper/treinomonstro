@@ -148,7 +148,7 @@ function step1Identity(data) {
         <div>
           <label class="text-[9px] text-zinc-500 font-bold uppercase tracking-wider block mb-1.5">Nome do projeto <span class="text-zinc-700 font-normal normal-case">(opcional)</span></label>
           <input id="ob-project" type="text" maxlength="28"
-                 value="${data.projectName || ''}" placeholder="Ex: Ninjinha Bom de Briga"
+                 value="${data.projectName || ''}" placeholder="Ex: Guerreiro Absoluto"
                  class="input-ninja w-full py-3 rounded-xl text-sm font-bold px-4 uppercase" />
         </div>
 

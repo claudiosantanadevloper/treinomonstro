@@ -442,7 +442,7 @@ export function renderSettings(state, workouts = [], protocols = []) {
           <label class="text-[9px] text-zinc-600 font-bold uppercase tracking-wider block mb-1.5">Nome do Projeto</label>
           <div class="flex gap-2">
             <input id="settings-project-input" type="text" maxlength="28"
-                   value="${projectName}" placeholder="Ex: Ninjinha Bom de Briga"
+                   value="${projectName}" placeholder="Ex: Guerreiro Absoluto"
                    class="input-ninja flex-1 py-2 rounded-lg text-xs font-bold px-3 uppercase text-zinc-400" />
             <button data-action="save-project-name"
                     class="ripple-target px-3 py-2 bg-zinc-900/60 border border-zinc-700 text-zinc-400
@@ -493,14 +493,45 @@ export function renderSettings(state, workouts = [], protocols = []) {
           <button data-action="export-csv" class="ripple-target btn-akatsuki active:scale-95 text-xs">
             <i data-lucide="file-text" class="w-4 h-4"></i> Export CSV
           </button>
-          <button data-action="import-json" class="ripple-target btn-akatsuki active:scale-95 text-xs col-span-2">
+          <button data-action="import-json" class="ripple-target btn-akatsuki active:scale-95 text-xs">
             <i data-lucide="upload" class="w-4 h-4"></i> Restaurar Backup
+          </button>
+          <button data-action="import-pdf" class="ripple-target btn-akatsuki active:scale-95 text-xs">
+            <i data-lucide="file-text" class="w-4 h-4"></i> Importar PDF
           </button>
         </div>
         <div class="pt-3 border-t-2 border-red-900/20 mt-1">
           <button data-action="reset-data"
                   class="ripple-target btn-akatsuki w-full active:scale-95 border-red-900/40 text-red-500 hover:bg-red-900/20 text-xs">
             <i data-lucide="trash-2" class="w-4 h-4"></i> Resetar Todos os Dados
+          </button>
+        </div>
+      </div>
+
+      <!-- INSTALAR NO CELULAR ─────────────────────────────────────────── -->
+      <div class="glass-card p-4 rounded-2xl border border-zinc-800/70">
+        <h3 class="text-[10px] font-bold text-zinc-500 uppercase tracking-widest flex items-center gap-1.5 mb-3">
+          <i data-lucide="download" class="w-3.5 h-3.5"></i>
+          Instalar no Celular
+        </h3>
+        <p class="text-[11px] text-zinc-500 mb-3 leading-relaxed">
+          Salve o app na tela inicial para abrir como app nativo — funciona offline, sem barra do browser.
+        </p>
+        <div class="flex gap-2">
+          <a href="instalar.html" target="_blank"
+             class="ripple-target flex-1 py-3 rounded-xl border border-zinc-700/60 bg-zinc-900/40
+                    text-[11px] font-black text-zinc-300 uppercase tracking-wider
+                    flex items-center justify-center gap-2 active:scale-95 transition-all
+                    hover:border-theme-accent/60 hover:text-theme-primary">
+            <i data-lucide="smartphone" class="w-3.5 h-3.5"></i>
+            Guia de instalação
+          </a>
+          <button data-action="share-install-link"
+                  class="ripple-target px-4 py-3 rounded-xl border border-zinc-800/60 bg-zinc-900/30
+                         text-zinc-500 active:scale-95 transition-all hover:border-zinc-700
+                         flex items-center gap-1.5 text-[11px] font-black">
+            <i data-lucide="share" class="w-3.5 h-3.5"></i>
+            Compartilhar
           </button>
         </div>
       </div>
@@ -557,6 +588,22 @@ export function mountSettings(container, handler) {
   delegate(container, '[data-action="save-goal"]', 'click', (e, el) => {
     createRipple(e, el);
     handler('save-goal', el.dataset.payload);
+  });
+
+  delegate(container, '[data-action="share-install-link"]', 'click', async (e, el) => {
+    createRipple(e, el);
+    const url = 'https://survey-sedation-stellar.ngrok-free.dev/treino-monstro/instalar.html';
+    try {
+      if (navigator.share) {
+        await navigator.share({ title: 'Treino Monstro', text: 'Instala o app aqui 💪', url });
+      } else {
+        await navigator.clipboard.writeText(url);
+        const orig = el.innerHTML;
+        el.innerHTML = '<i data-lucide="check" class="w-3.5 h-3.5"></i> Copiado!';
+        if (window.lucide) lucide.createIcons({ nodes: [el] });
+        setTimeout(() => { el.innerHTML = orig; if (window.lucide) lucide.createIcons({ nodes: [el] }); }, 2000);
+      }
+    } catch {}
   });
 
   delegate(container, '[data-action="set-theme"]', 'click', (e, el) => {
@@ -674,6 +721,11 @@ export function mountSettings(container, handler) {
   delegate(container, '[data-action="import-json"]', 'click', (e, el) => {
     createRipple(e, el);
     handler('import-json');
+  });
+
+  delegate(container, '[data-action="import-pdf"]', 'click', (e, el) => {
+    createRipple(e, el);
+    handler('import-pdf');
   });
 
   delegate(container, '[data-action="reset-data"]', 'click', (e, el) => {

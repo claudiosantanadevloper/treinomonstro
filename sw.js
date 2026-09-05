@@ -1,10 +1,11 @@
-const CACHE       = 'monstro-v21';
+const CACHE       = 'monstro-v25';
 const MEDIA_CACHE = 'monstro-media-v1';
 const MEDIA_MAX   = 20;
 
 const LOCAL_ASSETS = [
   './',
   './index.html',
+  './instalar.html',
   './manifest.json',
   './icons/icon.svg',
   './src/app.js',
@@ -18,6 +19,7 @@ const LOCAL_ASSETS = [
   './src/services/TimerService.js',
   './src/services/ExportService.js',
   './src/services/ThemeService.js',
+  './src/services/PDFImportService.js',
   './src/components/Sharingan.js',
   './src/components/CyberBody.js',
   './src/data/quotes.js',
@@ -33,6 +35,7 @@ const LOCAL_ASSETS = [
   './src/views/ProfileView.js',
   './src/views/SettingsView.js',
   './src/views/CardioView.js',
+  './src/views/BattleReportView.js',
   './src/views/OnboardingView.js',
   './src/data/workoutTemplates.js',
   './src/data/exerciseMedia.js',

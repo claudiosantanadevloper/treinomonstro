@@ -91,11 +91,12 @@ function renderResumeBanner(workoutId, startTime, workouts) {
 
 /* ─── Render principal ─────────────────────────────────────────────── */
 
-export function renderDashboard(state, workouts, protocols = []) {
+export function renderDashboard(state, workouts, protocols = [], templates = []) {
   const {
     cycleDone = [], history, theme, workoutStartTime, workoutId, cycleGoal = 6, weekPlan = {},
     cycleOrder = [], cyclePosition = 0, cardioHistory = [],
     weeklyCardioKmGoal = null, weeklyCardioMinGoal = null,
+    hiddenSections = [],
   } = state;
 
   const todayPlan    = weekPlan[new Date().getDay()] ?? null;
@@ -274,6 +275,9 @@ export function renderDashboard(state, workouts, protocols = []) {
       <!-- Seção: Cardio -->
       ${protocols.length > 0 ? renderCardioSection(protocols, cardioHistory, weeklyCardioKmGoal, weeklyCardioMinGoal) : ''}
 
+      <!-- Seção: Programas Prontos (templates built-in, visível quando user tem programa próprio) -->
+      ${templates.length > 0 ? renderTemplatesSection(templates, cycleDone, history, todayPlan, nextWId, hiddenSections) : ''}
+
       <!-- Novo Treino -->
       <button data-action="new-workout"
               class="ripple-target w-full py-3.5 rounded-2xl border border-dashed border-zinc-700
@@ -283,6 +287,42 @@ export function renderDashboard(state, workouts, protocols = []) {
         <i data-lucide="plus-circle" class="w-4 h-4"></i> Novo Treino
       </button>
 
+    </div>
+  `;
+}
+
+/* ─── Seção Templates (programas prontos) ───────────────────────────── */
+
+function renderTemplatesSection(templates, cycleDone, history, todayPlan, nextWId, hiddenSections) {
+  const collapsed = hiddenSections.includes('program-templates');
+  const muscTemplates = templates.filter(w => !w.isFlexDay && !w.isCardio);
+  if (!muscTemplates.length) return '';
+
+  return `
+    <div>
+      <button data-action="toggle-section" data-section-id="program-templates"
+              class="ripple-target w-full flex items-center justify-between gap-2 py-2.5 px-1
+                     text-[10px] font-bold text-zinc-600 uppercase tracking-widest
+                     hover:text-zinc-400 transition-all active:scale-[0.98]">
+        <span class="flex items-center gap-2">
+          <i data-lucide="layers" class="w-3.5 h-3.5"></i>
+          Programas Prontos
+          <span class="bg-zinc-800 border border-zinc-700 text-zinc-500 text-[8px] font-mono px-1.5 py-0.5 rounded">
+            ${muscTemplates.length} treinos
+          </span>
+        </span>
+        <i data-lucide="${collapsed ? 'chevron-down' : 'chevron-up'}" class="w-3.5 h-3.5 transition-transform"></i>
+      </button>
+      ${!collapsed ? `
+        <div class="space-y-3 mt-1">
+          <p class="text-[9px] text-zinc-700 font-mono px-1 pb-1 border-b border-zinc-800/50">
+            Treinos built-in do app · use como referência ou inicie direto
+          </p>
+          ${muscTemplates.map((w, i) =>
+            renderWorkoutCard(w, cycleDone, history, i, todayPlan, nextWId)
+          ).join('')}
+        </div>
+      ` : ''}
     </div>
   `;
 }
@@ -456,13 +496,19 @@ function renderOffDayCard(idx, isCycleNext, consecutiveDays = 0, cycleDoneCount 
         <i data-lucide="moon" class="w-5 h-5 text-zinc-800 shrink-0 mt-0.5 ml-3"></i>
       </div>
       ${isCycleNext ? `
-        <div class="mt-3.5">
+        <div class="mt-3.5 space-y-2">
           <button data-action="register-off-day"
                   class="ripple-target w-full py-2.5 rounded-xl border border-zinc-800 bg-zinc-900/60
                          text-[10px] text-zinc-500 font-black uppercase tracking-wide
                          hover:border-zinc-700 hover:text-zinc-400 transition-all active:scale-[0.98]
                          flex items-center justify-center gap-1.5">
             <i data-lucide="check" class="w-3 h-3"></i> Confirmar Descanso
+          </button>
+          <button data-action="open-workout-picker"
+                  class="ripple-target w-full py-2 rounded-xl border border-zinc-800/40
+                         text-[9px] text-zinc-600 font-bold
+                         hover:text-zinc-400 transition-all active:scale-[0.98]">
+            Treinar mesmo assim →
           </button>
         </div>` : ''}
     </div>
@@ -728,5 +774,15 @@ export function mountDashboard(container, handler) {
   delegate(container, '[data-action="goto-tab"]', 'click', (e, el) => {
     createRipple(e, el);
     handler('goto-tab', el.dataset.payload);
+  });
+
+  delegate(container, '[data-action="toggle-section"]', 'click', (e, el) => {
+    createRipple(e, el);
+    handler('toggle-section', el.dataset.sectionId);
+  });
+
+  delegate(container, '[data-action="import-pdf"]', 'click', (e, el) => {
+    createRipple(e, el);
+    handler('import-pdf');
   });
 }

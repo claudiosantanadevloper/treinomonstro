@@ -340,18 +340,21 @@ export class WorkoutController {
     const wrapping = nextPos === 0 && cycleOrder.length > 0;
 
     this.#timer.stop();
-    this.#store.setState({
+    this.#store.setState(s => ({
       history:               newHistory,
       cycleDone:             wrapping ? [] : newCycleDone,
       cycleStart:            wrapping ? null : cycleStart,
       workoutStartTime:      null,
+      workoutId:             null,
+      // Limpa os logs do treino encerrado — histórico persiste em history[].sets
+      logs: { ...s.logs, [w.id]: {} },
       activeModal:           'battle-report',
       modalData:             stats,
       cyclePosition:         nextPos,
       completedCycles:       newCompletedCycles,
       achievements:          newAchievements.length ? [...earned, ...newAchievements] : earned,
       commuteReturnOverride: null,
-    });
+    }));
   }
 
   /* ─── RPE por série ─────────────────────────────────────────── */

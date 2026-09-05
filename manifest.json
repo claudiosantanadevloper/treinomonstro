@@ -1,7 +1,7 @@
 {
-  "name": "Final Form ForjaFit",
-  "short_name": "ForjaFit",
-  "description": "Sistema de treino pessoal — modo batalha",
+  "name": "Treino Monstro",
+  "short_name": "Treino Monstro",
+  "description": "Seu tracker de treino pessoal — modo monstro",
   "start_url": "./",
   "scope": "./",
   "display": "standalone",

@@ -91,12 +91,20 @@ function renderCycleCompleteBanner(weekCount, cycleGoal) {
             Reinicie o ciclo para continuar progredindo
           </div>
         </div>
-        <button data-action="start-new-week"
-                class="ripple-target shrink-0 px-3 py-2 bg-green-900/40 border border-green-700/60
-                       text-green-400 text-[10px] font-black rounded-xl uppercase tracking-wider
-                       active:scale-95 transition-all hover:bg-green-800/40 whitespace-nowrap">
-          Novo Ciclo
-        </button>
+        <div class="flex flex-col gap-1.5 shrink-0">
+          <button data-action="start-new-week"
+                  class="ripple-target px-3 py-2 bg-green-900/40 border border-green-700/60
+                         text-green-400 text-[10px] font-black rounded-xl uppercase tracking-wider
+                         active:scale-95 transition-all hover:bg-green-800/40 whitespace-nowrap">
+            Novo Ciclo
+          </button>
+          <button data-action="goto-tab" data-payload="treinar"
+                  class="ripple-target px-3 py-1.5 bg-transparent border border-zinc-700/40
+                         text-zinc-500 text-[9px] font-bold rounded-lg uppercase tracking-wider
+                         active:scale-95 transition-all whitespace-nowrap">
+            Ver Treinos
+          </button>
+        </div>
       </div>
     </div>
   `;
@@ -112,16 +120,22 @@ function renderOnboardingBanner(history, cycleDone, L) {
                     flex items-center justify-center shrink-0 mt-0.5">
           <i data-lucide="zap" class="w-5 h-5 text-theme-primary"></i>
         </div>
-        <div class="min-w-0">
+        <div class="flex-1 min-w-0">
           <div class="text-[10px] font-black text-theme-primary uppercase tracking-widest mb-0.5">
-            BEM-VINDO, SHINOBI
+            BEM-VINDO
           </div>
           <div class="text-sm font-bold text-white leading-snug mb-1">
             Seu primeiro treino está esperando
           </div>
-          <div class="text-[10px] text-zinc-500 leading-relaxed">
-            Vá até TREINOS, escolha um protocolo e comece a forjar seu poder.
+          <div class="text-[10px] text-zinc-500 leading-relaxed mb-2.5">
+            Escolha um protocolo e comece a forjar seu poder.
           </div>
+          <button data-action="goto-workouts"
+                  class="ripple-target inline-flex items-center gap-1.5 px-4 py-2 btn-akatsuki
+                         rounded-xl text-[10px] font-black uppercase tracking-wider active:scale-95 transition-all">
+            <i data-lucide="dumbbell" class="w-3.5 h-3.5"></i>
+            Ir para Treinos
+          </button>
         </div>
       </div>
     </div>
@@ -188,7 +202,15 @@ function renderStreakRisk(streak, history, cardioHistory, cardioCountsStreak, L,
             ${streak} dia${streak !== 1 ? 's' : ''} — treine hoje!
           </div>
         </div>
-        <div class="text-2xl font-black font-mono text-orange-400 shrink-0">${streak}</div>
+        <div class="flex flex-col items-end gap-1.5 shrink-0">
+          <div class="text-2xl font-black font-mono text-orange-400">${streak}</div>
+          <button data-action="goto-workouts"
+                  class="ripple-target px-3 py-1.5 bg-orange-900/30 border border-orange-800/50
+                         text-orange-400 text-[9px] font-black rounded-lg uppercase tracking-wider
+                         active:scale-95 transition-all whitespace-nowrap">
+            Treinar →
+          </button>
+        </div>
       </div>
     </div>
   `;
@@ -259,18 +281,25 @@ function renderMissionBlock(nextWorkout, cycleDone, history, defaultProtocol, ca
   if (nextIsOff) {
     // Dia Off programado no ciclo
     workoutRow = `
-      <div class="flex items-center justify-between gap-3 bg-zinc-900/40 rounded-xl px-3 py-3 border border-zinc-800/40">
-        <div class="min-w-0 flex-1">
-          <div class="text-[9px] text-zinc-700 uppercase tracking-wider flex items-center gap-1 mb-0.5">
-            <i data-lucide="moon" class="w-2.5 h-2.5"></i> DESCANSO
+      <div class="bg-zinc-900/40 rounded-xl px-3 py-3 border border-zinc-800/40">
+        <div class="flex items-center justify-between gap-3">
+          <div class="min-w-0 flex-1">
+            <div class="text-[9px] text-zinc-700 uppercase tracking-wider flex items-center gap-1 mb-0.5">
+              <i data-lucide="moon" class="w-2.5 h-2.5"></i> DESCANSO
+            </div>
+            <div class="text-sm font-bold text-zinc-500">Dia Off programado</div>
+            <div class="text-[9px] text-zinc-700 font-mono mt-0.5">Recuperação · Sono · Alimentação</div>
           </div>
-          <div class="text-sm font-bold text-zinc-500">Dia Off programado</div>
-          <div class="text-[9px] text-zinc-700 font-mono mt-0.5">Recuperação · Sono · Alimentação</div>
+          <button data-action="register-off-day"
+                  class="ripple-target shrink-0 px-3 py-2 bg-zinc-800/60 border border-zinc-700
+                         text-zinc-400 text-[10px] font-black rounded-xl active:scale-95 transition-all">
+            Confirmar
+          </button>
         </div>
-        <button data-action="register-off-day"
-                class="ripple-target shrink-0 px-3 py-2 bg-zinc-800/60 border border-zinc-700
-                       text-zinc-400 text-[10px] font-black rounded-xl active:scale-95 transition-all">
-          Confirmar
+        <button data-action="goto-workouts"
+                class="ripple-target mt-2 w-full py-1.5 text-[9px] text-zinc-600 font-bold
+                       border border-zinc-800/60 rounded-lg hover:text-zinc-400 active:scale-95 transition-all">
+          Treinar mesmo assim →
         </button>
       </div>`;
   } else if (!nextWorkout) {

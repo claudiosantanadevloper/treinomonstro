@@ -1,5 +1,5 @@
 export const PERSISTED_KEYS = [
-  'logs', 'history', 'cycleDone', 'cycleStart', 'prs', 'theme', 'workoutStartTime',
+  'logs', 'history', 'cycleDone', 'cycleStart', 'prs', 'theme', 'workoutId', 'workoutStartTime',
   'bodyWeights', 'cycleGoal', 'biometrics', 'bioHistory', 'customWorkouts',
   'workoutExercises', 'workoutMeta', 'appMode', 'userName', 'projectName',
   'lightMode', 'activityLevel', 'hiddenSections', 'weekPlan', 'circumHistory',

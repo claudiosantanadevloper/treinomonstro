@@ -5,6 +5,7 @@ PWA workout tracker gamificado · Vanilla JS ES Modules · Tailwind CDN · local
 **Usuário:** Cláudio Santana · **Projeto:** NINJINHA BOM DE BRIGA
 
 **Docs:** `docs/00-visao-geral.md` · `docs/01-arquitetura.md` · `docs/HISTORY.md`
+**Atleta:** `docs/objetos/Claudio.md` — perfil completo, metas, programa, algoritmo de bulk
 **IA:** `.claude/README.md` · `.claude/skills/` · `.claude/agents/`
 
 ---
@@ -103,6 +104,18 @@ cycleOrder = ['1','2','3',null,'4','5','6',null]
 - [x] Skip exercise: vol/breakdown/MVP/progressionChips excluídos OK
 - [x] Timer: workoutStartTime persistido OK · elapsed imediato OK · separação rest/treino OK
 - [x] Ordem de exercícios todos os 6 treinos: nenhuma correção obrigatória
+
+**v6.7 — Set/2026:**
+
+- [x] Undo botão série: removido timeout 3s → botão rosa permanente durante sessão
+- [x] BattleReportView.js extraído do God Class AppController (~260 linhas)
+- [x] instalar.html: página PWA com QR Code, detecção iOS/Android, beforeinstallprompt
+- [x] seed_julio.html: seed completo com dados Pollock 7 dobras do Júlio (PDF)
+- [x] Settings: card "Instalar no Celular" + botão compartilhar link
+- [x] workouts.js: PPL redesenhado para Cláudio — 208 séries/ciclo com volumes corretos
+  - Push A 32s · Legs A 34s · Pull A 36s · Push B 36s · Legs B 38s · Pull B 32s
+  - Ordem por ativação/hipertrofia · nota assimetria coxa E no Afundo Smith
+- [x] Claudio.md: volumes corrigidos + hierarquia suplementação + algoritmo calórico
 
 **Próximas melhorias sugeridas:**
 - [ ] Carga anterior visível durante treino (última sessão por série — alto impacto)
