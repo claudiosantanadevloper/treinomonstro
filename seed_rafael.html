@@ -3,204 +3,70 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>SEED — RAFAEL · v1.0</title>
+    <title>SEED — RAFAEL · v2.0</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
-      :root {
-        --accent: #22c55e;
-      } /* Green for beginner/adaptation phase */
-      body {
-        background: #09090b;
-        color: #fff;
-        font-family: "ui-monospace", monospace;
-      }
+      :root { --accent: #22c55e; }
+      body { background: #09090b; color: #fff; font-family: "ui-monospace", monospace; }
       .input-s {
-        background: rgba(39, 39, 42, 0.9);
-        border: 1px solid #3f3f46;
-        border-radius: 8px;
-        padding: 10px 12px;
-        width: 100%;
-        color: #fff;
-        font-family: inherit;
-        font-size: 13px;
-        text-align: center;
-        transition: border-color 0.15s;
+        background: rgba(39,39,42,0.9); border: 1px solid #3f3f46; border-radius: 8px;
+        padding: 10px 12px; width: 100%; color: #fff; font-family: inherit;
+        font-size: 13px; text-align: center; transition: border-color 0.15s;
       }
-      .input-s:focus {
-        outline: none;
-        border-color: var(--accent);
-      }
-      .input-s:read-only {
-        opacity: 0.45;
-        cursor: default;
-      }
-      .input-s::placeholder {
-        color: #52525b;
-      }
+      .input-s:focus { outline: none; border-color: var(--accent); }
       .section-title {
-        font-size: 9px;
-        font-weight: 900;
-        text-transform: uppercase;
-        letter-spacing: 0.12em;
-        color: #71717a;
-        margin-bottom: 10px;
-        display: flex;
-        align-items: center;
-        gap: 6px;
+        font-size: 9px; font-weight: 900; text-transform: uppercase;
+        letter-spacing: 0.12em; color: #71717a; margin-bottom: 10px;
+        display: flex; align-items: center; gap: 6px;
       }
-      .section-title::before {
-        content: "";
-        display: block;
-        height: 1px;
-        width: 12px;
-        background: #3f3f46;
-      }
-      .glass {
-        background: rgba(24, 24, 27, 0.8);
-        border: 1px solid #27272a;
-        border-radius: 16px;
-        padding: 16px;
-      }
+      .section-title::before { content:""; display:block; height:1px; width:12px; background:#3f3f46; }
+      .glass { background:rgba(24,24,27,0.8); border:1px solid #27272a; border-radius:16px; padding:16px; }
       .btn-seed {
-        width: 100%;
-        padding: 14px;
-        background: var(--accent);
-        color: #000;
-        font-weight: 900;
-        font-size: 13px;
-        text-transform: uppercase;
-        letter-spacing: 0.1em;
-        border: none;
-        border-radius: 14px;
-        cursor: pointer;
-        transition:
-          opacity 0.15s,
-          transform 0.1s;
-        box-shadow: 0 0 24px rgba(34, 197, 94, 0.35);
+        width:100%; padding:14px; background:var(--accent); color:#000; font-weight:900;
+        font-size:13px; text-transform:uppercase; letter-spacing:0.1em; border:none;
+        border-radius:14px; cursor:pointer; transition:opacity 0.15s,transform 0.1s;
+        box-shadow:0 0 24px rgba(34,197,94,0.35);
       }
-      .btn-seed:active {
-        transform: scale(0.97);
-        opacity: 0.9;
-      }
-      .field-label {
-        font-size: 9px;
-        font-weight: 700;
-        text-transform: uppercase;
-        letter-spacing: 0.08em;
-        color: #52525b;
-        margin-bottom: 4px;
-      }
-      .badge {
-        display: inline-block;
-        padding: 2px 8px;
-        border-radius: 999px;
-        font-size: 9px;
-        font-weight: 700;
-        text-transform: uppercase;
-        letter-spacing: 0.06em;
-      }
-      #result {
-        display: none;
-        background: rgba(21, 128, 61, 0.15);
-        border: 1px solid rgba(21, 128, 61, 0.4);
-        border-radius: 12px;
-        padding: 16px;
-        text-align: center;
-        margin-top: 12px;
-      }
-      .workout-card {
-        background: rgba(39, 39, 42, 0.5);
-        border: 1px solid #27272a;
-        border-radius: 10px;
-        padding: 10px;
-        font-size: 9px;
-      }
-      .workout-card .title {
-        color: #fff;
-        font-weight: 700;
-        font-size: 10px;
-      }
-      .workout-card .sub {
-        color: #52525b;
-        margin-top: 2px;
-      }
+      .btn-seed:active { transform:scale(0.97); opacity:0.9; }
+      .field-label { font-size:9px; font-weight:700; text-transform:uppercase; letter-spacing:0.08em; color:#52525b; margin-bottom:4px; }
+      .badge { display:inline-block; padding:2px 8px; border-radius:999px; font-size:9px; font-weight:700; text-transform:uppercase; letter-spacing:0.06em; }
+      #result { display:none; background:rgba(21,128,61,0.15); border:1px solid rgba(21,128,61,0.4); border-radius:12px; padding:16px; text-align:center; margin-top:12px; }
+      .micro-card { background:rgba(39,39,42,0.5); border:1px solid #27272a; border-radius:10px; padding:10px; margin-bottom:8px; }
+      .micro-card .phase { font-size:8px; font-weight:900; text-transform:uppercase; letter-spacing:0.1em; color:#22c55e; margin-bottom:3px; }
+      .micro-card .exercises { font-size:9px; color:#71717a; margin-top:4px; line-height:1.6; }
+      .micro-card .badge-load { display:inline-block; font-size:8px; font-weight:700; padding:1px 6px; border-radius:4px; background:rgba(34,197,94,0.1); border:1px solid rgba(34,197,94,0.3); color:#4ade80; }
+      .cardio-badge { display:inline-block; font-size:8px; font-weight:700; padding:1px 6px; border-radius:4px; background:rgba(6,182,212,0.1); border:1px solid rgba(6,182,212,0.3); color:#67e8f9; }
     </style>
   </head>
   <body class="min-h-screen pb-16">
     <div class="max-w-lg mx-auto px-4 pt-8 space-y-4">
+
       <!-- Header -->
       <div class="text-center mb-6">
-        <div class="text-[10px] font-black tracking-[.2em] text-green-500 mb-1">
-          ⬡ PROGRAMA DE ADAPTAÇÃO ⬡
-        </div>
-        <h1 class="text-3xl font-black tracking-tight">SEED DE DADOS</h1>
-        <p class="text-[11px] text-zinc-500 mt-2">
-          v1.0 · 03/08/2026 · grava tudo no localStorage
-        </p>
+        <div class="text-[10px] font-black tracking-[.2em] text-green-500 mb-1">⬡ PROGRAMA DE ADAPTAÇÃO · 6 MICROCICLOS ⬡</div>
+        <h1 class="text-3xl font-black tracking-tight">SEED — RAFAEL</h1>
+        <p class="text-[11px] text-zinc-500 mt-2">v2.0 · Full Body Circuit · 28/07 → 01/09/2026</p>
         <div class="mt-3 flex gap-2 justify-center flex-wrap">
-          <span
-            class="badge"
-            style="
-              background: rgba(34, 197, 94, 0.1);
-              border: 1px solid rgba(34, 197, 94, 0.3);
-              color: #4ade80;
-            "
-            >Rafael · Iniciante</span
-          >
-          <span
-            class="badge"
-            style="
-              background: rgba(39, 39, 42, 0.8);
-              border: 1px solid #3f3f46;
-              color: #a1a1aa;
-            "
-            >Avaliação: 03/08/2026</span
-          >
+          <span class="badge" style="background:rgba(34,197,94,0.1);border:1px solid rgba(34,197,94,0.3);color:#4ade80;">Rafael · Iniciante</span>
+          <span class="badge" style="background:rgba(6,182,212,0.1);border:1px solid rgba(6,182,212,0.3);color:#67e8f9;">Full Body + HIIT</span>
+          <span class="badge" style="background:rgba(39,39,42,0.8);border:1px solid #3f3f46;color:#a1a1aa;">6 Microciclos</span>
         </div>
-        <a
-          href="index.html"
-          class="text-[10px] text-green-500/50 hover:text-green-400 mt-3 inline-block"
-          >← voltar ao app</a
-        >
+        <a href="index.html" class="text-[10px] text-green-500/50 hover:text-green-400 mt-3 inline-block">← voltar ao app</a>
       </div>
 
       <!-- O que será gravado -->
-      <div
-        class="glass"
-        style="
-          border-color: rgba(59, 130, 246, 0.3);
-          background: rgba(59, 130, 246, 0.05);
-        "
-      >
-        <div
-          class="text-[10px] text-blue-300/80 font-bold uppercase tracking-wider mb-2"
-        >
-          O que será gravado
-        </div>
+      <div class="glass" style="border-color:rgba(59,130,246,0.3);background:rgba(59,130,246,0.05);">
+        <div class="text-[10px] text-blue-300/80 font-bold uppercase tracking-wider mb-2">O que será gravado</div>
         <div class="text-[10px] text-zinc-400 space-y-1">
-          <div>
-            ✓ <b>customWorkouts</b> — 2 treinos: Micro 1 (70% RM) e Micro 2 (80%
-            RM)
-          </div>
-          <div>
-            ✓ <b>biometrics</b> — dados básicos do formulário (peso, altura)
-          </div>
-          <div>
-            ✓ <b>bioHistory</b> — avaliação inicial como primeira entrada
-            histórica
-          </div>
-          <div>✓ <b>bodyWeights</b> — peso atual informado</div>
+          <div>✓ <b>customWorkouts</b> — 6 microciclos completos (Micro 1–6)</div>
+          <div>✓ <b>cycleOrder</b> — sequência linear dos 6 microciclos</div>
+          <div>✓ <b>biometrics / bioHistory</b> — peso e altura informados</div>
+          <div>✓ <b>bodyWeights</b> — peso atual</div>
           <div>✓ <b>userName / projectName</b> — RAFAEL</div>
-          <div>✓ <b>cycleOrder</b> — Micro 1 → Micro 2</div>
-          <div>
-            ✓ <b>trainingStyle</b> — fullbody (para refletir o circuito)
-          </div>
-          <div>✓ <b>experience</b> — iniciante</div>
-          <div>✓ <b>activityLevel</b> — 1.375 (leve · 1-3×/sem)</div>
-          <div>
-            ✓ <b>settings</b> — incremento 1kg · descanso 60s · autofill OFF
-          </div>
-          <div>✓ <b>onboardingCompleted</b> — true (pula o wizard)</div>
+          <div>✓ <b>trainingStyle</b> — fullbody · <b>goal</b> — condicionamento + recomposição</div>
+          <div>✓ <b>experience</b> — iniciante · <b>activityLevel</b> — 1.375</div>
+          <div>✓ <b>settings</b> — rest 60s · inc 1kg · autoFill OFF</div>
+          <div>✓ <b>onboardingCompleted</b> — true</div>
         </div>
       </div>
 
@@ -221,16 +87,11 @@
 
       <!-- Biometria -->
       <div class="glass space-y-3">
-        <div class="section-title">Avaliação Física — 03/08/2026</div>
+        <div class="section-title">Avaliação Física — 28/07/2026</div>
         <div class="grid grid-cols-2 gap-3">
           <div>
             <div class="field-label">Peso Atual (kg)</div>
-            <input
-              class="input-s"
-              id="weight"
-              value=""
-              placeholder="ex: 75.5"
-            />
+            <input class="input-s" id="weight" value="" placeholder="ex: 75.5" />
           </div>
           <div>
             <div class="field-label">Altura (cm)</div>
@@ -238,408 +99,309 @@
           </div>
           <div>
             <div class="field-label">% Gordura</div>
-            <input
-              class="input-s"
-              id="bodyFat"
-              value=""
-              placeholder="(opcional)"
-            />
+            <input class="input-s" id="bodyFat" value="" placeholder="(opcional)" />
           </div>
           <div>
             <div class="field-label">Peso Desejável (kg)</div>
-            <input
-              class="input-s"
-              id="targetWeight"
-              value=""
-              placeholder="(opcional)"
-            />
+            <input class="input-s" id="targetWeight" value="" placeholder="(opcional)" />
           </div>
         </div>
         <div>
-          <div class="field-label">Data do registro (hoje)</div>
+          <div class="field-label">Data do registro</div>
           <input class="input-s" id="bioDate" type="date" />
         </div>
       </div>
 
-      <!-- Programa de Treino -->
-      <div class="glass space-y-3">
-        <div class="section-title">Programa de Treino — 2 Microciclos</div>
-        <div class="space-y-4">
-          <div class="workout-card">
-            <div class="title">Microciclo 1 (28/07)</div>
-            <div class="sub">8 exercícios · 2 séries × 10 reps · 70% RM</div>
-          </div>
-          <div class="workout-card">
-            <div class="title">Microciclo 2 (03/08)</div>
-            <div class="sub">8 exercícios · 2 séries × 8 reps · 80% RM</div>
+      <!-- Programa -->
+      <div class="glass space-y-2">
+        <div class="section-title">Programa — 6 Microciclos Full Body Circuit</div>
+        <div class="text-[9px] text-cyan-400/70 mb-3">
+          Estrutura por sessão: Esteira HIIT 5min → 2 exercícios → 4× (intercalado)<br>
+          Progressão: volume ↑ e carga ↑ a cada microciclo
+        </div>
+
+        <div class="micro-card">
+          <div class="phase">Micro 1 · 28/07 · Adaptação</div>
+          <span class="badge-load">2×10 · 70% RM</span>
+          <div class="exercises">
+            Peck Deck 45kg · Leg Press 100kg<br>
+            Pulley Frente 40kg · Mesa Flexora 45kg<br>
+            Tríceps Pulley 40kg · Cadeira Extensora 40kg<br>
+            Rosca Direta 20kg · Elevação Frontal 10kg
           </div>
         </div>
-        <div class="text-[9px] text-zinc-600 mt-3">
-          Ordem do ciclo:
-          <span class="text-green-400 font-mono"
-            >['rafael_micro1', 'rafael_micro2']</span
-          >
+
+        <div class="micro-card">
+          <div class="phase">Micro 2 · 03/08 · Intensidade</div>
+          <span class="badge-load">2×8 · 80% RM</span>
+          <div class="exercises">
+            Supino Reto 20kg · Agachamento Livre 30kg<br>
+            Remada Horizontal 45kg · Stiff 30kg<br>
+            Tríceps Testa 35kg · Panturrilha 35kg<br>
+            Rosca Direta 20kg · Desenvolvimento 20kg
+          </div>
+        </div>
+
+        <div class="micro-card">
+          <div class="phase">Micro 3 · 09/08 · Consolidação A</div>
+          <span class="badge-load">2×10 · 80% RM</span>
+          <div class="exercises">
+            Peck Deck 40kg · Leg Press 120kg<br>
+            Pulley Frente 45kg · Mesa Flexora 25kg<br>
+            Tríceps Pulley 50kg · Cadeira Extensora 25kg<br>
+            Rosca Direta 24kg · Elevação Frontal 12kg
+          </div>
+        </div>
+
+        <div class="micro-card">
+          <div class="phase">Micro 4 · 17/08 · Consolidação B</div>
+          <span class="badge-load">2×10 · 80% RM</span>
+          <div class="exercises">
+            Supino Reto 20kg · Agachamento Livre 30kg<br>
+            Remada Horizontal 45kg · Stiff 30kg<br>
+            Tríceps Testa 35kg · Panturrilha 35kg<br>
+            Rosca Direta 20kg · Desenvolvimento 20kg
+          </div>
+        </div>
+
+        <div class="micro-card">
+          <div class="phase">Micro 5 · 24/08 · Variação A</div>
+          <span class="badge-load">2×12 · 80% RM</span>
+          <div class="exercises">
+            Crucifixo 15kg · Leg Press 120kg<br>
+            Crossover 40kg · Mesa Flexora 25kg<br>
+            Tríceps Pulley 50kg · Cadeira Extensora 25kg<br>
+            Rosca Direta 25kg · Desenvolvimento 15kg
+          </div>
+        </div>
+
+        <div class="micro-card">
+          <div class="phase">Micro 6 · 01/09 · Variação B</div>
+          <span class="badge-load">2×12 · 80% RM</span>
+          <div class="exercises">
+            Supino Reto 20kg · Agachamento Livre 30kg<br>
+            Remada Horizontal 45kg · Stiff 30kg<br>
+            Tríceps Testa 35kg · Pulley Frente 45kg<br>
+            Elevação Lateral 15kg · Desenvolvimento 20kg
+          </div>
+        </div>
+
+        <div class="text-[9px] text-zinc-600 mt-2">
+          Ciclo: <span class="text-green-400 font-mono">micro1 → micro2 → micro3 → micro4 → micro5 → micro6</span>
         </div>
       </div>
 
       <!-- Botão -->
-      <button class="btn-seed" onclick="seedData()">
-        ⬡ GRAVAR TUDO NO APP
-      </button>
+      <button class="btn-seed" onclick="seedData()">⬡ GRAVAR TUDO NO APP</button>
 
       <div id="result">
-        <div class="text-green-400 font-black text-sm mb-2">
-          ✓ ATLETA REGISTRADO COM SUCESSO
-        </div>
-        <div
-          id="result-detail"
-          class="text-[10px] text-zinc-400 mb-4 space-y-1 text-left"
-        ></div>
-        <a
-          href="index.html"
-          class="inline-block px-6 py-3 rounded-xl font-black text-xs uppercase tracking-widest transition-all"
-          style="
-            background: rgba(34, 197, 94, 0.2);
-            border: 1px solid rgba(34, 197, 94, 0.4);
-            color: #4ade80;
-          "
-        >
+        <div class="text-green-400 font-black text-sm mb-2">✓ ATLETA REGISTRADO COM SUCESSO</div>
+        <div id="result-detail" class="text-[10px] text-zinc-400 mb-4 space-y-1 text-left"></div>
+        <a href="index.html" class="inline-block px-6 py-3 rounded-xl font-black text-xs uppercase tracking-widest transition-all"
+           style="background:rgba(34,197,94,0.2);border:1px solid rgba(34,197,94,0.4);color:#4ade80;">
           ABRIR O APP →
         </a>
       </div>
 
-      <!-- Preview -->
-      <div class="glass mt-4">
-        <div class="section-title">Preview — customWorkouts (gravação)</div>
-        <pre
-          id="preview"
-          class="text-[9px] text-zinc-500 overflow-auto max-h-96 leading-5"
-        ></pre>
-      </div>
     </div>
 
     <script>
-      const PREFIX = "monstro_v2_";
+      const PREFIX = 'monstro_v2_';
 
-      // Definição dos treinos customizados para Rafael
+      // Helper para nota do HIIT por microciclo
+      function hiitNote(km1, km2, km3, km4) {
+        return `⚡ ANTES deste bloco: Esteira 5min — 1'@${km1}km · 1'@${km2}km · 1'@${km3}km · 1'@${km4}km · 1'@${km1}km`;
+      }
+
       const WORKOUTS_RAFAEL = [
+        // ── MICRO 1 · 28/07 · Adaptação · 2×10 · 70% RM ──────────────────
         {
-          id: "rafael_micro1",
-          name: "Microciclo 1",
-          icon: "activity",
-          isCustom: true,
+          id: 'rafael_micro1', name: 'Micro 1 — Adaptação', icon: 'zap', isCustom: true,
           exercises: [
-            {
-              id: "cex_1_1",
-              name: "Peck Deck",
-              sets: 2,
-              reps: "10",
-              rest: 60,
-              note: "Carga: 45kg (70% RM)",
-            },
-            {
-              id: "cex_1_2",
-              name: "Leg Press 90°",
-              sets: 2,
-              reps: "10",
-              rest: 60,
-              note: "Carga: 100kg (70% RM)",
-            },
-            {
-              id: "cex_1_3",
-              name: "Pulley Frente",
-              sets: 2,
-              reps: "10",
-              rest: 60,
-              note: "Carga: 40kg (70% RM)",
-            },
-            {
-              id: "cex_1_4",
-              name: "Mesa Flexora",
-              sets: 2,
-              reps: "10",
-              rest: 60,
-              note: "Carga: 45kg (70% RM)",
-            },
-            {
-              id: "cex_1_5",
-              name: "Tríceps Pulley",
-              sets: 2,
-              reps: "10",
-              rest: 60,
-              note: "Carga: 40kg (70% RM)",
-            },
-            {
-              id: "cex_1_6",
-              name: "Cadeira Extensora",
-              sets: 2,
-              reps: "10",
-              rest: 60,
-              note: "Carga: 40kg (70% RM)",
-            },
-            {
-              id: "cex_1_7",
-              name: "Rosca Direta",
-              sets: 2,
-              reps: "10",
-              rest: 60,
-              note: "Carga: 20kg (70% RM)",
-            },
-            {
-              id: "cex_1_8",
-              name: "Elevação Frontal",
-              sets: 2,
-              reps: "10",
-              rest: 60,
-              note: "Carga: 10kg (70% RM)",
-            },
-          ],
+            { id:'rm1_1', name:'Peck Deck',         sets:2, reps:'10', rest:60, note: hiitNote(5,6,7,8) + '\nCarga: 45kg (70% RM)' },
+            { id:'rm1_2', name:'Leg Press 90°',     sets:2, reps:'10', rest:60, note:'Carga: 100kg (70% RM)' },
+            { id:'rm1_3', name:'Pulley Frente',     sets:2, reps:'10', rest:60, note: hiitNote(5,6,7,8) + '\nCarga: 40kg (70% RM)' },
+            { id:'rm1_4', name:'Mesa Flexora',      sets:2, reps:'10', rest:60, note:'Carga: 45kg (70% RM)' },
+            { id:'rm1_5', name:'Tríceps Pulley',    sets:2, reps:'10', rest:60, note: hiitNote(5,6,7,8) + '\nCarga: 40kg (70% RM)' },
+            { id:'rm1_6', name:'Cadeira Extensora', sets:2, reps:'10', rest:60, note:'Carga: 40kg (70% RM)' },
+            { id:'rm1_7', name:'Rosca Direta',      sets:2, reps:'10', rest:60, note: hiitNote(5,6,7,8) + '\nCarga: 20kg (70% RM)' },
+            { id:'rm1_8', name:'Elevação Frontal',  sets:2, reps:'10', rest:60, note:'Carga: 10kg (70% RM)' },
+          ]
         },
+
+        // ── MICRO 2 · 03/08 · Intensidade · 2×8 · 80% RM ─────────────────
         {
-          id: "rafael_micro2",
-          name: "Microciclo 2",
-          icon: "zap",
-          isCustom: true,
+          id: 'rafael_micro2', name: 'Micro 2 — Intensidade', icon: 'trending-up', isCustom: true,
           exercises: [
-            {
-              id: "cex_2_1",
-              name: "Supino Reto",
-              sets: 2,
-              reps: "8",
-              rest: 90,
-              note: "Carga: 15kg (80% RM)",
-            },
-            {
-              id: "cex_2_2",
-              name: "Agachamento Livre",
-              sets: 2,
-              reps: "8",
-              rest: 90,
-              note: "Carga: 30kg (80% RM)",
-            },
-            {
-              id: "cex_2_3",
-              name: "Remada Horizontal",
-              sets: 2,
-              reps: "8",
-              rest: 90,
-              note: "Carga: 40kg (80% RM)",
-            },
-            {
-              id: "cex_2_4",
-              name: "Stiff",
-              sets: 2,
-              reps: "8",
-              rest: 90,
-              note: "Carga: 30kg (80% RM)",
-            },
-            {
-              id: "cex_2_5",
-              name: "Tríceps Testa",
-              sets: 2,
-              reps: "8",
-              rest: 90,
-              note: "Carga: 16kg (80% RM)",
-            },
-            {
-              id: "cex_2_6",
-              name: "Panturrilha",
-              sets: 2,
-              reps: "8",
-              rest: 60,
-              note: "Carga: 50kg (80% RM)",
-            },
-            {
-              id: "cex_2_7",
-              name: "Rosca Direta",
-              sets: 2,
-              reps: "8",
-              rest: 90,
-              note: "Carga: 20kg (80% RM)",
-            },
-            {
-              id: "cex_2_8",
-              name: "Desenvolvimento",
-              sets: 2,
-              reps: "8",
-              rest: 90,
-              note: "Carga: 20kg (80% RM)",
-            },
-          ],
+            { id:'rm2_1', name:'Supino Reto',        sets:2, reps:'8', rest:90, note: hiitNote(5.5,6.3,7.5,8.5) + '\nCarga: 20kg (80% RM)' },
+            { id:'rm2_2', name:'Agachamento Livre',  sets:2, reps:'8', rest:90, note:'Carga: 30kg (80% RM)' },
+            { id:'rm2_3', name:'Remada Horizontal',  sets:2, reps:'8', rest:90, note: hiitNote(5.5,6.3,7.5,8.5) + '\nCarga: 45kg (80% RM)' },
+            { id:'rm2_4', name:'Stiff',              sets:2, reps:'8', rest:90, note:'Carga: 30kg (80% RM)' },
+            { id:'rm2_5', name:'Tríceps Testa',      sets:2, reps:'8', rest:90, note: hiitNote(5.5,6.3,7.5,8.5) + '\nCarga: 35kg (80% RM)' },
+            { id:'rm2_6', name:'Panturrilha',        sets:2, reps:'8', rest:60, note:'Carga: 35kg (80% RM)' },
+            { id:'rm2_7', name:'Rosca Direta',       sets:2, reps:'8', rest:90, note: hiitNote(5.5,6.3,7.5,8.5) + '\nCarga: 20kg (80% RM)' },
+            { id:'rm2_8', name:'Desenvolvimento',    sets:2, reps:'8', rest:90, note:'Carga: 20kg (80% RM)' },
+          ]
+        },
+
+        // ── MICRO 3 · 09/08 · Consolidação A · 2×10 · 80% RM ─────────────
+        {
+          id: 'rafael_micro3', name: 'Micro 3 — Consolidação A', icon: 'activity', isCustom: true,
+          exercises: [
+            { id:'rm3_1', name:'Peck Deck',         sets:2, reps:'10', rest:90, note: hiitNote(5.5,7,7.5,8) + '\nCarga: 40kg (80% RM)' },
+            { id:'rm3_2', name:'Leg Press 90°',     sets:2, reps:'10', rest:90, note:'Carga: 120kg (80% RM)' },
+            { id:'rm3_3', name:'Pulley Frente',     sets:2, reps:'10', rest:90, note: hiitNote(5.5,7,7.5,8) + '\nCarga: 45kg (80% RM)' },
+            { id:'rm3_4', name:'Mesa Flexora',      sets:2, reps:'10', rest:90, note:'Carga: 25kg (80% RM)' },
+            { id:'rm3_5', name:'Tríceps Pulley',    sets:2, reps:'10', rest:90, note: hiitNote(5.5,7,7.5,8) + '\nCarga: 50kg (80% RM)' },
+            { id:'rm3_6', name:'Cadeira Extensora', sets:2, reps:'10', rest:90, note:'Carga: 25kg (80% RM)' },
+            { id:'rm3_7', name:'Rosca Direta',      sets:2, reps:'10', rest:90, note: hiitNote(5.5,7,7.5,8) + '\nCarga: 24kg (80% RM)' },
+            { id:'rm3_8', name:'Elevação Frontal',  sets:2, reps:'10', rest:90, note:'Carga: 12kg (80% RM)' },
+          ]
+        },
+
+        // ── MICRO 4 · 17/08 · Consolidação B · 2×10 · 80% RM ─────────────
+        {
+          id: 'rafael_micro4', name: 'Micro 4 — Consolidação B', icon: 'bar-chart-2', isCustom: true,
+          exercises: [
+            { id:'rm4_1', name:'Supino Reto',        sets:2, reps:'10', rest:90, note: hiitNote(5.5,6.3,7.5,8.5) + '\nCarga: 20kg (80% RM)' },
+            { id:'rm4_2', name:'Agachamento Livre',  sets:2, reps:'10', rest:90, note:'Carga: 30kg (80% RM)' },
+            { id:'rm4_3', name:'Remada Horizontal',  sets:2, reps:'10', rest:90, note: hiitNote(5.5,6.3,7.5,8.5) + '\nCarga: 45kg (80% RM)' },
+            { id:'rm4_4', name:'Stiff',              sets:2, reps:'8',  rest:90, note:'Carga: 30kg (80% RM)' },
+            { id:'rm4_5', name:'Tríceps Testa',      sets:2, reps:'10', rest:90, note: hiitNote(5.5,6.3,7.5,8.5) + '\nCarga: 35kg (80% RM)' },
+            { id:'rm4_6', name:'Panturrilha',        sets:2, reps:'10', rest:60, note:'Carga: 35kg (80% RM)' },
+            { id:'rm4_7', name:'Rosca Direta',       sets:2, reps:'10', rest:90, note: hiitNote(5.5,6.3,7.5,8.5) + '\nCarga: 20kg (80% RM)' },
+            { id:'rm4_8', name:'Desenvolvimento',    sets:2, reps:'10', rest:90, note:'Carga: 20kg (80% RM)' },
+          ]
+        },
+
+        // ── MICRO 5 · 24/08 · Variação A · 2×12 · 80% RM ─────────────────
+        {
+          id: 'rafael_micro5', name: 'Micro 5 — Variação A', icon: 'flame', isCustom: true,
+          exercises: [
+            { id:'rm5_1', name:'Crucifixo',          sets:2, reps:'12', rest:90, note: hiitNote(6,7,8,8.5) + '\nCarga: 15kg (80% RM)' },
+            { id:'rm5_2', name:'Leg Press 90°',      sets:2, reps:'12', rest:90, note:'Carga: 120kg (80% RM)' },
+            { id:'rm5_3', name:'Crossover',          sets:2, reps:'12', rest:90, note: hiitNote(6,7,8,8.5) + '\nCarga: 40kg (80% RM)' },
+            { id:'rm5_4', name:'Mesa Flexora',       sets:2, reps:'12', rest:90, note:'Carga: 25kg (80% RM)' },
+            { id:'rm5_5', name:'Tríceps Pulley',     sets:2, reps:'12', rest:90, note: hiitNote(6,7,8,8.5) + '\nCarga: 50kg (80% RM)' },
+            { id:'rm5_6', name:'Cadeira Extensora',  sets:2, reps:'12', rest:90, note:'Carga: 25kg (80% RM)' },
+            { id:'rm5_7', name:'Rosca Direta',       sets:2, reps:'12', rest:90, note: hiitNote(6,7,8,8.5) + '\nCarga: 25kg (80% RM)' },
+            { id:'rm5_8', name:'Desenvolvimento',    sets:2, reps:'12', rest:90, note:'Carga: 15kg (80% RM)' },
+          ]
+        },
+
+        // ── MICRO 6 · 01/09 · Variação B · 2×12 · 80% RM ─────────────────
+        {
+          id: 'rafael_micro6', name: 'Micro 6 — Variação B', icon: 'trophy', isCustom: true,
+          exercises: [
+            { id:'rm6_1', name:'Supino Reto',        sets:2, reps:'12', rest:90, note: hiitNote(5.5,6.3,8,8.5) + '\nCarga: 20kg (80% RM)' },
+            { id:'rm6_2', name:'Agachamento Livre',  sets:2, reps:'12', rest:90, note:'Carga: 30kg (80% RM)' },
+            { id:'rm6_3', name:'Remada Horizontal',  sets:2, reps:'12', rest:90, note: hiitNote(5.5,6.3,8,8.5) + '\nCarga: 45kg (80% RM)' },
+            { id:'rm6_4', name:'Stiff',              sets:2, reps:'12', rest:90, note:'Carga: 30kg (80% RM)' },
+            { id:'rm6_5', name:'Tríceps Testa',      sets:2, reps:'12', rest:90, note: hiitNote(5.5,6.3,8,8.5) + '\nCarga: 35kg (80% RM)' },
+            { id:'rm6_6', name:'Pulley Frente',      sets:2, reps:'12', rest:90, note:'Carga: 45kg (80% RM)' },
+            { id:'rm6_7', name:'Elevação Lateral',   sets:2, reps:'12', rest:90, note: hiitNote(5.5,6.3,8,8.5) + '\nCarga: 15kg (80% RM)' },
+            { id:'rm6_8', name:'Desenvolvimento',    sets:2, reps:'12', rest:90, note:'Carga: 20kg (80% RM)' },
+          ]
         },
       ];
 
-      const CYCLE_ORDER = ["rafael_micro1", "rafael_micro2"];
+      const CYCLE_ORDER = [
+        'rafael_micro1','rafael_micro2','rafael_micro3',
+        'rafael_micro4','rafael_micro5','rafael_micro6'
+      ];
 
       function n(id) {
         const v = document.getElementById(id)?.value?.trim();
-        if (!v || v === "—") return undefined;
+        if (!v) return undefined;
         const f = parseFloat(v);
         return isNaN(f) ? undefined : f;
       }
 
       function clean(obj) {
-        return Object.fromEntries(
-          Object.entries(obj).filter(([, v]) => v !== undefined),
-        );
+        return Object.fromEntries(Object.entries(obj).filter(([,v]) => v !== undefined));
       }
 
       function buildCurrentBio() {
-        const dateVal = document.getElementById("bioDate").value;
+        const dateVal = document.getElementById('bioDate').value;
         return clean({
-          date: dateVal
-            ? new Date(dateVal + "T12:00:00").toISOString()
-            : new Date().toISOString(),
-          weight: n("weight"),
-          height: n("height"),
-          bodyFat: n("bodyFat"),
-          targetWeight: n("targetWeight"),
+          date: dateVal ? new Date(dateVal + 'T12:00:00').toISOString() : new Date().toISOString(),
+          weight: n('weight'),
+          height: n('height'),
+          bodyFat: n('bodyFat'),
+          targetWeight: n('targetWeight'),
         });
       }
 
-      function updatePreview() {
-        document.getElementById("preview").textContent = JSON.stringify(
-          WORKOUTS_RAFAEL,
-          null,
-          2,
-        );
-      }
-
-      document.getElementById("bioDate").value = new Date()
-        .toISOString()
-        .slice(0, 10);
-      document
-        .querySelectorAll(".input-s")
-        .forEach((el) => el.addEventListener("input", updatePreview));
-      updatePreview();
+      document.getElementById('bioDate').value = new Date().toISOString().slice(0, 10);
 
       function seedData() {
         const currentBio = buildCurrentBio();
         if (!currentBio.weight || !currentBio.height) {
-          alert("Preencha pelo menos o Peso Atual e a Altura.");
+          alert('Preencha pelo menos o Peso Atual e a Altura.');
           return;
         }
 
-        // Limpa dados de outro atleta para evitar conflitos
-        Object.keys(localStorage).forEach((key) => {
-          if (key.startsWith(PREFIX)) {
-            localStorage.removeItem(key);
-          }
-        });
+        // Limpa dados existentes
+        Object.keys(localStorage).forEach(k => { if (k.startsWith(PREFIX)) localStorage.removeItem(k); });
 
         // 1 — biometrics
-        localStorage.setItem(PREFIX + "biometrics", JSON.stringify(currentBio));
+        localStorage.setItem(PREFIX + 'biometrics', JSON.stringify(currentBio));
 
-        // 2 — bioHistory (avaliação inicial)
-        localStorage.setItem(
-          PREFIX + "bioHistory",
-          JSON.stringify([currentBio]),
-        );
+        // 2 — bioHistory
+        localStorage.setItem(PREFIX + 'bioHistory', JSON.stringify([currentBio]));
 
         // 3 — bodyWeights
-        const bodyWeights = [
-          { date: currentBio.date, value: currentBio.weight },
-        ];
-        localStorage.setItem(
-          PREFIX + "bodyWeights",
-          JSON.stringify(bodyWeights),
-        );
+        localStorage.setItem(PREFIX + 'bodyWeights', JSON.stringify([{ date: currentBio.date, value: currentBio.weight }]));
 
         // 4 — identidade
-        const userName =
-          document.getElementById("userName").value.trim() || "RAFAEL";
-        const projectName =
-          document.getElementById("projectName").value.trim() || "RAFAEL";
-        localStorage.setItem(PREFIX + "userName", JSON.stringify(userName));
-        localStorage.setItem(
-          PREFIX + "projectName",
-          JSON.stringify(projectName),
-        );
+        const userName = document.getElementById('userName').value.trim() || 'RAFAEL';
+        const projectName = document.getElementById('projectName').value.trim() || 'RAFAEL';
+        localStorage.setItem(PREFIX + 'userName', JSON.stringify(userName));
+        localStorage.setItem(PREFIX + 'projectName', JSON.stringify(projectName));
 
-        // 5 — ciclo de treino
-        localStorage.setItem(
-          PREFIX + "customWorkouts",
-          JSON.stringify(WORKOUTS_RAFAEL),
-        );
-        localStorage.setItem(
-          PREFIX + "cycleOrder",
-          JSON.stringify(CYCLE_ORDER),
-        );
-        localStorage.setItem(PREFIX + "cycleGoal", JSON.stringify(2));
-        localStorage.setItem(PREFIX + "cyclePosition", JSON.stringify(0));
-        localStorage.setItem(
-          PREFIX + "trainingStyle",
-          JSON.stringify("fullbody"),
-        );
-        localStorage.setItem(
-          PREFIX + "goal",
-          JSON.stringify("condicionamento"),
-        );
-        localStorage.setItem(
-          PREFIX + "experience",
-          JSON.stringify("iniciante"),
-        );
+        // 5 — treinos e ciclo
+        localStorage.setItem(PREFIX + 'customWorkouts', JSON.stringify(WORKOUTS_RAFAEL));
+        localStorage.setItem(PREFIX + 'cycleOrder', JSON.stringify(CYCLE_ORDER));
+        localStorage.setItem(PREFIX + 'cycleGoal', JSON.stringify(6));
+        localStorage.setItem(PREFIX + 'cyclePosition', JSON.stringify(0));
+        localStorage.setItem(PREFIX + 'cycleDone', JSON.stringify([]));
 
-        // 6 — nível de atividade (iniciante)
-        localStorage.setItem(PREFIX + "activityLevel", JSON.stringify(1.375));
+        // 6 — perfil
+        localStorage.setItem(PREFIX + 'trainingStyle', JSON.stringify('fullbody'));
+        localStorage.setItem(PREFIX + 'goal', JSON.stringify('condicionamento'));
+        localStorage.setItem(PREFIX + 'goals', JSON.stringify(['condicionamento', 'recomposicao']));
+        localStorage.setItem(PREFIX + 'experience', JSON.stringify('iniciante'));
+        localStorage.setItem(PREFIX + 'activityLevel', JSON.stringify(1.375));
 
-        // 7 — configurações de treino (padrão iniciante)
-        localStorage.setItem(PREFIX + "defaultRestTime", JSON.stringify(60));
-        localStorage.setItem(PREFIX + "weightIncrement", JSON.stringify(1));
-        localStorage.setItem(PREFIX + "vibrationEnabled", JSON.stringify(true));
-        localStorage.setItem(
-          PREFIX + "timerSoundEnabled",
-          JSON.stringify(true),
-        );
-        localStorage.setItem(PREFIX + "autoFillOnStart", JSON.stringify(false)); // Iniciante não deve usar auto-fill
+        // 7 — configurações (iniciante)
+        localStorage.setItem(PREFIX + 'defaultRestTime', JSON.stringify(60));
+        localStorage.setItem(PREFIX + 'weightIncrement', JSON.stringify(1));
+        localStorage.setItem(PREFIX + 'vibrationEnabled', JSON.stringify(true));
+        localStorage.setItem(PREFIX + 'timerSoundEnabled', JSON.stringify(true));
+        localStorage.setItem(PREFIX + 'autoFillOnStart', JSON.stringify(false));
 
         // 8 — onboarding
-        localStorage.setItem(
-          PREFIX + "onboardingCompleted",
-          JSON.stringify(true),
-        );
+        localStorage.setItem(PREFIX + 'onboardingCompleted', JSON.stringify(true));
 
-        // 9 — migração: marca todas as flags como já executadas
-        localStorage.setItem(PREFIX + "migrated_v2", JSON.stringify(true));
-        localStorage.setItem(PREFIX + "migrated_v3", JSON.stringify(true));
-        localStorage.setItem(
-          PREFIX + "migrated_ppl_order",
-          JSON.stringify(true),
-        );
-        localStorage.setItem(
-          PREFIX + "migrated_off_slot",
-          JSON.stringify(true),
-        );
-        localStorage.setItem(
-          PREFIX + "migrated_cycle_plp",
-          JSON.stringify(true),
-        );
+        // 9 — flags de migração
+        ['migrated_v2','migrated_v3','migrated_ppl_order','migrated_off_slot','migrated_cycle_plp']
+          .forEach(k => localStorage.setItem(PREFIX + k, JSON.stringify(true)));
 
-        // Resultado
-        const imc = (
-          currentBio.weight /
-          ((currentBio.height / 100) * (currentBio.height / 100))
-        ).toFixed(1);
+        const imc = (currentBio.weight / Math.pow(currentBio.height / 100, 2)).toFixed(1);
 
-        document.getElementById("result-detail").innerHTML = [
-          `<div>✓ <b>customWorkouts</b>: 2 treinos criados (Micro 1 & Micro 2)</div>`,
-          `<div>✓ <b>biometrics</b>: ${Object.keys(currentBio).length} campos · ${currentBio.weight}kg · ${currentBio.height}cm</div>`,
-          `<div>✓ <b>bioHistory</b>: avaliação inicial gravada</div>`,
-          `<div>✓ <b>bodyWeights</b>: 1 registro — ${currentBio.weight}kg hoje</div>`,
-          `<div>✓ <b>userName</b>: ${userName}</div>`,
-          `<div>✓ <b>cycleOrder</b>: Micro 1 → Micro 2</div>`,
+        document.getElementById('result-detail').innerHTML = [
+          `<div>✓ <b>customWorkouts</b>: 6 microciclos criados (48 exercícios)</div>`,
+          `<div>✓ <b>biometrics</b>: ${currentBio.weight}kg · ${currentBio.height}cm · IMC ${imc}</div>`,
+          `<div>✓ <b>cycleOrder</b>: Micro 1 → 2 → 3 → 4 → 5 → 6</div>`,
+          `<div>✓ <b>goals</b>: Condicionamento + Recomposição</div>`,
           `<div>✓ <b>settings</b>: rest 60s · inc 1kg · autoFill OFF</div>`,
           `<hr style="border-color:#27272a;margin:8px 0">`,
-          `<div class="text-zinc-500">IMC: ${imc} kg/m²</div>`,
-          `<div class="text-zinc-500">Estilo: Fullbody · Experiência: Iniciante</div>`,
-        ]
-          .filter(Boolean)
-          .join("");
+          `<div class="text-zinc-500">Estilo: Full Body Circuit · Experiência: Iniciante</div>`,
+          `<div class="text-zinc-500">Protocolo: HIIT esteira 5min × 4 blocos / sessão</div>`,
+        ].join('');
 
-        document.getElementById("result").style.display = "block";
-        document
-          .getElementById("result")
-          .scrollIntoView({ behavior: "smooth", block: "center" });
+        document.getElementById('result').style.display = 'block';
+        document.getElementById('result').scrollIntoView({ behavior: 'smooth', block: 'center' });
       }
     </script>
   </body>
