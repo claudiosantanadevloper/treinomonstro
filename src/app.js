@@ -78,6 +78,7 @@ const defaults = {
   exerciseNotes:         {},
   onboardingCompleted:   false,
   goal:                  null,
+  goals:                 [],
   trainingStyle:         null,
   lastOffDayDate:        null,
 };

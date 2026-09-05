@@ -180,14 +180,16 @@ function step1Identity(data) {
 }
 
 function step2Goal(data) {
+  const selected = data.goals ?? (data.goal ? [data.goal] : []);
   return `
     <div class="px-6 py-8 max-w-sm mx-auto">
       ${progressBar(2)}
       <h2 class="text-xl font-black text-white uppercase italic tracking-tight mb-1">Objetivo</h2>
-      <p class="text-[10px] text-zinc-500 font-mono mb-6">Qual é seu foco principal agora?</p>
+      <p class="text-[10px] text-zinc-500 font-mono mb-1">Pode selecionar mais de um</p>
+      ${selected.length === 0 ? `<p class="text-[9px] text-yellow-500/80 font-mono mb-4">Selecione pelo menos um objetivo para continuar</p>` : `<p class="text-[9px] text-theme-primary/60 font-mono mb-4">${selected.length} selecionado${selected.length > 1 ? 's' : ''}</p>`}
 
       <div class="space-y-2">
-        ${GOALS.map(g => optionCard('ob-set-goal', 'goal', g.id, data.goal === g.id, g.icon, g.label, g.sub)).join('')}
+        ${GOALS.map(g => optionCard('ob-set-goal', 'goal', g.id, selected.includes(g.id), g.icon, g.label, g.sub)).join('')}
       </div>
 
       ${btnNext()}
@@ -199,7 +201,13 @@ function step3Training(data) {
   const splits = Object.entries(SPLIT_TEMPLATES).map(([id, t]) => ({ id, ...t }));
   splits.push({ id: 'custom', icon: 'pencil', label: 'Personalizado', desc: 'Você cria seus próprios treinos' });
 
-  const goalRec = data.goal ? GOAL_TO_STYLE[data.goal] : null;
+  const selectedGoals = data.goals ?? (data.goal ? [data.goal] : []);
+  const goalRec = selectedGoals.length > 0 ? (() => {
+    const allIds = [...new Set(selectedGoals.flatMap(g => GOAL_TO_STYLE[g]?.ids ?? []))];
+    const hint   = GOAL_TO_STYLE[selectedGoals[0]]?.hint ?? null;
+    return { ids: allIds, hint };
+  })() : null;
+  const goalHintLabel = selectedGoals.map(g => GOAL_LBL[g] ?? g).join(' + ');
 
   return `
     <div class="px-6 py-8 max-w-sm mx-auto">
@@ -211,7 +219,7 @@ function step3Training(data) {
       <div class="flex items-start gap-2.5 bg-theme-dim/40 border border-theme-accent/30 rounded-xl px-3 py-2.5 mb-4">
         <i data-lucide="zap" class="w-3.5 h-3.5 text-theme-primary shrink-0 mt-0.5"></i>
         <p class="text-[10px] text-zinc-300 leading-relaxed">
-          <span class="text-theme-primary font-black">Para ${GOAL_LBL[data.goal]}:</span> ${goalRec.hint}
+          <span class="text-theme-primary font-black">Para ${goalHintLabel}:</span> ${goalRec.hint}
         </p>
       </div>` : ''}
 
@@ -576,7 +584,7 @@ function stepSummary(data) {
         <!-- Objetivo & Treino -->
         <div class="px-4 py-3 border-t border-zinc-800/60">
           ${sectionHeader('Missão')}
-          ${data.goal        ? summaryRow('target',   'Objetivo',  GOAL_LBL[data.goal] ?? data.goal, true) : ''}
+          ${(() => { const gs = data.goals ?? (data.goal ? [data.goal] : []); return gs.length ? summaryRow('target', 'Objetivo', gs.map(g => GOAL_LBL[g] ?? g).join(' + '), true) : ''; })()}
           ${data.trainingStyle ? summaryRow('layers', 'Divisão',   splitLabel) : ''}
           ${summaryRow('calendar', 'Ciclo', `${data.cycleGoal ?? 4} treinos`)}
           ${data.trainingStyle && data.trainingStyle !== 'custom' ? (() => {

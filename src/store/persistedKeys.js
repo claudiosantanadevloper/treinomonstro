@@ -11,6 +11,6 @@ export const PERSISTED_KEYS = [
   'retroLastShown', 'lastCardioMode',
   'activeCommute',
   'exerciseNotes',
-  'onboardingCompleted', 'goal', 'trainingStyle', 'experience', 'academyName',
+  'onboardingCompleted', 'goal', 'goals', 'trainingStyle', 'experience', 'academyName',
   'lastOffDayDate',
 ];

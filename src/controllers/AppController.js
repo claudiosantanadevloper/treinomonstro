@@ -682,6 +682,7 @@ export class AppController {
       mode:          s.appMode         ?? 'ninja',
       experience:    s.experience      ?? null,
       goal:          s.goal            ?? null,
+      goals:         s.goals?.length   ? [...s.goals] : (s.goal ? [s.goal] : []),
       trainingStyle: s.trainingStyle   ?? null,
       cycleGoal:     s.cycleGoal       ?? 4,
       activityLevel: s.activityLevel   ?? 1.55,
@@ -722,6 +723,7 @@ export class AppController {
       appMode:       d.mode         ?? 'ninja',
       experience:    d.experience   ?? null,
       goal:          d.goal         ?? null,
+      goals:         d.goals?.length ? d.goals : (d.goal ? [d.goal] : []),
       academyName:   d.academyName  ?? '',
       trainingStyle: d.trainingStyle ?? null,
       cycleGoal:     d.cycleGoal ?? 4,
@@ -4450,6 +4452,8 @@ export class AppController {
           const projectEl = obContainer?.querySelector('#ob-project');
           if (nameEl?.value.trim())    this.#obData.name        = nameEl.value.trim();
           if (projectEl?.value.trim()) this.#obData.projectName = projectEl.value.trim();
+        } else if (this.#obStep === 2) {
+          if (!this.#obData.goals?.length) return; // requer ao menos 1 objetivo
         } else if (this.#obStep === 5) {
           const acEl = obContainer?.querySelector('#ob-academy');
           if (acEl?.value.trim()) this.#obData.academyName = acEl.value.trim();
@@ -4488,10 +4492,15 @@ export class AppController {
         this.#obData.mode = payload;
         this.#renderObStep();
         break;
-      case 'ob-set-goal':
-        this.#obData.goal = payload;
+      case 'ob-set-goal': {
+        const goals = [...(this.#obData.goals ?? [])];
+        const idx = goals.indexOf(payload);
+        if (idx >= 0) goals.splice(idx, 1); else goals.push(payload);
+        this.#obData.goals = goals;
+        this.#obData.goal  = goals[0] ?? null;
         this.#renderObStep();
         break;
+      }
       case 'ob-set-training-style': {
         this.#obData.trainingStyle = payload;
         // Pré-preenche cycleGoal com o padrão do split escolhido
