@@ -1300,8 +1300,57 @@ function renderInterCycleCard(history, cycleDone, cycleStart, workouts) {
 
 /* ─── Musculação Tab ───────────────────────────────────────────────── */
 
+function renderBodyFatTrend(biometrics, bioHistory = []) {
+  const all = [...bioHistory, biometrics].filter(b => b?.bodyFat && b?.date)
+    .sort((a, b) => new Date(a.date) - new Date(b.date));
+  if (all.length < 2) return '';
+
+  const vals = all.map(b => b.bodyFat);
+  const vMin = Math.min(...vals);
+  const vMax = Math.max(...vals);
+  const range = vMax - vMin || 1;
+  const W = 300, H = 60, PAD = 8;
+  const x = i => PAD + (i / (all.length - 1)) * (W - PAD * 2);
+  const y = v => H - PAD - ((v - vMin) / range) * (H - PAD * 2);
+  const pts = all.map((b, i) => `${x(i)},${y(b.bodyFat)}`).join(' ');
+  const pathD = all.map((b, i) => `${i === 0 ? 'M' : 'L'}${x(i)},${y(b.bodyFat)}`).join(' ');
+  const areaD = `${pathD} L${x(all.length-1)},${H} L${x(0)},${H} Z`;
+  const first = all[0], last = all[all.length - 1];
+  const delta = +(last.bodyFat - first.bodyFat).toFixed(2);
+  const deltaColor = delta <= 0 ? 'text-green-400' : 'text-red-400';
+  const deltaSign  = delta > 0 ? '+' : '';
+  const trend = delta > 0 ? '↑' : delta < 0 ? '↓' : '→';
+  const fmt = d => { const dt = new Date(d); return `${dt.getMonth()+1}/${String(dt.getFullYear()).slice(2)}`; };
+
+  return `
+    <div class="glass-card p-4 rounded-2xl border border-zinc-800/60">
+      <div class="flex items-center justify-between mb-3">
+        <h3 class="text-[10px] font-bold text-zinc-500 uppercase tracking-widest flex items-center gap-1.5">
+          <i data-lucide="activity" class="w-3.5 h-3.5 text-orange-400"></i> Tendência — % Gordura
+        </h3>
+        <span class="${deltaColor} font-black font-mono text-xs">${trend} ${deltaSign}${delta}pp</span>
+      </div>
+      <svg viewBox="0 0 ${W} ${H}" class="w-full" preserveAspectRatio="none" style="height:60px">
+        <defs>
+          <linearGradient id="fat-grad" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stop-color="#f97316" stop-opacity="0.3"/>
+            <stop offset="100%" stop-color="#f97316" stop-opacity="0"/>
+          </linearGradient>
+        </defs>
+        <path d="${areaD}" fill="url(#fat-grad)"/>
+        <polyline points="${pts}" fill="none" stroke="#f97316" stroke-width="1.5" stroke-linejoin="round"/>
+        ${all.map((b, i) => `<circle cx="${x(i)}" cy="${y(b.bodyFat)}" r="2.5" fill="#f97316"/>`).join('')}
+      </svg>
+      <div class="flex justify-between text-[8px] font-mono text-zinc-600 mt-1">
+        <span>${fmt(first.date)} · ${first.bodyFat}%</span>
+        <span>${all.length} avaliações</span>
+        <span class="${deltaColor} font-bold">${fmt(last.date)} · ${last.bodyFat}%</span>
+      </div>
+    </div>`;
+}
+
 function renderMusculacaoTab(state, workouts) {
-  const { history, prs, historyPage = 0, cardioHistory = [], hiddenSections = [], cycleGoal = 6, goal = null, cycleDone = [], cycleStart = null } = state;
+  const { history, prs, historyPage = 0, cardioHistory = [], hiddenSections = [], cycleGoal = 6, goal = null, cycleDone = [], cycleStart = null, biometrics = null, bioHistory = [] } = state;
   const totalVol  = history.reduce((a, h) => a + (h.vol ?? 0), 0);
   const avgVol    = history.length ? totalVol / history.length : 0;
   const thisWeek  = history.filter(h => {
@@ -1337,6 +1386,7 @@ function renderMusculacaoTab(state, workouts) {
         `).join('')}
       </div>
 
+      ${renderBodyFatTrend(biometrics, bioHistory)}
       ${renderGoalSection(history, cardioHistory, goal)}
       ${renderCalendarHeatmap(history, hiddenSections)}
       ${renderWeeklyChart(history)}

@@ -89,6 +89,42 @@ function renderResumeBanner(workoutId, startTime, workouts) {
   `;
 }
 
+/* ─── Composição Corporal (Dashboard mini-card) ─────────────────────── */
+
+function renderDashBioCard(bio) {
+  if (!bio?.weight) return '';
+  const fatColor = bio.bodyFat >= 30 ? 'text-red-400' : bio.bodyFat >= 25 ? 'text-orange-400' : bio.bodyFat >= 20 ? 'text-yellow-400' : 'text-green-400';
+  const pills = [
+    { val: bio.weight + 'kg',                               lbl: 'Peso',        color: 'text-white'         },
+    { val: bio.bodyFat  ? bio.bodyFat  + '%'   : '—',       lbl: '% Gordura',   color: fatColor             },
+    { val: bio.leanMass ? bio.leanMass + 'kg'  : '—',       lbl: 'Massa Magra', color: 'text-theme-primary' },
+    { val: bio.targetWeight ? bio.targetWeight + 'kg' : '—',lbl: 'Meta',        color: 'text-yellow-400'    },
+  ].map(p => `
+    <div class="bg-zinc-900/50 border border-zinc-800/50 rounded-xl p-2 text-center">
+      <div class="text-[13px] font-black font-mono ${p.color} leading-none">${p.val}</div>
+      <div class="text-[7px] text-zinc-600 font-bold uppercase tracking-wider mt-1 leading-tight">${p.lbl}</div>
+    </div>`).join('');
+  const excess = bio.targetWeight ? +(bio.weight - bio.targetWeight).toFixed(1) : null;
+  const excessBar = excess > 0 ? `
+    <div class="mt-2 pt-2 border-t border-zinc-800/40">
+      <div class="flex justify-between text-[8px] font-mono text-zinc-600 mb-1">
+        <span>Em excesso: <span class="text-orange-400 font-bold">+${excess}kg</span></span>
+        <span>Meta: ${bio.targetWeight}kg</span>
+      </div>
+      <div class="h-1 bg-zinc-800 rounded-full overflow-hidden">
+        <div class="h-full rounded-full" style="width:${Math.min(100,Math.round(excess/bio.weight*100))}%;background:linear-gradient(90deg,#dc2626,#f97316)"></div>
+      </div>
+    </div>` : '';
+  return `
+    <div class="glass-card p-3 rounded-2xl border border-zinc-800/60">
+      <div class="text-[8px] font-black text-zinc-600 uppercase tracking-widest mb-2 flex items-center gap-1.5">
+        <i data-lucide="activity" class="w-3 h-3"></i> Composição Corporal
+      </div>
+      <div class="grid grid-cols-4 gap-2">${pills}</div>
+      ${excessBar}
+    </div>`;
+}
+
 /* ─── Render principal ─────────────────────────────────────────────── */
 
 export function renderDashboard(state, workouts, protocols = [], templates = []) {
@@ -96,7 +132,7 @@ export function renderDashboard(state, workouts, protocols = [], templates = [])
     cycleDone = [], history, theme, workoutStartTime, workoutId, cycleGoal = 6, weekPlan = {},
     cycleOrder = [], cyclePosition = 0, cardioHistory = [],
     weeklyCardioKmGoal = null, weeklyCardioMinGoal = null,
-    hiddenSections = [],
+    hiddenSections = [], biometrics = null,
   } = state;
 
   const todayPlan    = weekPlan[new Date().getDay()] ?? null;
@@ -194,6 +230,8 @@ export function renderDashboard(state, workouts, protocols = [], templates = [])
     <div class="stagger-enter space-y-4 pb-4">
 
       ${resumeBanner}
+
+      ${renderDashBioCard(biometrics)}
 
       <!-- Ciclo Adaptativo -->
       <div class="glass-card p-4 rounded-2xl border border-theme-dim relative overflow-hidden">

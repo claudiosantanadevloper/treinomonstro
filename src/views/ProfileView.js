@@ -288,22 +288,33 @@ function renderBiometricsSection(bio, bioHistory = [], hiddenSections = []) {
         <!-- Metas -->
         ${bio.targetWeight || bio.targetBodyFat ? `
           <div class="mt-3 pt-3 border-t border-zinc-800/60 space-y-2">
-            ${bio.targetWeight ? `
-              <div>
-                <div class="flex justify-between text-[9px] font-mono mb-1">
-                  <span class="text-zinc-500">Peso atual: ${bio.weight}kg</span>
-                  <span class="text-theme-primary font-bold">Meta: ${bio.targetWeight}kg ${weightDelta ? `(${parseFloat(weightDelta) > 0 ? '+' : ''}${weightDelta}kg)` : ''}</span>
-                </div>
-                <div class="h-1.5 bg-zinc-800 rounded-full overflow-hidden">
-                  <div class="h-full bg-theme-primary rounded-full shadow-[0_0_4px_var(--theme-primary)]"
-                       style="width:${Math.min(100, (bio.weight / bio.targetWeight * 100)).toFixed(1)}%"></div>
-                </div>
-              </div>
-            ` : ''}
+            ${bio.targetWeight ? (() => {
+              const excess  = +(bio.weight - bio.targetWeight).toFixed(1);
+              const isEmagrec = excess > 0;
+              const isHiper   = excess < 0;
+              return `
+                <div>
+                  <div class="flex justify-between text-[9px] font-mono mb-1">
+                    <span class="text-zinc-500">Peso atual: <span class="font-bold text-white">${bio.weight}kg</span></span>
+                    <span class="${isEmagrec ? 'text-orange-400' : isHiper ? 'text-theme-primary' : 'text-green-400'} font-bold">
+                      Meta: ${bio.targetWeight}kg
+                      ${excess !== 0 ? `(${excess > 0 ? '+' : ''}${excess}kg)` : '✓'}
+                    </span>
+                  </div>
+                  <div class="h-1.5 bg-zinc-800 rounded-full overflow-hidden">
+                    ${isEmagrec
+                      ? `<div class="h-full rounded-full shadow-sm" style="width:${Math.min(100,(excess/bio.weight*100)).toFixed(1)}%;background:linear-gradient(90deg,#dc2626,#f97316)"></div>`
+                      : `<div class="h-full bg-theme-primary rounded-full shadow-[0_0_4px_var(--theme-primary)]" style="width:${Math.min(100,(bio.weight/bio.targetWeight*100)).toFixed(1)}%"></div>`}
+                  </div>
+                  ${isEmagrec ? `<div class="text-[8px] font-mono text-zinc-600 mt-1">Em excesso: <span class="text-orange-400 font-bold">+${excess}kg</span> · eliminar gordura com treino + nutrição</div>` : ''}
+                </div>`;
+            })() : ''}
             ${bio.targetBodyFat && bio.bodyFat ? `
               <div class="text-[9px] font-mono text-zinc-500">
                 % Gordura alvo: <span class="text-theme-primary font-bold">${bio.targetBodyFat}%</span>
-                ${bio.bodyFat <= bio.targetBodyFat ? '<span class="text-green-400 ml-1">✓ meta atingida</span>' : ''}
+                ${bio.bodyFat <= bio.targetBodyFat
+                  ? '<span class="text-green-400 ml-1">✓ meta atingida</span>'
+                  : `<span class="text-orange-400 ml-1">faltam ${(bio.bodyFat - bio.targetBodyFat).toFixed(1)}pp</span>`}
               </div>
             ` : ''}
           </div>
@@ -461,23 +472,39 @@ function renderBiometricsSection(bio, bioHistory = [], hiddenSections = []) {
             </h3>
             ${sectionHideBtn('section-bio-history', hiddenSections)}
           </div>
-          ${hiddenBioHist ? '' : `
-          <div class="space-y-0">
-            ${bioHistory.map(b => `
-              <div class="flex items-center justify-between gap-2 py-2 border-b border-zinc-800/40 last:border-0">
-                <span class="text-[10px] font-mono text-zinc-500">${formatDate(b.date)}</span>
-                <div class="flex items-center gap-2 text-[10px] font-mono flex-1 justify-end">
-                  ${b.weight   ? `<span class="text-theme-primary font-bold">${b.weight}kg</span>` : ''}
-                  ${b.bodyFat  ? `<span class="text-orange-400">${b.bodyFat}%G</span>` : ''}
-                  ${b.leanMass ? `<span class="text-zinc-600">${b.leanMass}kg mag</span>` : ''}
-                </div>
-                <button data-action="delete-bio-history" data-date="${b.date}"
-                        class="p-1 rounded text-zinc-700 hover:text-rose-500 active:scale-90 transition-all shrink-0">
-                  <i data-lucide="trash-2" class="w-3 h-3"></i>
-                </button>
-              </div>
-            `).join('')}
-          </div>`}
+          ${hiddenBioHist ? '' : (() => {
+            const sorted = [...bioHistory].sort((a, b) => new Date(a.date) - new Date(b.date));
+            const d = (val, inv = false, dec = 1) => {
+              if (val === null || val === undefined) return '';
+              const v = +val.toFixed(dec);
+              const good = inv ? v < 0 : v > 0;
+              const color = Math.abs(v) < 0.05 ? 'text-zinc-600' : good ? 'text-green-400' : 'text-red-400';
+              return `<span class="${color} text-[8px] ml-0.5">${v > 0 ? '+' : ''}${v}</span>`;
+            };
+            return `
+            <div class="text-[8px] font-bold text-zinc-700 uppercase tracking-widest grid grid-cols-[3.5rem_1fr_1fr_1fr_1.5rem] gap-x-1 pb-1 border-b border-zinc-800">
+              <span>Data</span><span>Peso</span><span>%G</span><span>Magra</span><span></span>
+            </div>
+            <div class="space-y-0">
+              ${sorted.map((b, i) => {
+                const prev = sorted[i - 1];
+                const dW  = prev?.weight  && b.weight  ? b.weight  - prev.weight  : null;
+                const dBF = prev?.bodyFat && b.bodyFat ? b.bodyFat - prev.bodyFat : null;
+                const dLM = prev?.leanMass&& b.leanMass? b.leanMass- prev.leanMass: null;
+                return `
+                <div class="grid grid-cols-[3.5rem_1fr_1fr_1fr_1.5rem] gap-x-1 items-center py-1.5 border-b border-zinc-800/30 last:border-0">
+                  <span class="text-[8px] font-mono text-zinc-600 truncate">${formatDate(b.date)}</span>
+                  <span class="text-[9px] font-mono text-theme-primary font-bold">${b.weight ?? '—'}kg${d(dW, true)}</span>
+                  <span class="text-[9px] font-mono text-orange-400">${b.bodyFat ? b.bodyFat + '%' : '—'}${d(dBF, true)}</span>
+                  <span class="text-[9px] font-mono text-zinc-400">${b.leanMass ? b.leanMass + 'kg' : '—'}${d(dLM)}</span>
+                  <button data-action="delete-bio-history" data-date="${b.date}"
+                          class="p-1 rounded text-zinc-800 hover:text-rose-500 active:scale-90 transition-all">
+                    <i data-lucide="trash-2" class="w-2.5 h-2.5"></i>
+                  </button>
+                </div>`;
+              }).join('')}
+            </div>`;
+          })()}
         </div>`;
       })() : ''}
 
