@@ -1,9 +1,10 @@
 export const WORKOUTS = [
 
   /* ─── PUSH A — Peitoral Superior + Deltoide Lateral ─────────────────
-     32 séries · Composto → Isolador peito → Delta medial alto volume → Tríceps → Core
-     Lógica: supino inclinado enquanto SNC fresco → pré-fatiga peito isolado →
-             deltoide medial com 3 estímulos distintos → tríceps cabecinha longa primeiro
+     32 séries · 3 ângulos de supino composto → Delta medial alto volume → Tríceps → Core
+     Lógica: inclinado abre fibras superiores com SNC fresco → reto cobre porção média →
+             declinado cobre porção esternal/inferior (sub-representada em ectomorfos altos) →
+             deltoide medial com 2 estímulos distintos → tríceps cabeça longa primeiro
   ─────────────────────────────────────────────────────────────────────── */
   {
     id: '1',
@@ -13,14 +14,13 @@ export const WORKOUTS = [
     muscleFocus: ['Peito', 'Ombros', 'Braços'],
     exercises: [
       { id: 't1_1',   icon: 'dumbbell', name: 'Supino Inclinado (Halter / Articulado)',  sets: 4, reps: '6-8',   note: 'Série 1 leve 15x aquecimento · RIR 1-2', rest: 120 },
-      { id: 't1_2',   icon: 'layers',   name: 'Crucifixo Inclinado Articulado',          sets: 3, reps: '10-12', note: 'Amplitude máxima · pico 2s · RIR 1',    rest: 90  },
-      { id: 't1_3',   icon: 'dumbbell', name: 'Supino Reto (Halter)',                    sets: 3, reps: '8-10',  note: 'Cotovelos 45° · volume de peito',       rest: 90  },
+      { id: 't1_2',   icon: 'dumbbell', name: 'Supino Reto (Halter)',                    sets: 3, reps: '8-10',  note: 'Cotovelos 45° · peito médio · RIR 1-2', rest: 90  },
+      { id: 't1_3',   icon: 'layers',   name: 'Supino Declinado Articulado',             sets: 3, reps: '10-12', note: 'Peitoral esternal/inferior · cotovelos 30-45° · pico 2s na contração', rest: 90 },
       { id: 't1_4',   icon: 'dumbbell', name: 'Elevação Lateral (Halter)',               sets: 4, reps: '12-15', note: 'Cotovelo ligeiramente dobrado · 3s descida', rest: 60 },
       { id: 't1_5',   icon: 'layers',   name: 'Elevação Lateral na Máquina',             sets: 4, reps: '12-15', note: 'Pico 2s no topo · dropset na última',   rest: 60  },
-      { id: 't1_6',   icon: 'activity', name: 'Elevação Lateral na Polia (unilateral)',  sets: 3, reps: '15-20', note: 'Braço cruzado · melhor ROM distal',      rest: 45  },
-      { id: 't1_7',   icon: 'activity', name: 'Tríceps Francês (Halter)',                sets: 3, reps: '8-10',  note: 'Cabeça longa · cotovelo alto · RIR 2',  rest: 60  },
-      { id: 't1_8',   icon: 'activity', name: 'Tríceps Pulley',                          sets: 4, reps: '10-12', note: 'Pico 2s · punho neutro',                rest: 60  },
-      { id: 't1_9',   icon: 'target',   name: 'Prancha Ventral',                         sets: 4, reps: '60s',   note: 'Glúteo contraído · coluna neutra',      rest: 45  },
+      { id: 't1_6',   icon: 'activity', name: 'Tríceps Francês (Halter)',                sets: 3, reps: '8-10',  note: 'Cabeça longa · cotovelo alto · RIR 2',  rest: 60  },
+      { id: 't1_7',   icon: 'activity', name: 'Tríceps Pulley',                          sets: 4, reps: '10-12', note: 'Pico 2s · punho neutro',                rest: 60  },
+      { id: 't1_8',   icon: 'target',   name: 'Prancha Ventral',                         sets: 4, reps: '60s',   note: 'Glúteo contraído · coluna neutra',      rest: 45  },
     ],
   },
 
@@ -45,7 +45,7 @@ export const WORKOUTS = [
       { id: 't2_5',      icon: 'layers',   name: 'Flexora Unilateral',               sets: 3, reps: '10-12', note: 'Pico 2s · descida controlada 3s',           rest: 90  },
       { id: 't2_6',      icon: 'layers',   name: 'Adutora',                          sets: 3, reps: '15',    note: 'Amplitude total · pico 2s',                 rest: 60  },
       { id: 't2_7',      icon: 'layers',   name: 'Panturrilha Sentada (sóleo)',       sets: 4, reps: '12-15', note: 'AMPLITUDE TOTAL obrigatória (ventre curto em altos) · pico 2s embaixo · não encurtar ROM',  rest: 60  },
-      { id: 't2_8',      icon: 'move',     name: 'Panturrilha em Pé',                sets: 3, reps: '15-20', note: 'AMPLITUDE TOTAL obrigatória · 2s embaixo · gastrocnêmio · adicionar peso quando amplitude não cair', rest: 45  },
+      { id: 't2_8',      icon: 'move',     name: 'Panturrilha em Pé',                sets: 4, reps: '8-12',  note: 'AMPLITUDE TOTAL obrigatória · 2s embaixo · gastrocnêmio · carga alta (gastro responde pesado) · sem perder ROM', rest: 45  },
       { id: 't2_9',      icon: 'target',   name: 'Abdominal Remador',                sets: 3, reps: '15',    note: 'Expirar na contração',                      rest: 30  },
     ],
   },
@@ -78,27 +78,28 @@ export const WORKOUTS = [
     ],
   },
 
-  /* ─── PUSH B — Deltoide Lateral + Peitoral ───────────────────────────
+  /* ─── PUSH B — Deltoide Lateral + Peitoral Pump ─────────────────────
      36 séries · PRIORIDADE: Delta medial (V-Taper topo)
-     Desenvolvimento → Alta dose lateral → Elevação frontal → Peito volume → Tríceps → Core
-     Lógica: com ombro aquecido pelo desenvolvimento, 3 variações de lateral para
-             máximo volume delta medial; peito entra como volume secundário;
-             tríceps pesado depois peito para pegar o músculo ainda pré-fadigado
+     Desenvolvimento → Alta dose lateral → Elevação frontal → Peito pump → Tríceps → Core
+     Lógica: desenvolvimento aquece ombro para máximo volume delta medial (2 variações);
+             peito via Supino Reto (composto) + Peck Deck + Cross Over (pump isolado —
+             cobre adução horizontal que Push A não faz, peitoral médio/esternal);
+             tríceps pesado quando peito ainda pré-fadigado
   ─────────────────────────────────────────────────────────────────────── */
   {
     id: '4',
     label: 'Push B',
     title: 'PUSH B',
-    subtitle: 'Deltoide Lateral + Peitoral',
+    subtitle: 'Deltoide Lateral + Peitoral Pump',
     muscleFocus: ['Ombros', 'Peito', 'Braços'],
     exercises: [
       { id: 't4_1',    icon: 'dumbbell', name: 'Desenvolvimento com Halteres',          sets: 4, reps: '6-8',   note: 'Série 1 leve 15x · RIR 1-2 · não trave no topo', rest: 120 },
       { id: 't4_2',    icon: 'dumbbell', name: 'Elevação Lateral (Halter)',              sets: 4, reps: '12-15', note: '3s descida · cotovelinho leve · não balance',     rest: 60  },
-      { id: 't4_3',    icon: 'activity', name: 'Elevação Lateral na Polia (unilateral)', sets: 4, reps: '15-20', note: 'Braço cruzado · melhor ROM distal · 2s pico',    rest: 45  },
-      { id: 't4_4',    icon: 'layers',   name: 'Elevação Lateral na Máquina',            sets: 4, reps: '12-15', note: 'Pico 2s · dropset na última série',               rest: 60  },
-      { id: 't4_5',    icon: 'dumbbell', name: 'Elevação Frontal Alternada (Halter)',    sets: 3, reps: '10-12', note: 'Delta anterior · controlar impulso do tronco',    rest: 60  },
-      { id: 't4_6',    icon: 'dumbbell', name: 'Supino Reto (Halter)',                   sets: 3, reps: '8-10',  note: 'Volume de peito · cotovelos 45°',                 rest: 90  },
-      { id: 't4_7',    icon: 'layers',   name: 'Crucifixo Inclinado Articulado',         sets: 3, reps: '10-12', note: 'Amplitude máxima · pico 2s · RIR 1',             rest: 90  },
+      { id: 't4_3',    icon: 'layers',   name: 'Elevação Lateral na Máquina',            sets: 4, reps: '12-15', note: 'Pico 2s · dropset na última série',               rest: 60  },
+      { id: 't4_4',    icon: 'dumbbell', name: 'Elevação Frontal Alternada (Halter)',    sets: 3, reps: '10-12', note: 'Delta anterior · controlar impulso do tronco',    rest: 60  },
+      { id: 't4_5',    icon: 'dumbbell', name: 'Supino Reto (Halter)',                   sets: 3, reps: '8-10',  note: 'Peito médio composto · cotovelos 45°',            rest: 90  },
+      { id: 't4_6',    icon: 'layers',   name: 'Peck Deck (Voador)',                     sets: 3, reps: '12-15', note: 'Peitoral médio/esternal · adução pura · pico 2s · não bloquear cotovelo', rest: 60 },
+      { id: 't4_7',    icon: 'activity', name: 'Cross Over na Polia (baixo→cima)',       sets: 3, reps: '12-15', note: 'Polia baixa · finaliza fibras inferiores/esternal · pico 2s cruzado', rest: 60 },
       { id: 't4_8',    icon: 'activity', name: 'Tríceps Testa Cabo',                     sets: 3, reps: '8-10',  note: 'Cabeça longa · cotovelo fixo · trocar Paralelas a cada 2 meses', rest: 60 },
       { id: 't4_9',    icon: 'activity', name: 'Tríceps Pulley',                         sets: 4, reps: '10-12', note: 'Pico 2s · punho neutro',                         rest: 60  },
       { id: 't4_10',   icon: 'target',   name: 'Prancha Lateral (D + E)',                sets: 4, reps: '45s',   note: 'Oblíquo + quadrado lombar · alternado',          rest: 30  },

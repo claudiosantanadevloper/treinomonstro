@@ -308,6 +308,26 @@ export function renderBattleReport(s, pName, L, nextW, nextIsOff, prevSession) {
           ${motivAuthor ? `<p class="text-[10px] text-zinc-600 font-mono mt-2">— ${motivAuthor}</p>` : ''}
         </div>
 
+        <div class="glass-card rounded-2xl border border-cyan-900/40 p-4 mb-4 stagger-enter"
+             style="animation-delay:230ms;background:linear-gradient(135deg,rgba(8,145,178,0.07),transparent)">
+          <div class="flex items-center gap-3">
+            <div class="w-9 h-9 rounded-full bg-cyan-900/20 border border-cyan-800/40 flex items-center justify-center shrink-0">
+              <i data-lucide="wind" class="w-4 h-4 text-cyan-400"></i>
+            </div>
+            <div class="flex-1 min-w-0">
+              <div class="text-[9px] font-bold text-cyan-600 uppercase tracking-widest">Recomendação pós-treino</div>
+              <div class="text-xs font-bold text-zinc-300">20min Zona 2 — acelera recuperação</div>
+              <div class="text-[9px] text-zinc-500 mt-0.5">FC ~65% · baixa intensidade · não interfere na hipertrofia</div>
+            </div>
+            <button id="goto-cardio-btn"
+                    class="shrink-0 px-3 py-2 rounded-xl border border-cyan-800/60 bg-cyan-900/20
+                           text-[10px] font-black text-cyan-400 uppercase tracking-wider
+                           active:scale-90 transition-all hover:bg-cyan-900/40">
+              Fazer
+            </button>
+          </div>
+        </div>
+
         <div class="space-y-3 stagger-enter" style="animation-delay:250ms">
           ${nextW ? `
           <button id="next-workout-btn"

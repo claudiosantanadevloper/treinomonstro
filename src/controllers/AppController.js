@@ -1262,6 +1262,11 @@ export class AppController {
       this.#closeModal();
       this.#workoutCtrl.startWorkout(nextW.id);
     });
+    $("#goto-cardio-btn", this.#reportLayer)?.addEventListener("click", () => {
+      this.#closeReport();
+      this.#closeModal();
+      this.#navigate("cardio");
+    });
     $("#end-operation", this.#reportLayer)?.addEventListener("click", () => {
       this.#closeReport();
       this.#closeModal();
