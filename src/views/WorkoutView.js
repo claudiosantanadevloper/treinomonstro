@@ -192,6 +192,14 @@ function renderSetRow(wId, ex, idx, log = {}, lastSet = null) {
         </button>
       </div>
 
+      <!-- Dica de aquecimento (visível só quando marcado como W) -->
+      ${warmup ? `
+      <div class="ml-9 mt-1.5 flex items-center gap-1.5">
+        <span class="text-[9px] font-bold text-yellow-600/80 bg-yellow-950/30 border border-yellow-900/30 px-2 py-0.5 rounded font-mono">
+          leve · 15 reps · pico 2s
+        </span>
+      </div>` : ''}
+
       <!-- Presets rápidos de reps (só para exercícios normais) -->
       ${!isTimed ? `
       <div data-reps-presets${done || warmup ? ' hidden' : ''}

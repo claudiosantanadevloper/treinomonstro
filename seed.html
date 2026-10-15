@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>SEED — NINJINHA BOM DE BRIGA · v6.5.1</title>
+  <title>SEED — NINJINHA BOM DE BRIGA · v6.8</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <style>
     :root { --accent: #ef4444; }
@@ -52,12 +52,12 @@
   <div class="text-center mb-6">
     <div class="text-[10px] font-black tracking-[.2em] text-red-500 mb-1">⬡ NINJINHA BOM DE BRIGA ⬡</div>
     <h1 class="text-3xl font-black tracking-tight">SEED DE DADOS</h1>
-    <p class="text-[11px] text-zinc-500 mt-2">v6.7 · Out/2026 · grava tudo no localStorage</p>
+    <p class="text-[11px] text-zinc-500 mt-2">v6.8 · Out/2026 · grava tudo no localStorage</p>
     <div class="mt-3 flex gap-2 justify-center flex-wrap">
       <span class="badge" style="background:rgba(239,68,68,.15);border:1px solid rgba(239,68,68,.3);color:#f87171">Cláudio Santana · 33 anos · 188 cm</span>
       <span class="badge" style="background:rgba(39,39,42,.8);border:1px solid #3f3f46;color:#71717a">Personal: Pedro Henrique Vaz</span>
       <span class="badge" style="background:rgba(39,39,42,.8);border:1px solid #3f3f46;color:#a1a1aa">Avaliação: 07/02/2026</span>
-      <span class="badge" style="background:rgba(34,197,94,.1);border:1px solid rgba(34,197,94,.3);color:#4ade80">PPL Duplo · v6.7 · 208s/ciclo</span>
+      <span class="badge" style="background:rgba(34,197,94,.1);border:1px solid rgba(34,197,94,.3);color:#4ade80">PPL Duplo · v6.8 · 214s/ciclo</span>
       <span class="badge" style="background:rgba(59,130,246,.1);border:1px solid rgba(59,130,246,.3);color:#93c5fd">Ectomorfo · Fêmur Longo · V-Taper</span>
     </div>
     <a href="index.html" class="text-[10px] text-red-500/50 hover:text-red-400 mt-3 inline-block">← voltar ao app</a>
@@ -72,7 +72,9 @@
       <div>✓ <b>bodyWeights</b> — 81,25 kg (fev/2026) + peso atual informado</div>
       <div>✓ <b>userName / projectName</b> — CLÁUDIO SANTANA · NINJINHA BOM DE BRIGA</div>
       <div>✓ <b>cycleOrder</b> — Push A → Legs A → Pull A → OFF → Push B → Legs B → Pull B → OFF</div>
-      <div>✓ <b>workouts</b> — PPL v6.7 · 208 séries/ciclo redesenhado para V-Taper (built-in IDs 1–6)</div>
+      <div>✓ <b>workouts</b> — PPL v6.8 · 214 séries/ciclo · cues técnicos em todos os exercícios (built-in IDs 1–6)</div>
+      <div>✓ <b>série de aquecimento</b> — Rotação Externa (Push A/B) + Mobilidade Tornozelo (Legs A/B)</div>
+      <div>✓ <b>cues técnicos</b> — Pegada · Respiração · Tensão em todos os exercícios</div>
       <div>✓ <b>personalGoals</b> — 6 metas de 12 meses baseadas na auditoria</div>
       <div>✓ <b>activeCommute</b> — 1,1 km · caminhada · 4,8 km/h</div>
       <div>✓ <b>activityLevel</b> — 1,725 (moderado · 4-5×/sem)</div>
@@ -163,17 +165,17 @@
 
   <!-- Protocolo PPL -->
   <div class="glass space-y-3">
-    <div class="section-title">Ciclo PPL Duplo — v6.7 · 208 séries/ciclo (V-Taper redesign)</div>
+    <div class="section-title">Ciclo PPL Duplo — v6.8 · 214 séries/ciclo (V-Taper redesign)</div>
     <div class="glass" style="background:rgba(239,68,68,.04);border-color:rgba(239,68,68,.2)">
       <div class="text-[9px] text-red-400/80 font-bold mb-3">CICLO A — Push → Legs → Pull → OFF</div>
       <div class="grid grid-cols-4 gap-2 mb-4">
         <div class="ppl-card ppl-A">
-          <div class="label">Pos 1 · 32s</div>
+          <div class="label">Pos 1 · 34s</div>
           <div class="title">Push A</div>
-          <div class="sub">Peito Sup + Delt Lat</div>
+          <div class="sub">3 Supinos + Serrátil + Delta</div>
         </div>
         <div class="ppl-card ppl-A">
-          <div class="label">Pos 2 · 34s</div>
+          <div class="label">Pos 2 · 37s</div>
           <div class="title">Legs A</div>
           <div class="sub">Quadríceps + Post.</div>
         </div>
@@ -191,12 +193,12 @@
       <div class="text-[9px] text-blue-400/80 font-bold mb-3">CICLO B — Push → Legs → Pull → OFF</div>
       <div class="grid grid-cols-4 gap-2">
         <div class="ppl-card ppl-B">
-          <div class="label">Pos 5 · 36s</div>
+          <div class="label">Pos 5 · 34s</div>
           <div class="title">Push B</div>
-          <div class="sub">Delt Lat + Peito</div>
+          <div class="sub">Delta + Crucifixo + Cross Over</div>
         </div>
         <div class="ppl-card ppl-B">
-          <div class="label">Pos 6 · 38s</div>
+          <div class="label">Pos 6 · 41s</div>
           <div class="title">Legs B</div>
           <div class="sub">Posterior + Glúteo</div>
         </div>
@@ -269,6 +271,12 @@
         <div style="font-size:8px;color:#52525b">Inclinado prioritário</div>
       </div>
       <div class="rank-row">
+        <div class="rank-num">4b</div>
+        <div class="rank-name">Serrátil Anterior</div>
+        <span class="rank-tag" style="background:rgba(34,197,94,.1);color:#4ade80;border:1px solid rgba(34,197,94,.2)">NOVO v6.8</span>
+        <div style="font-size:8px;color:#52525b">V-Taper lateral · serrilhado</div>
+      </div>
+      <div class="rank-row">
         <div class="rank-num">5º</div>
         <div class="rank-name">Panturrilha</div>
         <span class="rank-tag" style="background:rgba(59,130,246,.1);color:#60a5fa;border:1px solid rgba(59,130,246,.2)">MÉDIA</span>
@@ -313,6 +321,113 @@
       <div class="ppl-card"><div class="label">Carbo</div><div class="title">~540 g/dia</div></div>
     </div>
     <div class="text-[9px] text-zinc-700 mt-3 font-mono">2,2g/kg lean × 71,79kg · 25% kcal gordura · restante carbo</div>
+  </div>
+
+  <!-- Análise Técnica do Programa -->
+  <div class="glass space-y-3">
+    <div class="section-title">Análise Técnica — v6.8 · Decisões de Design</div>
+    <div class="space-y-2">
+      <div style="background:rgba(239,68,68,.05);border:1px solid rgba(239,68,68,.2);border-radius:10px;padding:10px">
+        <div class="text-[9px] font-black text-red-400 uppercase tracking-wider mb-2">Push A — 3 Ângulos Compostos de Peito</div>
+        <div class="text-[9px] text-zinc-500 space-y-1">
+          <div>1. Supino Inclinado 4×6-8 — porção superior (fibras claviculares)</div>
+          <div>2. Supino Reto 3×8-10 — porção média (esternal superior)</div>
+          <div>3. Supino Declinado 3×10-12 — porção esternal/inferior (sub-representada em ectomorfos altos)</div>
+          <div>4. Serrátil Punch 3×15 — V-Taper lateral (músculo visível entre peito e oblíquo)</div>
+          <div>5-6. Elevação Lateral ×2 — delta medial volume alto</div>
+          <div class="text-amber-600/70">AQUECIMENTO: Rotação Externa Elástico 2×15 — ativa manguito rotador antes do supino pesado</div>
+        </div>
+      </div>
+      <div style="background:rgba(59,130,246,.05);border:1px solid rgba(59,130,246,.2);border-radius:10px;padding:10px">
+        <div class="text-[9px] font-black text-blue-400 uppercase tracking-wider mb-2">Push B — Estímulo DIFERENTE do Push A</div>
+        <div class="text-[9px] text-zinc-500 space-y-1">
+          <div>Crucifixo Inclinado 3×10-12 — peito em posição ALONGADA (Pedrosa et al.: maior hipertrofia que posição encurtada)</div>
+          <div>Cross Over Polia Baixo→Cima 3×12-15 — adução pura, fibras esternal/inferior</div>
+          <div>Frontal Alternada DEPOIS do peito — delta anterior não pré-fatiga o crucifixo</div>
+          <div class="text-amber-600/70">REGRA: Push A = ângulos de supino (encurtado) · Push B = crucifixo/cross over (alongado + adução)</div>
+        </div>
+      </div>
+      <div style="background:rgba(34,197,94,.05);border:1px solid rgba(34,197,94,.2);border-radius:10px;padding:10px">
+        <div class="text-[9px] font-black text-green-400 uppercase tracking-wider mb-2">Pull A/B — Lógica Largura vs Espessura</div>
+        <div class="text-[9px] text-zinc-500 space-y-1">
+          <div>Pull A: Puxadas verticais (largura lat) → Pullover (adução pura) → Remos (espessura) → Del Post → Bíceps</div>
+          <div>Pull B: Remo pesado (SNC fresco) → Pullover posição 3 (lat ainda fresco) → Puxada neutra → Trap → Bíceps pesado</div>
+          <div class="text-green-600/70">Pullover no Pull B está na posição 3 — intencional (lat com energia antes das puxadas adicionais)</div>
+        </div>
+      </div>
+      <div style="background:rgba(168,85,247,.05);border:1px solid rgba(168,85,247,.2);border-radius:10px;padding:10px">
+        <div class="text-[9px] font-black text-purple-400 uppercase tracking-wider mb-2">Legs A/B — Fêmur Longo + Assimetria</div>
+        <div class="text-[9px] text-zinc-500 space-y-1">
+          <div>Mobilidade de Tornozelo ANTES de todo treino de perna — fêmur longo = tornozelo tenso limita agachamento</div>
+          <div>Panturrilha em Pé: 4×8-12 CARGA ALTA (gastrocnêmio responde a treino pesado)</div>
+          <div>Panturrilha Sentada: 4×12-15 moderado (sóleo: tipo 1, responde a volume)</div>
+          <div>Afundo Smith Legs B: SEMPRE começar lado E — déficit 1,5cm coxa D/E registrado na avaliação</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Sistema de Progressão -->
+  <div class="glass space-y-3">
+    <div class="section-title">Sistema de Progressão de Carga</div>
+    <div class="glass" style="background:rgba(34,197,94,.04);border-color:rgba(34,197,94,.2)">
+      <div class="text-[9px] text-green-400 font-black mb-2">REGRA DE PROGRESSÃO (aplicar em todos os compostos)</div>
+      <div class="text-[9px] text-zinc-400 space-y-1.5">
+        <div class="flex gap-2"><span class="text-green-600 font-black">Sem. 1-2:</span><span>Use peso onde bate o TETO do range com RIR 3-4 — foco na técnica, não no esforço</span></div>
+        <div class="flex gap-2"><span class="text-green-600 font-black">Sem. 3+:</span><span>Sobe para RIR 1-2 (1-2 reps antes da falha)</span></div>
+        <div class="flex gap-2"><span class="text-green-600 font-black">Progredir:</span><span>Bateu TETO do range com RIR 1-2 em 2 sessões seguidas → +2,5kg (compostos) / +1kg (isoladores)</span></div>
+      </div>
+    </div>
+    <div class="grid grid-cols-2 gap-2 text-[9px]">
+      <div class="ppl-card">
+        <div class="label">Compostos (6-10 reps)</div>
+        <div class="title text-green-400">+2,5 kg</div>
+        <div class="sub">Supino · Terra · Agacho · Dev.</div>
+      </div>
+      <div class="ppl-card">
+        <div class="label">Isoladores (10-15 reps)</div>
+        <div class="title text-blue-400">+1 kg</div>
+        <div class="sub">Curl · Lateral · Pulley · Crucifixo</div>
+      </div>
+    </div>
+    <div class="text-[9px] text-zinc-600">
+      Zona errada: conseguir 3+ reps além do alvo = carga muito leve.<br>
+      Zona certa: RIR 1-2 nas séries de trabalho (não ir à falha total).
+    </div>
+  </div>
+
+  <!-- Músculos Mapeados -->
+  <div class="glass space-y-3">
+    <div class="section-title">Músculos Mapeados no Programa v6.8</div>
+    <div class="grid grid-cols-2 gap-2 text-[9px]">
+      <div class="ppl-card"><div class="label">Push A/B</div><div class="title">Peitoral</div><div class="sub">3 ângulos · alongado · adução</div></div>
+      <div class="ppl-card"><div class="label">Push A/B</div><div class="title">Delta Lateral</div><div class="sub">Volume alto · 2 variações</div></div>
+      <div class="ppl-card"><div class="label">Push A/B</div><div class="title">Delta Anterior</div><div class="sub">Frontal Alternada</div></div>
+      <div class="ppl-card" style="border-color:rgba(34,197,94,.3)"><div class="label">Push A · NOVO v6.8</div><div class="title text-green-400">Serrátil Anterior</div><div class="sub">Punch · V-Taper lateral</div></div>
+      <div class="ppl-card"><div class="label">Push A/B</div><div class="title">Tríceps</div><div class="sub">Francês + Pulley</div></div>
+      <div class="ppl-card"><div class="label">Pull A/B</div><div class="title">Lat (Dorsal)</div><div class="sub">Largura · puxadas</div></div>
+      <div class="ppl-card"><div class="label">Pull A/B</div><div class="title">Lat (Espessura)</div><div class="sub">Remos · pullover</div></div>
+      <div class="ppl-card"><div class="label">Pull A/B</div><div class="title">Delta Posterior</div><div class="sub">Crucifixo invertido</div></div>
+      <div class="ppl-card"><div class="label">Pull A/B</div><div class="title">Trapézio</div><div class="sub">Encolhimento</div></div>
+      <div class="ppl-card"><div class="label">Pull A/B</div><div class="title">Bíceps</div><div class="sub">Barra W + Alternado</div></div>
+      <div class="ppl-card"><div class="label">Legs A/B</div><div class="title">Quadríceps</div><div class="sub">Leg Press · Extensora</div></div>
+      <div class="ppl-card"><div class="label">Legs A/B</div><div class="title">Post. Coxa</div><div class="sub">Stiff · Flexora</div></div>
+      <div class="ppl-card"><div class="label">Legs A/B</div><div class="title">Glúteo</div><div class="sub">Afundo Smith · Abdutora</div></div>
+      <div class="ppl-card"><div class="label">Legs A/B</div><div class="title">Panturrilha</div><div class="sub">Gastro + Sóleo (2 tipos)</div></div>
+      <div class="ppl-card"><div class="label">Core</div><div class="title">Abdome</div><div class="sub">Prancha + variações</div></div>
+    </div>
+  </div>
+
+  <!-- Protocolo de Deload -->
+  <div class="glass space-y-2">
+    <div class="section-title">Protocolo de Deload</div>
+    <div class="text-[9px] text-zinc-500 space-y-1.5">
+      <div class="flex gap-2"><span class="text-amber-500 font-black">Quando:</span><span>A cada 4-6 semanas (ou quando o desempenho cair por 2 sessões seguidas)</span></div>
+      <div class="flex gap-2"><span class="text-amber-500 font-black">Volume:</span><span>50-60% das séries normais</span></div>
+      <div class="flex gap-2"><span class="text-amber-500 font-black">Intensidade:</span><span>50-60% da carga habitual</span></div>
+      <div class="flex gap-2"><span class="text-amber-500 font-black">Duração:</span><span>1 semana completa (não pular)</span></div>
+      <div class="text-zinc-700 mt-1">O deload NÃO é fraqueza — é quando o músculo consolida adaptação. Atletas avançados crescem DURANTE a semana de deload.</div>
+    </div>
   </div>
 
   <!-- Botão -->

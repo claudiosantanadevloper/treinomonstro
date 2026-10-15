@@ -182,67 +182,6 @@ export function renderBattleReport(s, pName, L, nextW, nextIsOff, prevSession) {
           </div>
         </div>
 
-        ${s.mission?.commute ? (() => {
-          const c = s.mission.commute;
-          const modeIcon = { walk: 'move', run: 'zap', bike: 'activity' };
-          const modeLabel = { walk: 'a pé', run: 'correndo', bike: 'bike' };
-          const hasGoReturn = c.go && c.return && c.go.mode !== c.return.mode;
-          const rows = hasGoReturn
-            ? `
-              <div class="space-y-2">
-                <div class="flex items-center justify-between">
-                  <div class="flex items-center gap-1.5 text-[9px] text-zinc-500">
-                    <i data-lucide="${modeIcon[c.go.mode] ?? 'move'}" class="w-3 h-3"></i>
-                    <span class="font-bold uppercase">Ida</span>
-                    <span class="text-zinc-700">· ${modeLabel[c.go.mode] ?? c.go.mode}</span>
-                  </div>
-                  <div class="text-[10px] font-mono text-cyan-400 font-bold">
-                    ${c.go.distance}km · ${c.go.duration}min · ~${c.go.calories}kcal
-                  </div>
-                </div>
-                <div class="flex items-center justify-between">
-                  <div class="flex items-center gap-1.5 text-[9px] text-zinc-500">
-                    <i data-lucide="${modeIcon[c.return.mode] ?? 'move'}" class="w-3 h-3"></i>
-                    <span class="font-bold uppercase">Volta</span>
-                    <span class="text-zinc-700">· ${modeLabel[c.return.mode] ?? c.return.mode}</span>
-                  </div>
-                  <div class="text-[10px] font-mono text-cyan-400 font-bold">
-                    ${c.return.distance}km · ${c.return.duration}min · ~${c.return.calories}kcal
-                  </div>
-                </div>
-              </div>`
-            : `
-              <div class="grid grid-cols-3 gap-2 text-center">
-                <div>
-                  <div class="text-[9px] text-zinc-500 uppercase font-bold tracking-wider mb-1">Distância</div>
-                  <div class="text-lg font-black font-mono text-cyan-400">${c.distance}km</div>
-                </div>
-                <div>
-                  <div class="text-[9px] text-zinc-500 uppercase font-bold tracking-wider mb-1">Tempo</div>
-                  <div class="text-lg font-black font-mono text-cyan-400">${c.duration}min</div>
-                </div>
-                <div>
-                  <div class="text-[9px] text-zinc-500 uppercase font-bold tracking-wider mb-1">Estimativa</div>
-                  <div class="text-lg font-black font-mono text-cyan-400">${c.calories}kcal</div>
-                </div>
-              </div>`;
-          return `
-          <div class="glass-card rounded-2xl border border-cyan-900/40 p-4 mb-4 stagger-enter"
-               style="animation-delay:100ms;background:linear-gradient(135deg,rgba(8,145,178,0.07),transparent)">
-            <h3 class="text-[10px] font-bold text-cyan-700 uppercase tracking-widest mb-3 flex items-center gap-1.5">
-              <i data-lucide="move" class="w-3.5 h-3.5"></i> Locomoção
-            </h3>
-            ${rows}
-            ${s.mission.totals?.calories > 0 ? `
-            <div class="border-t border-cyan-900/30 mt-3 pt-2 text-center">
-              <p class="text-[9px] text-zinc-600 font-mono">
-                Missão total · <span class="text-zinc-300 font-black">${s.mission.totals.duration}min</span>
-                · ~<span class="text-zinc-300 font-black">${s.mission.totals.calories.toLocaleString('pt-BR')} kcal</span>
-                <span class="text-zinc-700"> (estimativa MET)</span>
-              </p>
-            </div>` : ''}
-          </div>`;
-        })() : ''}
 
         ${s.mvp?.name ? `
           <div class="glass-card rounded-2xl border border-yellow-900/40 p-4 mb-4 flex items-center gap-3 stagger-enter"
