@@ -63,6 +63,17 @@
     <a href="index.html" class="text-[10px] text-red-500/50 hover:text-red-400 mt-3 inline-block">← voltar ao app</a>
   </div>
 
+  <!-- Preservar progresso -->
+  <div class="glass" style="border-color:rgba(34,197,94,.3);background:rgba(34,197,94,.04)">
+    <label style="display:flex;align-items:flex-start;gap:12px;cursor:pointer">
+      <input type="checkbox" id="preserveCycle" checked style="margin-top:2px;accent-color:#22c55e;width:16px;height:16px;flex-shrink:0">
+      <div>
+        <div class="text-[11px] text-green-400 font-bold">Preservar progresso do ciclo atual</div>
+        <div class="text-[10px] text-zinc-500 mt-1">Mantém <b>cyclePosition</b> e <b>cycleDone</b> — seus treinos desta semana ficam intactos.<br>Desmarque só se quiser reiniciar do Push A.</div>
+      </div>
+    </label>
+  </div>
+
   <!-- O que será gravado -->
   <div class="glass" style="border-color:rgba(59,130,246,.3);background:rgba(59,130,246,.05)">
     <div class="text-[10px] text-blue-300/80 font-bold uppercase tracking-wider mb-2">O que será gravado</div>
@@ -603,9 +614,13 @@
     if (academyName) localStorage.setItem(PREFIX + 'academyName', JSON.stringify(academyName));
 
     // 5 — ciclo PPL (ordem correta do personal: Push→Legs→Pull + OFF · Push→Legs→Pull + OFF)
+    const preserveCycle = document.getElementById('preserveCycle').checked;
     localStorage.setItem(PREFIX + 'cycleOrder',    JSON.stringify(CYCLE_ORDER));
     localStorage.setItem(PREFIX + 'cycleGoal',     JSON.stringify(6));
-    localStorage.setItem(PREFIX + 'cyclePosition', JSON.stringify(0));
+    if (!preserveCycle) {
+      localStorage.setItem(PREFIX + 'cyclePosition', JSON.stringify(0));
+      localStorage.setItem(PREFIX + 'cycleDone',     JSON.stringify([]));
+    }
     localStorage.setItem(PREFIX + 'trainingStyle', JSON.stringify('ppl'));
     localStorage.setItem(PREFIX + 'goal',          JSON.stringify('hipertrofia'));
     localStorage.setItem(PREFIX + 'goals',         JSON.stringify(['hipertrofia']));
@@ -667,6 +682,9 @@
       `<div>✓ <b>projectName</b>: ${projectName}</div>`,
       academyName ? `<div>✓ <b>academyName</b>: ${academyName}</div>` : '',
       `<div>✓ <b>cycleOrder</b>: Push A → Legs A → Pull A → OFF → Push B → Legs B → Pull B → OFF</div>`,
+      preserveCycle
+        ? `<div>✓ <b>cyclePosition / cycleDone</b>: preservados (progresso da semana mantido)</div>`
+        : `<div>✓ <b>cyclePosition / cycleDone</b>: resetados → próximo treino = Push A</div>`,
       `<div>✓ <b>activeCommute</b>: ${commuteKm}km · walk · ${commuteSpeed}km/h</div>`,
       `<div>✓ <b>personalGoals</b>: ${existingGoals.length === 0 ? PERSONAL_GOALS.length + ' metas criadas' : 'mantidas (já existiam)'}</div>`,
       `<div>✓ <b>settings</b>: rest 90s · inc 2,5kg · autoFill · sons · cardio conta streak</div>`,
