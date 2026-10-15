@@ -84,6 +84,7 @@ export class AppController {
   #obLayer            = null;
   #obStep             = 0;
   #obData             = {};
+  #restPill           = null;
 
   constructor({ store, workouts, cardioProtocols = [], timer, theme, storage, exportService }) {
     this.#store = store;
@@ -281,6 +282,10 @@ export class AppController {
       }
 
       if (tabChanged || workoutChanged) {
+        // Esconde pill quando sai do treino
+        if (tabChanged && state.tab !== 'workout' && this.#restPill) {
+          this.#restPill.style.display = 'none';
+        }
         this.#render(state);
         return;
       }
@@ -573,6 +578,19 @@ export class AppController {
 
   /* ─── Timer ───────────────────────────────────────────────────── */
 
+  #ensureRestPill() {
+    if (this.#restPill) return this.#restPill;
+    const el = document.createElement('div');
+    el.id = 'rest-timer-pill';
+    el.style.cssText = 'position:fixed;bottom:76px;left:50%;transform:translateX(-50%);z-index:55;display:none;' +
+      'align-items:center;gap:8px;padding:8px 16px;border-radius:999px;' +
+      'background:rgba(9,9,11,.95);border:1px solid var(--theme-accent);' +
+      'box-shadow:0 0 20px var(--theme-dim);pointer-events:none;white-space:nowrap;';
+    document.body.appendChild(el);
+    this.#restPill = el;
+    return el;
+  }
+
   #bindTimer() {
     this.#timer.on("tick", (remaining) => {
       if (!this.#timerText || !this.#timerBadge) return;
@@ -593,12 +611,29 @@ export class AppController {
           summary.innerHTML = `<span class="font-mono font-bold text-theme-primary/80">⏱ ${formatTime(remaining)}</span><span class="text-zinc-700 ml-2 text-[8px]">· toque p/ expandir</span>`;
         }
       }
+      // Floating rest pill (só na tela de treino)
+      if (this.#store.getState().tab === 'workout') {
+        const pill = this.#ensureRestPill();
+        const pct = this.#timer.progress;
+        const circ = 2 * Math.PI * 7;
+        pill.style.display = 'flex';
+        pill.innerHTML = `
+          <svg width="20" height="20" viewBox="0 0 20 20" style="transform:rotate(-90deg)">
+            <circle cx="10" cy="10" r="7" fill="none" stroke="rgba(255,255,255,0.08)" stroke-width="2"/>
+            <circle cx="10" cy="10" r="7" fill="none" stroke="var(--theme-primary)" stroke-width="2"
+                    stroke-dasharray="${circ.toFixed(1)}" stroke-dashoffset="${((1 - pct) * circ).toFixed(1)}"
+                    stroke-linecap="round"/>
+          </svg>
+          <span style="font-size:14px;font-weight:900;font-family:monospace;color:var(--theme-primary)">${formatTime(remaining)}</span>
+          <span style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:#52525b">descanso</span>`;
+      }
     });
 
     this.#timer.on("complete", () => {
       const st = this.#store.getState();
       if (st.vibrationEnabled !== false && navigator.vibrate) navigator.vibrate([200, 100, 200]);
       if (st.timerSoundEnabled !== false) this.#playTimerBeep();
+      if (this.#restPill) this.#restPill.style.display = 'none';
       setTimeout(() => {
         hide(this.#timerBadge);
         // Exibe botão de reiniciar descanso por 30s
@@ -1188,6 +1223,9 @@ export class AppController {
         break;
       case "exercise-demo":
         this.#showExerciseDemoModal(state.modalData);
+        break;
+      case "exercise-focus":
+        this.#showExerciseFocusModal(state.modalData);
         break;
       case "cycle-overview":
         this.#showCycleModal();
@@ -3217,6 +3255,112 @@ export class AppController {
     setTimeout(() => this.#modalLayer.querySelector('#exnote-input')?.focus(), 100);
   }
 
+  #showExerciseFocusModal(data = {}) {
+    const { wId, ex } = data;
+    if (!ex) return;
+    const state   = this.#store.getState();
+    const wLogs   = (state.logs[wId] ?? {})[ex.id] ?? {};
+    const lastSession = state.history.find(h => h.workoutId === wId);
+    const lastSets = lastSession?.sets?.[ex.id] ?? [];
+    const pr = state.prs?.[ex.id];
+    const timerActive = this.#timer.remaining > 0;
+
+    const setRows = (() => {
+      const total = (() => {
+        if (wLogs._c != null) return Math.max(1, wLogs._c);
+        const keys = Object.keys(wLogs).map(Number).filter(n => Number.isInteger(n) && n >= 0);
+        return keys.length ? Math.max(ex.sets, Math.max(...keys) + 1) : ex.sets;
+      })();
+      return Array.from({ length: total }, (_, i) => {
+        const log  = wLogs[i] ?? {};
+        const last = lastSets[i] ?? {};
+        const done = log.done || false;
+        const warmup = log.warmup || false;
+        return `
+          <div class="flex items-center gap-3 py-2.5 border-b border-zinc-800/40 last:border-0">
+            <div class="w-7 text-center text-xs font-mono font-black ${warmup ? 'text-yellow-500' : done ? 'text-green-400' : 'text-zinc-600'}">
+              ${warmup ? 'W' : i + 1}
+            </div>
+            <div class="flex-1 flex items-center gap-2">
+              <div class="text-xl font-black font-mono ${done ? 'text-green-400' : log.w ? 'text-white' : 'text-zinc-700'}">
+                ${log.w || (last.w ? `(${last.w})` : '—')}
+                <span class="text-sm text-zinc-600">kg</span>
+              </div>
+              <div class="text-zinc-700 text-sm">×</div>
+              <div class="text-xl font-black font-mono ${done ? 'text-green-400' : log.r ? 'text-white' : 'text-zinc-700'}">
+                ${log.r || (last.r ? `(${last.r})` : '—')}
+                <span class="text-sm text-zinc-600">rep</span>
+              </div>
+            </div>
+            <div class="w-7 flex items-center justify-center">
+              ${done ? '<span class="text-green-500 text-base">✓</span>' : '<span class="text-zinc-800 text-base">○</span>'}
+            </div>
+          </div>`;
+      }).join('');
+    })();
+
+    const doneSets = Object.values(wLogs).filter(s => s.done && !s.warmup).length;
+    const totalSets = Object.values(wLogs).filter((_, k) => !['_c','_skip'].includes(String(k))).length || ex.sets;
+
+    this.#modalLayer.innerHTML = `
+      <div id="focus-backdrop" class="fixed inset-0 z-[80] flex flex-col bg-black/98 backdrop-blur-sm animate-zoom-in">
+        <div class="flex items-center justify-between px-5 pt-5 pb-3">
+          <div class="text-[10px] font-bold text-zinc-600 uppercase tracking-widest">Foco</div>
+          <button id="focus-close" class="w-9 h-9 rounded-full bg-zinc-900/80 border border-zinc-800 flex items-center justify-center text-zinc-400 active:scale-90 transition-all">
+            <i data-lucide="x" class="w-4 h-4"></i>
+          </button>
+        </div>
+
+        <div class="flex-1 overflow-y-auto px-5 pb-6">
+          <h1 class="text-3xl font-black text-white leading-tight mb-1">${ex.name}</h1>
+          <div class="flex items-center gap-2 mb-4 flex-wrap">
+            <span class="text-[10px] font-mono text-theme-primary bg-theme-dim px-2 py-0.5 rounded border border-theme-dim">
+              ${ex.sets}×${ex.reps}
+            </span>
+            <span class="text-[10px] font-mono text-zinc-600 flex items-center gap-1">
+              <i data-lucide="timer" class="w-3 h-3"></i> ${ex.rest ?? 60}s
+            </span>
+            ${pr ? `<span class="text-[10px] font-mono text-yellow-500 flex items-center gap-1"><i data-lucide="trophy" class="w-3 h-3"></i> PR ${pr.weight}kg</span>` : ''}
+            ${doneSets > 0 ? `<span class="text-[10px] font-mono text-green-600">${doneSets}/${totalSets} ✓</span>` : ''}
+          </div>
+
+          ${timerActive ? `
+          <div class="mb-4 py-3 px-4 rounded-2xl border border-theme-accent/50 bg-theme-dim/30 text-center">
+            <div class="text-[9px] text-zinc-600 uppercase tracking-widest mb-1">Descanso</div>
+            <div id="focus-timer" class="text-4xl font-black font-mono text-theme-primary">${formatTime(this.#timer.remaining)}</div>
+          </div>` : ''}
+
+          <div class="glass-card rounded-2xl border border-zinc-800/60 px-4 py-2 mb-4">
+            <div class="flex items-center gap-2 mb-1 text-[9px] font-bold text-zinc-600 uppercase tracking-widest">
+              <i data-lucide="list" class="w-3 h-3"></i> Séries
+            </div>
+            ${setRows}
+          </div>
+
+          ${ex.note ? `
+          <div class="px-3 py-2.5 rounded-xl bg-amber-950/30 border border-amber-900/30 flex items-start gap-2">
+            <i data-lucide="zap" class="w-3.5 h-3.5 text-amber-500 shrink-0 mt-0.5"></i>
+            <p class="text-[10px] text-amber-300/80 leading-relaxed">${ex.note}</p>
+          </div>` : ''}
+        </div>
+      </div>`;
+
+    if (window.lucide) lucide.createIcons({ nodes: [this.#modalLayer] });
+    document.getElementById('focus-close')?.addEventListener('click', () => this.#closeModal());
+    document.getElementById('focus-backdrop')?.addEventListener('click', e => {
+      if (e.target.id === 'focus-backdrop') this.#closeModal();
+    });
+
+    // Atualiza o timer em tempo real enquanto o modal estiver aberto
+    const focusInterval = setInterval(() => {
+      const el = document.getElementById('focus-timer');
+      if (!el) { clearInterval(focusInterval); return; }
+      const rem = this.#timer.remaining;
+      if (rem > 0) { el.textContent = formatTime(rem); }
+      else { el.closest('.mb-4')?.remove(); clearInterval(focusInterval); }
+    }, 1000);
+  }
+
   #showExerciseDemoModal(data = {}) {
     const { exId, exName } = data;
     if (!exName) return;
@@ -4498,6 +4642,14 @@ export class AppController {
       case "open-exercise-detail":
         this.#store.setState({ activeModal: "exercise-detail", modalData: payload });
         break;
+
+      case "open-exercise-focus": {
+        const { wId: fwId, exId: fExId } = payload ?? {};
+        const fw  = this.#allWorkouts().find(w => w.id === fwId);
+        const fEx = fw?.exercises.find(e => e.id === fExId);
+        if (fEx) this.#store.setState({ activeModal: 'exercise-focus', modalData: { wId: fwId, ex: fEx } });
+        break;
+      }
 
       case "open-exercise-demo":
         this.#store.setState({ activeModal: "exercise-demo", modalData: payload });

@@ -377,6 +377,15 @@ function renderExerciseCard(wId, ex, idx, wLogs, lastSets, prs, loadTarget = nul
           </div>
         </div>
 
+        <!-- Botão foco fullscreen -->
+        <button data-action="open-exercise-focus" data-wid="${wId}" data-exid="${ex.id}"
+                title="Foco: ver exercício em tela cheia"
+                class="ripple-target ml-auto w-8 h-8 rounded-lg flex items-center justify-center shrink-0
+                       bg-zinc-800/40 border border-zinc-700/40 text-zinc-600
+                       active:scale-90 transition-all hover:text-theme-primary hover:border-theme-dim">
+          <i data-lucide="eye" class="w-3 h-3"></i>
+        </button>
+
         <!-- Botão pular exercício -->
         <button data-action="toggle-skip-exercise" data-wid="${wId}" data-exid="${ex.id}"
                 title="${exLogs._skip ? 'Retomar exercício' : 'Pular exercício'}"
@@ -1119,6 +1128,12 @@ export function mountWorkout(container, handler) {
       weight: parseFloat(el.dataset.weight) || 0,
       reps:   el.dataset.reps || '',
     });
+  });
+
+  delegate(container, '[data-action="open-exercise-focus"]', 'click', (e, el) => {
+    e.stopPropagation();
+    createRipple(e, el);
+    handler('open-exercise-focus', { wId: el.dataset.wid, exId: el.dataset.exid });
   });
 
   delegate(container, '[data-action="open-exercise-detail"]', 'click', (e, el) => {

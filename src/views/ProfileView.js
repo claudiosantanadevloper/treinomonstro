@@ -200,7 +200,7 @@ function renderBiometricsSection(bio, bioHistory = [], hiddenSections = []) {
           const fatMassRing = (bio.weight && bio.bodyFat) ? (bio.weight * bio.bodyFat / 100).toFixed(1) : null;
           return `
           <div class="flex items-center gap-4 mb-4">
-            <svg width="120" height="120" viewBox="0 0 120 120" class="shrink-0">
+            <svg width="140" height="140" viewBox="0 0 120 120" class="shrink-0">
               <!-- background ring -->
               <circle cx="60" cy="60" r="50" fill="none" stroke="#27272a" stroke-width="14"/>
               <!-- fat arc (orange) — starts at top via rotate(-90) -->
@@ -1384,6 +1384,118 @@ function renderPersonalGoals(goals = [], hiddenSections = []) {
   `;
 }
 
+/* ─── Hero Card (Avatar + Hologram + Key Metrics) ─────────────────── */
+
+function renderHeroCard(userName, rank, history, cardioHistory, theme, biometrics, cyberScores) {
+  const fatCat = (bf) => {
+    if (bf <= 6)  return { label: 'Essencial',  color: 'text-blue-400' };
+    if (bf <= 14) return { label: 'Atlético',   color: 'text-green-400' };
+    if (bf <= 18) return { label: 'Fitness',    color: 'text-yellow-400' };
+    if (bf <= 25) return { label: 'Aceitável',  color: 'text-orange-400' };
+    return              { label: 'Acima',       color: 'text-red-400' };
+  };
+  const cat = biometrics?.bodyFat ? fatCat(biometrics.bodyFat) : null;
+  const totalAct = history.length + cardioHistory.length;
+  const excess = biometrics?.weight && biometrics?.targetWeight
+    ? parseFloat((biometrics.weight - biometrics.targetWeight).toFixed(1)) : null;
+
+  return `
+    <div class="relative rounded-3xl overflow-hidden border border-theme-accent/25"
+         style="background:linear-gradient(165deg,rgba(var(--theme-rgb),0.10) 0%,#070707 55%)">
+
+      <!-- Background glow -->
+      <div class="absolute inset-0 pointer-events-none overflow-hidden">
+        <div style="position:absolute;top:25%;left:50%;transform:translateX(-50%);
+                    width:240px;height:300px;border-radius:50%;
+                    background:radial-gradient(ellipse at center,rgba(var(--theme-rgb),0.16) 0%,transparent 70%)">
+        </div>
+      </div>
+
+      <!-- Top: avatar + name + settings -->
+      <div class="relative z-10 flex items-center justify-between px-4 pt-4 pb-1">
+        <div class="flex items-center gap-3">
+          <div class="w-12 h-12 rounded-full border-2 border-theme-accent flex items-center justify-center
+                      bg-zinc-950 shadow-[0_0_20px_var(--theme-dim)]">
+            ${renderSharingan('w-7 h-7', true, theme)}
+          </div>
+          <div>
+            <h2 class="text-xl font-black uppercase leading-none"
+                style="text-shadow:0 0 18px rgba(var(--theme-rgb),0.45)">${userName.toUpperCase()}</h2>
+            <div class="flex items-center gap-1.5 mt-1">
+              <span class="text-[9px] font-mono ${rank.color} tracking-[0.18em] uppercase font-bold">${rank.label}</span>
+              <span class="text-zinc-700">·</span>
+              <span class="text-[9px] text-zinc-500 font-mono">${totalAct} atividades</span>
+            </div>
+          </div>
+        </div>
+        <button data-action="goto-settings"
+                class="ripple-target w-9 h-9 rounded-full bg-zinc-900/60 border border-zinc-800
+                       flex items-center justify-center text-zinc-500 hover:text-theme-primary
+                       hover:border-theme-accent transition-all active:scale-90 shrink-0">
+          <i data-lucide="settings" class="w-4 h-4"></i>
+        </button>
+      </div>
+
+      <!-- CyberBody: center stage with floating badges -->
+      <div class="relative z-10 flex justify-center">
+
+        ${biometrics?.bodyFat != null ? `
+        <div class="absolute top-3 right-3 z-20 bg-black/75 border border-orange-900/50 rounded-2xl px-2.5 py-2 text-center"
+             style="backdrop-filter:blur(8px)">
+          <div class="text-[7px] text-zinc-600 uppercase font-bold tracking-wider">Gordura</div>
+          <div class="text-[17px] font-black font-mono text-orange-400 leading-none">${biometrics.bodyFat}%</div>
+          ${cat ? `<div class="text-[7px] ${cat.color} font-bold mt-0.5">${cat.label}</div>` : ''}
+        </div>` : ''}
+
+        ${biometrics?.leanMass != null ? `
+        <div class="absolute top-3 left-3 z-20 bg-black/75 border border-cyan-900/50 rounded-2xl px-2.5 py-2 text-center"
+             style="backdrop-filter:blur(8px)">
+          <div class="text-[7px] text-zinc-600 uppercase font-bold tracking-wider">Magra</div>
+          <div class="text-[17px] font-black font-mono text-cyan-400 leading-none">${biometrics.leanMass}kg</div>
+          ${biometrics.muscleMass ? `<div class="text-[7px] text-theme-primary font-bold mt-0.5">${biometrics.muscleMass}kg musc.</div>` : ''}
+        </div>` : ''}
+
+        ${renderCyberBody(cyberScores, 280, theme, biometrics?.bracoDirContraido ? biometrics : null)}
+      </div>
+
+      <!-- Bottom metrics strip -->
+      <div class="relative z-10 grid grid-cols-3 divide-x divide-zinc-800/50 border-t border-zinc-800/50">
+        <div class="text-center py-3.5">
+          <div class="text-[7px] text-zinc-600 uppercase font-bold tracking-wider mb-0.5">Peso</div>
+          <div class="text-[20px] font-black font-mono text-white leading-none">
+            ${biometrics?.weight ?? history.length}<span class="text-[10px] text-zinc-600">${biometrics?.weight ? 'kg' : ' sess.'}</span>
+          </div>
+          ${biometrics?.weight && biometrics?.height ? (() => {
+            const bmi = (biometrics.weight / (biometrics.height / 100) ** 2).toFixed(1);
+            return `<div class="text-[8px] font-mono text-zinc-600 mt-0.5">IMC ${bmi}</div>`;
+          })() : ''}
+        </div>
+        <div class="text-center py-3.5">
+          ${biometrics?.targetWeight ? `
+          <div class="text-[7px] text-zinc-600 uppercase font-bold tracking-wider mb-0.5">Meta</div>
+          <div class="text-[20px] font-black font-mono leading-none ${excess > 0 ? 'text-orange-400' : excess < 0 ? 'text-green-400' : 'text-theme-primary'}">
+            ${biometrics.targetWeight}<span class="text-[10px] text-zinc-600">kg</span>
+          </div>
+          ${excess !== null && excess !== 0 ? `
+          <div class="text-[8px] font-mono ${excess > 0 ? 'text-orange-600/80' : 'text-green-600'} mt-0.5">
+            ${excess > 0 ? '+' : ''}${excess}kg
+          </div>` : `<div class="text-[8px] text-green-500 mt-0.5">✓ meta</div>`}` : `
+          <div class="text-[7px] text-zinc-600 uppercase font-bold tracking-wider mb-0.5">Sessões</div>
+          <div class="text-[20px] font-black font-mono text-white leading-none">${history.length}</div>
+          <div class="text-[8px] text-zinc-600 font-mono mt-0.5">${cardioHistory.length} cardio</div>`}
+        </div>
+        <div class="text-center py-3.5">
+          ${biometrics?.date ? `
+          <div class="text-[7px] text-zinc-600 uppercase font-bold tracking-wider mb-0.5">Avaliado</div>
+          <div class="text-[11px] font-bold font-mono text-zinc-400 leading-none mt-2">${formatDate(biometrics.date)}</div>` : `
+          <div class="text-[7px] text-zinc-600 uppercase font-bold tracking-wider mb-0.5">Cardio</div>
+          <div class="text-[20px] font-black font-mono text-cyan-400 leading-none">${cardioHistory.length}</div>`}
+        </div>
+      </div>
+    </div>
+  `;
+}
+
 /* ─── Render principal ─────────────────────────────────────────────── */
 
 export function renderProfile(state) {
@@ -1413,40 +1525,141 @@ export function renderProfile(state) {
   }
 
   return `
-    <div class="stagger-enter space-y-5 pb-4">
+    <div class="stagger-enter space-y-4 pb-4">
 
-      <!-- Avatar + Nome -->
-      <div class="flex items-center gap-4 pt-2">
-        <div class="relative shrink-0">
-          <div class="w-16 h-16 rounded-full border-2 border-theme-accent flex items-center justify-center
-                      bg-zinc-900 shadow-[0_0_30px_var(--theme-dim)]">
-            ${renderSharingan('w-10 h-10', true, theme)}
-          </div>
+      <!-- Hero: Avatar + Hologram + Métricas chave -->
+      ${renderHeroCard(userName, rank, history, cardioHistory, theme, biometrics, cyberScores)}
+
+      <!-- Composição Corporal — ring + métricas + metas -->
+      ${renderBiometricsSection(biometrics, bioHistory, hiddenSections)}
+
+      <!-- Gráfico Composição (Peso vs Magra timeline) -->
+      ${renderBodyCompositionChart(biometrics, bioHistory, hiddenSections)}
+
+      <!-- Evolução biométrica (sparklines) -->
+      ${bioHistory.length > 0 ? renderBioEvolutionChart(biometrics, bioHistory, hiddenSections) : ''}
+
+      <!-- Insights automáticos -->
+      ${renderBioInsights(biometrics, bioHistory, bodyWeights, hiddenSections)}
+
+      <!-- Medidas vs Referência (quando há circunferências) -->
+      ${biometrics?.bracoDirContraido || Object.keys(cyberScores).length ? `
+      <div class="glass-card p-4 rounded-2xl border border-zinc-800/60">
+        <div class="flex items-center justify-between mb-3">
+          <h3 class="text-[10px] font-bold text-zinc-500 uppercase tracking-widest flex items-center gap-1.5">
+            <i data-lucide="cpu" class="w-3.5 h-3.5"></i>
+            Medidas vs Referência
+          </h3>
+          <span class="text-[9px] text-zinc-700 font-mono">
+            ${biometrics?.bracoDirContraido ? 'circunferências reais' : 'freq. de treino'}
+          </span>
         </div>
-        <div class="flex-1 min-w-0">
-          <h2 class="text-xl font-black uppercase glitch-text truncate"
-              data-text="${userName.toUpperCase()}">${userName.toUpperCase()}</h2>
-          <div class="inline-flex items-center gap-2 mt-1 px-3 py-1 bg-theme-dim border border-theme-dim rounded-full">
-            <span class="text-[10px] font-mono ${rank.color} tracking-[0.25em] uppercase font-bold">${rank.label}</span>
-            <span class="text-[10px] text-zinc-600">·</span>
-            <span class="text-[10px] text-zinc-500 font-mono">${history.length} ${L.workoutPlural}</span>
-          </div>
-        </div>
-        <button data-action="goto-settings"
-                class="ripple-target w-10 h-10 rounded-full bg-zinc-900 border border-zinc-800
-                       flex items-center justify-center text-zinc-500 hover:text-theme-primary
-                       hover:border-theme-accent transition-all active:scale-90 shrink-0">
-          <i data-lucide="settings" class="w-4 h-4"></i>
-        </button>
-      </div>
+        ${biometrics?.bracoDirContraido ? (() => {
+          const bilaterais = [
+            { label: 'Braço',       valD: biometrics.bracoDirContraido,   valE: biometrics.bracoEsqContraido,    ref: 37,  th: 0.5 },
+            { label: 'Coxa',        valD: biometrics.coxaDireita,          valE: biometrics.coxaEsquerda,         ref: 56,  th: 1.0 },
+            { label: 'Panturrilha', valD: biometrics.panturrilhaDireita,   valE: biometrics.panturrilhaEsquerda,  ref: 37,  th: 0.5 },
+          ].filter(s => s.valD || s.valE);
+          const rcq = biometrics.escapular && biometrics.cintura
+            ? (biometrics.cintura / biometrics.escapular).toFixed(2) : null;
+          const avulsas = [
+            { label: 'Ombro',   val: biometrics.escapular, ref: 112 },
+            { label: 'Tórax',   val: biometrics.torax,     ref: 100 },
+            { label: 'Cintura', val: biometrics.cintura,   ref: 82,  invert: true, ctx: rcq ? `RCQ ${rcq}` : null },
+          ].filter(s => s.val);
+          if (!bilaterais.length && !avulsas.length) return '';
+          const pctColor = p => p >= 80 ? 'text-theme-primary' : p >= 55 ? 'text-amber-400' : 'text-zinc-400';
+          const barCls   = p => p >= 80 ? 'bg-theme-primary shadow-[0_0_4px_var(--theme-primary)]' : p >= 55 ? 'bg-amber-400' : 'bg-zinc-600';
+          const invColor = p => p <= 75 ? 'text-theme-primary' : p <= 95 ? 'text-amber-400' : 'text-red-400';
+          const invBar   = p => p <= 75 ? 'bg-theme-primary shadow-[0_0_4px_var(--theme-primary)]' : p <= 95 ? 'bg-amber-400' : 'bg-red-500';
+          return `
+            <div class="space-y-1.5">
+              ${bilaterais.length ? `
+              <div class="grid grid-cols-3 text-[8px] font-bold text-zinc-600 uppercase tracking-wider px-2 mb-1">
+                <span></span><span class="text-center">Direito</span><span class="text-center">Esquerdo</span>
+              </div>
+              ${bilaterais.map(item => {
+                const vD = item.valD || 0, vE = item.valE || 0;
+                const diff = vD && vE ? Math.abs(vD - vE) : 0;
+                const asym = diff >= item.th;
+                const pD = Math.min(100, Math.round(vD / item.ref * 100));
+                const pE = Math.min(100, Math.round(vE / item.ref * 100));
+                return `
+                  <div class="grid grid-cols-3 items-center gap-1 px-2 py-2.5 rounded-xl
+                              ${asym ? 'bg-orange-900/10 border border-orange-900/30' : 'bg-zinc-900/40 border border-zinc-800/50'}">
+                    <div class="text-[10px] text-zinc-400 font-bold">${item.label}</div>
+                    <div class="text-center">
+                      <div class="text-[13px] font-black font-mono ${pctColor(pD)} leading-none">${vD || '—'}<span class="text-[8px] text-zinc-600 font-normal">cm</span></div>
+                      <div class="h-0.5 bg-zinc-800 rounded-full mt-1.5 overflow-hidden">
+                        <div class="${barCls(pD)} h-full rounded-full" style="width:${pD}%"></div>
+                      </div>
+                      <div class="text-[7px] text-zinc-700 font-mono mt-0.5">${pD}%</div>
+                    </div>
+                    <div class="text-center">
+                      <div class="flex items-center justify-center gap-0.5">
+                        <span class="text-[13px] font-black font-mono ${pctColor(pE)} leading-none">${vE || '—'}<span class="text-[8px] text-zinc-600 font-normal">cm</span></span>
+                        ${asym ? `<span class="text-[9px] text-orange-400 font-bold">⚠</span>` : ''}
+                      </div>
+                      <div class="h-0.5 bg-zinc-800 rounded-full mt-1.5 overflow-hidden">
+                        <div class="${barCls(pE)} h-full rounded-full" style="width:${pE}%"></div>
+                      </div>
+                      <div class="text-[7px] font-mono mt-0.5 ${asym ? 'text-orange-600' : 'text-zinc-700'}">
+                        ${asym ? `Δ${diff.toFixed(1)}cm` : `${pE}%`}
+                      </div>
+                    </div>
+                  </div>`;
+              }).join('')}` : ''}
+              ${avulsas.length ? `
+              ${bilaterais.length ? '<div class="border-t border-zinc-800/40 pt-1"></div>' : ''}
+              ${avulsas.map(s => {
+                const pct = Math.min(100, Math.round(s.val / s.ref * 100));
+                const col = s.invert ? invColor(pct) : pctColor(pct);
+                const bar = s.invert ? invBar(pct) : barCls(pct);
+                return `
+                  <div class="flex items-center gap-2 px-2 py-2.5 rounded-xl bg-zinc-900/40 border border-zinc-800/50">
+                    <span class="w-14 shrink-0 text-[10px] font-bold text-zinc-400">${s.label}</span>
+                    <span class="text-[13px] font-black font-mono ${col} leading-none shrink-0">
+                      ${s.val}<span class="text-[8px] text-zinc-600 font-normal">cm</span>
+                    </span>
+                    <div class="flex-1 h-0.5 bg-zinc-800 rounded-full overflow-hidden">
+                      <div class="${bar} h-full rounded-full transition-all duration-700" style="width:${pct}%"></div>
+                    </div>
+                    <div class="text-right shrink-0">
+                      <div class="text-[9px] font-bold font-mono ${col}">${pct}%</div>
+                      ${s.ctx ? `<div class="text-[7px] text-zinc-600 font-mono">${s.ctx}</div>` : ''}
+                    </div>
+                  </div>`;
+              }).join('')}` : ''}
+            </div>`;
+        })() : (() => {
+          const entries = Object.entries(cyberScores).sort((a, b) => b[1] - a[1]);
+          if (!entries.length) return '';
+          const pctColor = p => p >= 80 ? 'text-theme-primary' : p >= 50 ? 'text-amber-400' : 'text-zinc-400';
+          const barCls   = p => p >= 80 ? 'bg-theme-primary shadow-[0_0_6px_var(--theme-primary)]' : p >= 50 ? 'bg-amber-400' : 'bg-zinc-600';
+          return `
+            <div class="grid grid-cols-3 gap-2">
+              ${entries.map(([muscle, score]) => {
+                const pct = Math.round(score * 100);
+                return `
+                  <div class="bg-zinc-900/50 border border-zinc-800/60 rounded-xl px-3 py-2.5">
+                    <div class="text-[8px] text-zinc-500 font-bold uppercase tracking-wider mb-1">${muscle}</div>
+                    <div class="text-sm font-black font-mono ${pctColor(pct)} leading-none">${pct}<span class="text-[9px] font-normal text-zinc-600 ml-0.5">%</span></div>
+                    <div class="h-1 bg-zinc-800 rounded-full mt-2 overflow-hidden">
+                      <div class="${barCls(pct)} h-full rounded-full transition-all duration-700" style="width:${pct}%"></div>
+                    </div>
+                  </div>`;
+              }).join('')}
+            </div>`;
+        })()}
+      </div>` : ''}
 
       <!-- Stats strip -->
       <div class="grid grid-cols-2 gap-2">
         ${[
-          { icon: 'activity',      label: L.historyLabel,    value: history.length,        sub: 'total',                                          action: 'goto-tab', payload: 'evoluir' },
-          { icon: 'dumbbell',      label: 'Tonelagem',       value: formatVolume(totalVol), sub: 'movida', accent: true,                           action: 'goto-tab', payload: 'evoluir' },
-          { icon: 'zap',           label: 'Melhor Streak',   value: streak,                 sub: `dia${streak !== 1 ? 's' : ''}`,                  action: 'open-calendar' },
-          { icon: 'calendar-check',label: 'Semanas Ativas',  value: weekStreak,             sub: `sem. consecutiva${weekStreak !== 1 ? 's' : ''}`, action: 'open-calendar' },
+          { icon: 'activity',       label: L.historyLabel,    value: history.length,         sub: 'total',                                          action: 'goto-tab', payload: 'evoluir' },
+          { icon: 'dumbbell',       label: 'Tonelagem',       value: formatVolume(totalVol),  sub: 'movida', accent: true,                           action: 'goto-tab', payload: 'evoluir' },
+          { icon: 'zap',            label: 'Melhor Streak',   value: streak,                  sub: `dia${streak !== 1 ? 's' : ''}`,                  action: 'open-calendar' },
+          { icon: 'calendar-check', label: 'Semanas Ativas',  value: weekStreak,              sub: `sem. consecutiva${weekStreak !== 1 ? 's' : ''}`, action: 'open-calendar' },
         ].map(s => `
           <button data-action="${s.action}" ${s.payload ? `data-payload="${s.payload}"` : ''}
                   class="ripple-target glass-card p-3 rounded-xl border border-zinc-800/60 flex items-center gap-3 w-full text-left active:scale-95 transition-all">
@@ -1500,20 +1713,6 @@ export function renderProfile(state) {
           <span class="text-sm font-black font-mono text-white">${formatDuration(totalMins)}</span>
         </div>
       ` : ''}
-
-      <!-- Calendário de Treinos -->
-      <button data-action="open-calendar"
-              class="ripple-target w-full glass-card px-4 py-3 rounded-xl border border-zinc-800/60
-                     flex items-center justify-between active:scale-95 transition-all text-left">
-        <div class="flex items-center gap-2">
-          <i data-lucide="calendar-days" class="w-4 h-4 text-theme-primary"></i>
-          <span class="text-xs text-zinc-400 font-bold uppercase tracking-wider">Calendário de Treinos</span>
-        </div>
-        <div class="flex items-center gap-2">
-          <span class="text-[10px] text-zinc-600 font-mono">${history.length + cardioHistory.length} registros</span>
-          <i data-lucide="chevron-right" class="w-4 h-4 text-zinc-600"></i>
-        </div>
-      </button>
 
       <!-- Próxima Conquista -->
       ${(() => {
@@ -1571,159 +1770,19 @@ export function renderProfile(state) {
         </button>`;
       })()}
 
-      <!-- Análise Biométrica (CyberBody) -->
-      <div class="glass-card p-4 rounded-2xl border border-zinc-800/60">
-        <div class="flex items-center justify-between mb-3">
-          <h3 class="text-[10px] font-bold text-zinc-500 uppercase tracking-widest flex items-center gap-1.5">
-            <i data-lucide="cpu" class="w-3.5 h-3.5"></i>
-            Análise Biométrica
-          </h3>
-          <div class="flex items-center gap-2">
-            <span class="text-[9px] text-zinc-700 font-mono">
-              ${biometrics?.bracoDirContraido
-                ? `circunferências reais${biometrics.bodyFat ? ` · ${biometrics.bodyFat}%G` : ''}`
-                : 'frequência de treino'}
-            </span>
-            ${sectionHideBtn('section-cyberbody', hiddenSections)}
-          </div>
+      <!-- Calendário de Treinos -->
+      <button data-action="open-calendar"
+              class="ripple-target w-full glass-card px-4 py-3 rounded-xl border border-zinc-800/60
+                     flex items-center justify-between active:scale-95 transition-all text-left">
+        <div class="flex items-center gap-2">
+          <i data-lucide="calendar-days" class="w-4 h-4 text-theme-primary"></i>
+          <span class="text-xs text-zinc-400 font-bold uppercase tracking-wider">Calendário de Treinos</span>
         </div>
-        ${hiddenSections.includes('section-cyberbody') ? '' : `
-          <!-- Corpo centralizado -->
-          <div class="flex justify-center mb-1">
-            ${renderCyberBody(cyberScores, 256, theme, biometrics?.bracoDirContraido ? biometrics : null)}
-          </div>
-
-          <!-- Legenda gordura corporal -->
-          ${biometrics?.bodyFat && biometrics.bodyFat > 8 ? `
-            <p class="text-[8px] font-mono text-amber-700/70 text-center mb-3">
-              ● gordura corporal ${biometrics.bodyFat}% — camada âmbar proporcional
-            </p>
-          ` : '<div class="mb-3"></div>'}
-
-          <!-- Grid de medidas (bilateral D/E + unilaterais) -->
-          ${biometrics?.bracoDirContraido ? (() => {
-            const bilaterais = [
-              { label: 'Braço',       valD: biometrics.bracoDirContraido,   valE: biometrics.bracoEsqContraido,    ref: 37,  th: 0.5 },
-              { label: 'Coxa',        valD: biometrics.coxaDireita,          valE: biometrics.coxaEsquerda,         ref: 56,  th: 1.0 },
-              { label: 'Panturrilha', valD: biometrics.panturrilhaDireita,   valE: biometrics.panturrilhaEsquerda,  ref: 37,  th: 0.5 },
-            ].filter(s => s.valD || s.valE);
-
-            const rcq = biometrics.escapular && biometrics.cintura
-              ? (biometrics.cintura / biometrics.escapular).toFixed(2)
-              : null;
-
-            const avulsas = [
-              { label: 'Ombro',   val: biometrics.escapular, ref: 112 },
-              { label: 'Tórax',   val: biometrics.torax,     ref: 100 },
-              { label: 'Cintura', val: biometrics.cintura,   ref: 82,  invert: true, ctx: rcq ? `RCQ ${rcq}` : null },
-            ].filter(s => s.val);
-
-            if (!bilaterais.length && !avulsas.length) return '';
-
-            const pctColor = p => p >= 80 ? 'text-theme-primary' : p >= 55 ? 'text-amber-400' : 'text-zinc-400';
-            const barCls   = p => p >= 80 ? 'bg-theme-primary shadow-[0_0_4px_var(--theme-primary)]' : p >= 55 ? 'bg-amber-400' : 'bg-zinc-600';
-            const invColor = p => p <= 75 ? 'text-theme-primary' : p <= 95 ? 'text-amber-400' : 'text-red-400';
-            const invBar   = p => p <= 75 ? 'bg-theme-primary shadow-[0_0_4px_var(--theme-primary)]' : p <= 95 ? 'bg-amber-400' : 'bg-red-500';
-
-            return `
-              <div class="space-y-1.5">
-
-                ${bilaterais.length ? `
-                <div class="grid grid-cols-3 text-[8px] font-bold text-zinc-600 uppercase tracking-wider px-2 mb-1">
-                  <span></span>
-                  <span class="text-center">Direito</span>
-                  <span class="text-center">Esquerdo</span>
-                </div>
-                ${bilaterais.map(item => {
-                  const vD = item.valD || 0, vE = item.valE || 0;
-                  const diff = vD && vE ? Math.abs(vD - vE) : 0;
-                  const asym = diff >= item.th;
-                  const pD = Math.min(100, Math.round(vD / item.ref * 100));
-                  const pE = Math.min(100, Math.round(vE / item.ref * 100));
-                  return `
-                    <div class="grid grid-cols-3 items-center gap-1 px-2 py-2.5 rounded-xl
-                                ${asym ? 'bg-orange-900/10 border border-orange-900/30' : 'bg-zinc-900/40 border border-zinc-800/50'}">
-                      <div class="text-[10px] text-zinc-400 font-bold">${item.label}</div>
-                      <div class="text-center">
-                        <div class="text-[13px] font-black font-mono ${pctColor(pD)} leading-none">${vD || '—'}<span class="text-[8px] text-zinc-600 font-normal">cm</span></div>
-                        <div class="h-0.5 bg-zinc-800 rounded-full mt-1.5 overflow-hidden">
-                          <div class="${barCls(pD)} h-full rounded-full" style="width:${pD}%"></div>
-                        </div>
-                        <div class="text-[7px] text-zinc-700 font-mono mt-0.5">${pD}%</div>
-                      </div>
-                      <div class="text-center">
-                        <div class="flex items-center justify-center gap-0.5">
-                          <span class="text-[13px] font-black font-mono ${pctColor(pE)} leading-none">${vE || '—'}<span class="text-[8px] text-zinc-600 font-normal">cm</span></span>
-                          ${asym ? `<span class="text-[9px] text-orange-400 font-bold">⚠</span>` : ''}
-                        </div>
-                        <div class="h-0.5 bg-zinc-800 rounded-full mt-1.5 overflow-hidden">
-                          <div class="${barCls(pE)} h-full rounded-full" style="width:${pE}%"></div>
-                        </div>
-                        <div class="text-[7px] font-mono mt-0.5 ${asym ? 'text-orange-600' : 'text-zinc-700'}">
-                          ${asym ? `Δ${diff.toFixed(1)}cm` : `${pE}%`}
-                        </div>
-                      </div>
-                    </div>
-                  `;
-                }).join('')}
-                ` : ''}
-
-                ${avulsas.length ? `
-                ${bilaterais.length ? '<div class="border-t border-zinc-800/40 pt-1"></div>' : ''}
-                ${avulsas.map(s => {
-                  const pct = Math.min(100, Math.round(s.val / s.ref * 100));
-                  const col = s.invert ? invColor(pct) : pctColor(pct);
-                  const bar = s.invert ? invBar(pct) : barCls(pct);
-                  return `
-                    <div class="flex items-center gap-2 px-2 py-2.5 rounded-xl bg-zinc-900/40 border border-zinc-800/50">
-                      <span class="w-14 shrink-0 text-[10px] font-bold text-zinc-400">${s.label}</span>
-                      <span class="text-[13px] font-black font-mono ${col} leading-none shrink-0">
-                        ${s.val}<span class="text-[8px] text-zinc-600 font-normal">cm</span>
-                      </span>
-                      <div class="flex-1 h-0.5 bg-zinc-800 rounded-full overflow-hidden">
-                        <div class="${bar} h-full rounded-full transition-all duration-700" style="width:${pct}%"></div>
-                      </div>
-                      <div class="text-right shrink-0">
-                        <div class="text-[9px] font-bold font-mono ${col}">${pct}%</div>
-                        ${s.ctx ? `<div class="text-[7px] text-zinc-600 font-mono">${s.ctx}</div>` : ''}
-                      </div>
-                    </div>
-                  `;
-                }).join('')}
-                ` : ''}
-
-              </div>
-            `;
-          })() : (() => {
-            const entries = Object.entries(cyberScores).sort((a, b) => b[1] - a[1]);
-            if (!entries.length) return '';
-            const pctColor = p => p >= 80 ? 'text-theme-primary' : p >= 50 ? 'text-amber-400' : 'text-zinc-400';
-            const barCls   = p => p >= 80 ? 'bg-theme-primary shadow-[0_0_6px_var(--theme-primary)]' : p >= 50 ? 'bg-amber-400' : 'bg-zinc-600';
-            return `
-              <div class="grid grid-cols-3 gap-2">
-                ${entries.map(([muscle, score]) => {
-                  const pct = Math.round(score * 100);
-                  return `
-                    <div class="bg-zinc-900/50 border border-zinc-800/60 rounded-xl px-3 py-2.5">
-                      <div class="text-[8px] text-zinc-500 font-bold uppercase tracking-wider mb-1">${muscle}</div>
-                      <div class="text-sm font-black font-mono ${pctColor(pct)} leading-none">${pct}<span class="text-[9px] font-normal text-zinc-600 ml-0.5">%</span></div>
-                      <div class="h-1 bg-zinc-800 rounded-full mt-2 overflow-hidden">
-                        <div class="${barCls(pct)} h-full rounded-full transition-all duration-700" style="width:${pct}%"></div>
-                      </div>
-                    </div>
-                  `;
-                }).join('')}
-              </div>
-            `;
-          })()}
-        `}
-      </div>
-
-      <!-- Composição Corporal -->
-      ${renderBodyCompositionChart(biometrics, bioHistory, hiddenSections)}
-
-      <!-- Insights automáticos -->
-      ${renderBioInsights(biometrics, bioHistory, bodyWeights, hiddenSections)}
+        <div class="flex items-center gap-2">
+          <span class="text-[10px] text-zinc-600 font-mono">${history.length + cardioHistory.length} registros</span>
+          <i data-lucide="chevron-right" class="w-4 h-4 text-zinc-600"></i>
+        </div>
+      </button>
 
       <!-- Peso Corporal -->
       ${renderBodyWeightSection(bodyWeights, hiddenSections)}
@@ -1731,14 +1790,8 @@ export function renderProfile(state) {
       <!-- Circunferências Rápidas -->
       ${renderCircumSection(circumHistory, hiddenSections)}
 
-      <!-- Evolução Biométrica (linha do tempo) -->
-      ${bioHistory.length > 0 ? renderBioEvolutionChart(biometrics, bioHistory, hiddenSections) : ''}
-
       <!-- TDEE — Gasto Calórico -->
       ${renderTDEECard(biometrics, activityLevel, hiddenSections, history, state.activeCommute, state.goal)}
-
-      <!-- Avaliação Física Completa -->
-      ${renderBiometricsSection(biometrics, bioHistory, hiddenSections)}
 
       <!-- Conquistas -->
       ${(() => {
@@ -1761,18 +1814,18 @@ export function renderProfile(state) {
             : `<div class="grid grid-cols-3 gap-2">
                 ${ACHIEVEMENTS.map(a => {
                   const earned = achievements.some(x => (typeof x === 'string' ? x : x?.id) === a.id);
-                  return `
+                  return \`
                     <div class="flex flex-col items-center gap-1 p-2 rounded-xl border transition-all
-                                ${earned
+                                \${earned
                                   ? 'border-yellow-800/40 bg-yellow-900/10'
                                   : 'border-zinc-800/50 bg-zinc-900/20 opacity-40 grayscale'}">
-                      <div class="w-8 h-8 rounded-full ${earned ? 'bg-yellow-900/30 border border-yellow-800/40' : 'bg-zinc-800 border border-zinc-700'} flex items-center justify-center">
-                        <i data-lucide="${a.icon}" class="w-4 h-4 ${earned ? a.color : 'text-zinc-600'}"></i>
+                      <div class="w-8 h-8 rounded-full \${earned ? 'bg-yellow-900/30 border border-yellow-800/40' : 'bg-zinc-800 border border-zinc-700'} flex items-center justify-center">
+                        <i data-lucide="\${a.icon}" class="w-4 h-4 \${earned ? a.color : 'text-zinc-600'}"></i>
                       </div>
-                      <span class="text-[8px] font-bold text-center leading-tight ${earned ? 'text-white' : 'text-zinc-600'}">${a.name}</span>
-                      <span class="text-[7px] font-mono text-center leading-tight ${earned ? 'text-zinc-500' : 'text-zinc-700'}">${a.desc}</span>
+                      <span class="text-[8px] font-bold text-center leading-tight \${earned ? 'text-white' : 'text-zinc-600'}">\${a.name}</span>
+                      <span class="text-[7px] font-mono text-center leading-tight \${earned ? 'text-zinc-500' : 'text-zinc-700'}">\${a.desc}</span>
                     </div>
-                  `;
+                  \`;
                 }).join('')}
               </div>`
           }

@@ -28,5 +28,28 @@
       "type": "image/svg+xml",
       "purpose": "any"
     }
+  ],
+  "shortcuts": [
+    {
+      "name": "Treino do Dia",
+      "short_name": "Treino",
+      "description": "Ir direto para o treino do dia",
+      "url": "./?tab=treinar",
+      "icons": [{ "src": "icons/icon-192.png", "sizes": "192x192", "type": "image/png" }]
+    },
+    {
+      "name": "Cardio",
+      "short_name": "Cardio",
+      "description": "Iniciar sessão de cardio",
+      "url": "./?tab=cardio",
+      "icons": [{ "src": "icons/icon-192.png", "sizes": "192x192", "type": "image/png" }]
+    },
+    {
+      "name": "Calendário",
+      "short_name": "Agenda",
+      "description": "Ver calendário de treinos",
+      "url": "./?tab=treinar&modal=calendar",
+      "icons": [{ "src": "icons/icon-192.png", "sizes": "192x192", "type": "image/png" }]
+    }
   ]
 }

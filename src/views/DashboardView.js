@@ -91,7 +91,24 @@ function renderResumeBanner(workoutId, startTime, workouts) {
 
 /* ─── Composição Corporal (Dashboard mini-card) ─────────────────────── */
 
-function renderDashBioCard(bio) {
+function miniSparkline(values, w = 72, h = 22) {
+  if (values.length < 2) return '';
+  const vmax = Math.max(...values);
+  const vmin = Math.min(...values);
+  const range = vmax - vmin || 1;
+  const px = i => ((i / (values.length - 1)) * (w - 4) + 2).toFixed(1);
+  const py = v  => (h - 2 - ((v - vmin) / range) * (h - 5) + 1).toFixed(1);
+  const pts = values.map((v, i) => `${px(i)},${py(v)}`).join(' ');
+  const trend = values[values.length - 1] - values[0];
+  const stroke = trend > 0 ? '#4ade80' : trend < 0 ? '#f87171' : '#71717a';
+  return `<svg width="${w}" height="${h}" viewBox="0 0 ${w} ${h}" style="overflow:visible">
+    <polyline points="${pts}" fill="none" stroke="${stroke}" stroke-width="1.5"
+              stroke-linecap="round" stroke-linejoin="round" opacity="0.85"/>
+    <circle cx="${px(values.length - 1)}" cy="${py(values[values.length - 1])}" r="2.5" fill="${stroke}"/>
+  </svg>`;
+}
+
+function renderDashBioCard(bio, bodyWeights = []) {
   if (!bio?.weight) return '';
   const fatColor = bio.bodyFat >= 30 ? 'text-red-400' : bio.bodyFat >= 25 ? 'text-orange-400' : bio.bodyFat >= 20 ? 'text-yellow-400' : 'text-green-400';
   const pills = [
@@ -115,10 +132,32 @@ function renderDashBioCard(bio) {
         <div class="h-full rounded-full" style="width:${Math.min(100,Math.round(excess/bio.weight*100))}%;background:linear-gradient(90deg,#dc2626,#f97316)"></div>
       </div>
     </div>` : '';
+
+  // Sparkline de peso corporal
+  const recentW = [...(bodyWeights ?? [])]
+    .sort((a, b) => new Date(a.date) - new Date(b.date))
+    .slice(-10)
+    .map(bw => typeof bw === 'number' ? bw : (bw.weight ?? bw.w ?? 0))
+    .filter(Boolean);
+  if (recentW.length === 0 || recentW[recentW.length - 1] !== bio.weight) recentW.push(bio.weight);
+  const weightSpark = recentW.length >= 2 ? miniSparkline(recentW) : '';
+  const weightTrend = recentW.length >= 2
+    ? +(recentW[recentW.length - 1] - recentW[0]).toFixed(1)
+    : 0;
+
   return `
     <div class="glass-card p-3 rounded-2xl border border-zinc-800/60">
-      <div class="text-[8px] font-black text-zinc-600 uppercase tracking-widest mb-2 flex items-center gap-1.5">
-        <i data-lucide="activity" class="w-3 h-3"></i> Composição Corporal
+      <div class="flex items-center justify-between mb-2">
+        <div class="text-[8px] font-black text-zinc-600 uppercase tracking-widest flex items-center gap-1.5">
+          <i data-lucide="activity" class="w-3 h-3"></i> Composição Corporal
+        </div>
+        ${weightSpark ? `
+        <div class="flex items-center gap-2 shrink-0">
+          ${weightSpark}
+          <span class="text-[8px] font-mono font-bold ${weightTrend > 0 ? 'text-green-400' : weightTrend < 0 ? 'text-red-400' : 'text-zinc-600'}">
+            ${weightTrend > 0 ? '+' : ''}${weightTrend !== 0 ? weightTrend + 'kg' : '—'}
+          </span>
+        </div>` : ''}
       </div>
       <div class="grid grid-cols-4 gap-2">${pills}</div>
       ${excessBar}
@@ -232,7 +271,7 @@ export function renderDashboard(state, workouts, protocols = [], templates = [])
 
       ${resumeBanner}
 
-      ${renderDashBioCard(biometrics)}
+      ${renderDashBioCard(biometrics, state.bodyWeights)}
 
       <!-- Ciclo Adaptativo -->
       <div class="glass-card p-4 rounded-2xl border border-theme-dim relative overflow-hidden">
@@ -278,6 +317,12 @@ export function renderDashboard(state, workouts, protocols = [], templates = [])
                     class="ripple-target flex-1 py-2.5 rounded-xl bg-black/40 border border-zinc-800 text-xs text-zinc-400
                            font-bold transition-all uppercase flex items-center justify-center gap-2 active:scale-[0.98]">
               <i data-lucide="list" class="w-3 h-3"></i> Escolher
+            </button>
+            <button data-action="open-calendar"
+                    class="ripple-target px-3 py-2.5 rounded-xl bg-black/40 border border-zinc-800 text-zinc-500
+                           font-bold transition-all flex items-center justify-center active:scale-[0.98]"
+                    title="Calendário de treinos">
+              <i data-lucide="calendar" class="w-3.5 h-3.5"></i>
             </button>
             <button data-action="start-new-week"
                     class="ripple-target px-3 py-2.5 rounded-xl bg-black/40 border border-zinc-800 text-xs text-zinc-500
@@ -772,6 +817,11 @@ export function mountDashboard(container, handler) {
   delegate(container, '[data-action="open-cycle-modal"]', 'click', (e, el) => {
     createRipple(e, el);
     handler('open-cycle-modal');
+  });
+
+  delegate(container, '[data-action="open-calendar"]', 'click', (e, el) => {
+    createRipple(e, el);
+    handler('open-calendar');
   });
 
   delegate(container, '[data-action="open-workout-picker"]', 'click', (e, el) => {
