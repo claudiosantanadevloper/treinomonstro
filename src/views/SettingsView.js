@@ -78,14 +78,31 @@ export function renderSettings(state, workouts = [], protocols = []) {
 
         <!-- Descanso -->
         <div>
-          <p class="text-xs text-zinc-300 font-bold mb-0.5">Descanso Entre Séries</p>
-          <p class="text-[9px] text-zinc-600 mb-3">0s = superset · 90–180s = compostos pesados</p>
-          <div class="flex gap-1.5">
-            ${[0, 45, 60, 90, 180].map(s =>
-              presetBtn('set-default-rest', 'seconds', s, defaultRestTime === s,
-                s === 0 ? 'Super' : s < 60 ? `${s}s` : s % 60 === 0 ? `${s/60}min` : `${s}s`)
-            ).join('')}
+          <p class="text-xs text-zinc-300 font-bold mb-0.5">Descanso Padrão Entre Séries</p>
+          <p class="text-[9px] text-zinc-600 mb-3">Fallback quando o exercício não tem tempo definido · Toque no ⏱ em cada exercício para ajustar individualmente</p>
+          <div class="grid grid-cols-3 gap-1.5 mb-2">
+            ${[
+              { s: 0,   label: '0s',    sub: 'Superset'  },
+              { s: 45,  label: '45s',   sub: 'Isolação'  },
+              { s: 60,  label: '1min',  sub: 'Padrão'    },
+              { s: 90,  label: '90s',   sub: 'Moderado'  },
+              { s: 120, label: '2min',  sub: 'Composto'  },
+              { s: 180, label: '3min',  sub: 'Pernas'    },
+            ].map(({ s, label, sub }) => `
+              <button data-action="set-default-rest" data-seconds="${s}"
+                      class="ripple-target flex flex-col items-center gap-0.5 py-2.5 rounded-xl border transition-all active:scale-95
+                             ${defaultRestTime === s
+                               ? 'bg-theme-dim border-theme-accent text-theme-primary shadow-[0_0_10px_var(--theme-dim)]'
+                               : 'bg-zinc-900/40 border-zinc-800/50 text-zinc-500 hover:text-zinc-300 hover:border-zinc-700'}">
+                <span class="text-sm font-black font-mono leading-none">${label}</span>
+                <span class="text-[8px] font-bold uppercase tracking-wide opacity-70">${sub}</span>
+              </button>
+            `).join('')}
           </div>
+          <p class="text-[8px] text-zinc-700 font-mono">
+            💡 Cada exercício tem seu próprio tempo configurado — o padrão acima é só o fallback.
+            Use o badge ⏱ no card do exercício para override individual.
+          </p>
         </div>
 
         <!-- Incremento de Carga -->

@@ -76,6 +76,7 @@ const defaults = {
   activeCommute:         { enabled: false, oneWayDistanceKm: 1.1, mode: 'walk', estimatedSpeed: 4.8 },
   commuteReturnOverride: null,
   exerciseNotes:         {},
+  restOverrides:         {},
   onboardingCompleted:   false,
   goal:                  null,
   goals:                 [],

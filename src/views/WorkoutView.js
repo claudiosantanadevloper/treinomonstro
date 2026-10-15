@@ -240,8 +240,9 @@ function renderSetRow(wId, ex, idx, log = {}, lastSet = null) {
 }
 
 /* ─── Card de exercício ────────────────────────────────────────────── */
-function renderExerciseCard(wId, ex, idx, wLogs, lastSets, prs, loadTarget = null, lastDate = null, exNote = '', stagnant = false) {
+function renderExerciseCard(wId, ex, idx, wLogs, lastSets, prs, loadTarget = null, lastDate = null, exNote = '', stagnant = false, restOverride = null) {
   const exLogs    = wLogs[ex.id] ?? {};
+  const effectiveRest = restOverride != null ? restOverride : (ex.rest ?? 60);
   const sets      = countSets(exLogs, ex.sets);
   const doneCount = Object.values(exLogs).filter(s => s.done).length;
   const allDone   = doneCount >= sets;
@@ -450,6 +451,25 @@ function renderExerciseCard(wId, ex, idx, wLogs, lastSets, prs, loadTarget = nul
         <span class="text-xs font-black tracking-widest uppercase">Pulado</span>
       </div>` : ''}
 
+      <!-- Badge de descanso configurável -->
+      ${!exLogs._skip ? `
+      <div class="flex items-center gap-2 mb-2">
+        <button data-action="open-rest-picker"
+                data-wid="${wId}" data-exid="${ex.id}"
+                data-exname="${ex.name}"
+                data-current="${effectiveRest}"
+                class="ripple-target flex items-center gap-1.5 px-2.5 py-1 rounded-lg
+                       ${restOverride != null
+                         ? 'bg-theme-dim border border-theme-accent/60 text-theme-primary'
+                         : 'bg-zinc-900/40 border border-zinc-800/50 text-zinc-500 hover:text-zinc-300'}
+                       text-[10px] font-bold font-mono transition-all active:scale-95">
+          <i data-lucide="timer" class="w-3 h-3"></i>
+          ${effectiveRest === 0 ? 'Superset' : effectiveRest < 60 ? `${effectiveRest}s` : effectiveRest % 60 === 0 ? `${effectiveRest / 60}min` : `${effectiveRest}s`}
+          ${restOverride != null ? '<i data-lucide="check" class="w-2.5 h-2.5"></i>' : ''}
+        </button>
+        <span class="text-[8px] text-zinc-700 font-mono">${ex.sets}×${ex.reps}</span>
+      </div>` : ''}
+
       <!-- Labels + séries (oculto quando pulado) -->
       <div data-sets-section="${wId}|${ex.id}" class="${exLogs._skip ? 'hidden' : ''}">
         ${parseTimedReps(ex.reps) !== null ? `
@@ -629,7 +649,7 @@ export function renderWorkout(state, workout) {
 
       <div class="space-y-4">
         ${workout.exercises.map((ex, i) =>
-          renderExerciseCard(workout.id, ex, i, wLogs, lastSets, prs, loadTargets[ex.id], lastSession?.date, state.exerciseNotes?.[workout.id]?.[ex.id] ?? '', stagnationFlags[ex.id] ?? false)
+          renderExerciseCard(workout.id, ex, i, wLogs, lastSets, prs, loadTargets[ex.id], lastSession?.date, state.exerciseNotes?.[workout.id]?.[ex.id] ?? '', stagnationFlags[ex.id] ?? false, state.restOverrides?.[workout.id]?.[ex.id] ?? null)
         ).join('')}
       </div>
 
@@ -1118,6 +1138,16 @@ export function mountWorkout(container, handler) {
   delegate(container, '[data-action="open-ex-note"]', 'click', (e, el) => {
     createRipple(e, el);
     handler('open-ex-note', { exId: el.dataset.exid, wId: el.dataset.wid });
+  });
+
+  delegate(container, '[data-action="open-rest-picker"]', 'click', (e, el) => {
+    createRipple(e, el);
+    handler('open-rest-picker', {
+      wId:     el.dataset.wid,
+      exId:    el.dataset.exid,
+      exName:  el.dataset.exname,
+      current: parseInt(el.dataset.current) || 60,
+    });
   });
 
   delegate(container, '[data-action="open-warmup"]', 'click', (e, el) => {

@@ -83,7 +83,9 @@ export class WorkoutController {
     if (newDone) {
       this.#checkPR(wId, exId, newLog);
       if (this.#store.getState().vibrationEnabled !== false && navigator.vibrate) navigator.vibrate(50);
-      if (defaultRest > 0) this.#timer.start(defaultRest);
+      const restOverride = this.#store.getState().restOverrides?.[wId]?.[exId];
+      const effectiveRest = restOverride != null ? restOverride : defaultRest;
+      if (effectiveRest > 0) this.#timer.start(effectiveRest);
     } else {
       this.#timer.stop();
     }

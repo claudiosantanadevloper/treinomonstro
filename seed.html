@@ -78,7 +78,8 @@
       <div>✓ <b>personalGoals</b> — 6 metas de 12 meses baseadas na auditoria</div>
       <div>✓ <b>activeCommute</b> — 1,1 km · caminhada · 4,8 km/h</div>
       <div>✓ <b>activityLevel</b> — 1,725 (moderado · 4-5×/sem)</div>
-      <div>✓ <b>settings</b> — incremento 2,5 kg · descanso 90s · autofill · sons</div>
+      <div>✓ <b>settings</b> — incremento 2,5 kg · descanso 90s padrão · autofill · sons</div>
+      <div>✓ <b>restOverrides</b> — vazio (overrides por exercício prontos para uso: ⏱ em cada card)</div>
       <div>✓ <b>onboardingCompleted</b> — true (pula o wizard)</div>
     </div>
   </div>
@@ -639,6 +640,11 @@
 
     // 10 — onboarding
     localStorage.setItem(PREFIX + 'onboardingCompleted', JSON.stringify(true));
+
+    // 11b — restOverrides limpo (overrides por exercício via ⏱ em cada card de treino)
+    if (!localStorage.getItem(PREFIX + 'restOverrides')) {
+      localStorage.setItem(PREFIX + 'restOverrides', JSON.stringify({}));
+    }
 
     // 11 — migração: marca todas as flags como já executadas
     localStorage.setItem(PREFIX + 'migrated_v2',         JSON.stringify(true));

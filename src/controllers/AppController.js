@@ -315,6 +315,12 @@ export class AppController {
         });
       }
 
+      // Re-render workout quando restOverrides muda (badge de descanso por exercício)
+      if (state.tab === 'workout' && state.restOverrides !== prev.restOverrides) {
+        this.#render(state);
+        return;
+      }
+
       // Patch: linha de missão — regenera ao trocar modo de volta
       if (state.tab === "workout" && state.commuteReturnOverride !== prev.commuteReturnOverride) {
         const lineEl = document.getElementById("workout-commute-line");
@@ -1227,6 +1233,9 @@ export class AppController {
       case "exercise-focus":
         this.#showExerciseFocusModal(state.modalData);
         break;
+      case "rest-picker":
+        this.#showRestPickerModal(state.modalData);
+        break;
       case "cycle-overview":
         this.#showCycleModal();
         break;
@@ -1550,6 +1559,79 @@ export class AppController {
       btn.addEventListener('click', () => {
         close();
         setTimeout(() => this.#handleAction('start-workout', btn.dataset.hubPayload), 100);
+      });
+    });
+  }
+
+  #showRestPickerModal(data = {}) {
+    const { wId, exId, exName = 'Exercício', current = 60 } = data;
+    const PRESETS = [
+      { s: 0,   label: '0s',   sub: 'Superset' },
+      { s: 30,  label: '30s',  sub: 'Cardio' },
+      { s: 45,  label: '45s',  sub: 'Leve' },
+      { s: 60,  label: '1min', sub: 'Isolação' },
+      { s: 90,  label: '90s',  sub: 'Padrão' },
+      { s: 120, label: '2min', sub: 'Composto' },
+      { s: 150, label: '2:30', sub: 'Pesado' },
+      { s: 180, label: '3min', sub: 'Pernas' },
+    ];
+
+    this.#modalLayer.innerHTML = `
+      <div class="fixed inset-0 z-[80] flex items-end justify-center bg-black/80 backdrop-blur-sm animate-zoom-in"
+           id="rest-picker-backdrop">
+        <div class="glass-card w-full max-w-md rounded-t-3xl border border-zinc-800/60 overflow-hidden">
+          <div class="flex items-center justify-between p-4 border-b border-zinc-800/60">
+            <div>
+              <div class="text-[9px] text-zinc-500 uppercase tracking-widest font-bold">Descanso entre séries</div>
+              <div class="text-sm font-black text-white truncate max-w-[200px]">${exName}</div>
+            </div>
+            <button id="close-rest-picker"
+                    class="ripple-target w-8 h-8 rounded-full bg-zinc-800 border border-zinc-700 flex items-center justify-center
+                           text-zinc-400 active:scale-90 transition-all">
+              <i data-lucide="x" class="w-4 h-4"></i>
+            </button>
+          </div>
+          <div class="p-4">
+            <div class="grid grid-cols-4 gap-2 mb-3">
+              ${PRESETS.map(p => `
+                <button data-rest-val="${p.s}"
+                        class="rest-preset ripple-target flex flex-col items-center gap-0.5 py-3 rounded-xl border transition-all active:scale-95
+                               ${p.s === current
+                                 ? 'bg-theme-dim border-theme-accent text-theme-primary shadow-[0_0_12px_var(--theme-dim)]'
+                                 : 'bg-zinc-900/50 border-zinc-800/60 text-zinc-400 hover:text-zinc-200 hover:border-zinc-700'}">
+                  <span class="text-sm font-black font-mono leading-none">${p.label}</span>
+                  <span class="text-[8px] font-bold uppercase tracking-wide opacity-70">${p.sub}</span>
+                </button>
+              `).join('')}
+            </div>
+            ${current !== (PRESETS.find(p => p.s === current) ? current : -1) || true ? `
+            <div class="text-center text-[9px] text-zinc-600 font-mono mb-3">
+              Atual: <span class="text-theme-primary font-bold">${current === 0 ? 'Superset' : `${current}s`}</span>
+              ${PRESETS.some(p => p.s === current) ? '' : ' (valor personalizado)'}
+            </div>` : ''}
+            ${wId && exId ? `
+            <button id="clear-rest-override"
+                    class="ripple-target w-full py-2.5 rounded-xl border border-zinc-700/50 bg-zinc-900/40 text-zinc-500
+                           text-[10px] font-bold uppercase tracking-wider active:scale-95 transition-all">
+              <i data-lucide="rotate-ccw" class="w-3 h-3 inline mr-1"></i>Restaurar padrão do exercício
+            </button>` : ''}
+          </div>
+        </div>
+      </div>`;
+
+    if (window.lucide) lucide.createIcons({ nodes: [this.#modalLayer] });
+
+    const close = () => this.#store.setState({ activeModal: null, modalData: null });
+    document.getElementById('close-rest-picker')?.addEventListener('click', close);
+    document.getElementById('rest-picker-backdrop')?.addEventListener('click', e => {
+      if (e.target.id === 'rest-picker-backdrop') close();
+    });
+    document.getElementById('clear-rest-override')?.addEventListener('click', () => {
+      this.#handleAction('clear-ex-rest', { wId, exId });
+    });
+    this.#modalLayer.querySelectorAll('.rest-preset').forEach(btn => {
+      btn.addEventListener('click', () => {
+        this.#handleAction('set-ex-rest', { wId, exId, rest: parseInt(btn.dataset.restVal) });
       });
     });
   }
@@ -3775,6 +3857,32 @@ export class AppController {
       case "open-workout-picker":
         this.#store.setState({ activeModal: 'workout-picker', modalData: null });
         break;
+      case "open-rest-picker":
+        this.#store.setState({ activeModal: 'rest-picker', modalData: payload });
+        break;
+      case "set-ex-rest": {
+        const { wId: rWId, exId: rExId, rest: rRest } = payload ?? {};
+        if (!rWId || !rExId) break;
+        this.#store.setState(s => ({
+          restOverrides: {
+            ...s.restOverrides,
+            [rWId]: { ...(s.restOverrides?.[rWId] ?? {}), [rExId]: rRest },
+          },
+          activeModal: null,
+          modalData: null,
+        }));
+        break;
+      }
+      case "clear-ex-rest": {
+        const { wId: cwId, exId: cExId } = payload ?? {};
+        if (!cwId || !cExId) break;
+        this.#store.setState(s => {
+          const updated = { ...(s.restOverrides?.[cwId] ?? {}) };
+          delete updated[cExId];
+          return { restOverrides: { ...s.restOverrides, [cwId]: updated }, activeModal: null, modalData: null };
+        });
+        break;
+      }
       case "undo-mission":
         this.#workoutCtrl.undoMission(payload);
         this.#render(this.#store.getState());
