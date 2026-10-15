@@ -788,12 +788,16 @@ export class AppController {
   #startElapsedTicker(startTime) {
     this.#stopElapsedTicker();
     const update = () => {
-      const el = document.getElementById("elapsed-workout");
-      if (!el) { this.#stopElapsedTicker(); return; }
-      el.textContent = formatDuration(Math.round((Date.now() - startTime) / 60000));
+      const mins = Math.round((Date.now() - startTime) / 60000);
+      const txt  = formatDuration(mins);
+      const el   = document.getElementById("elapsed-workout");
+      const hdr  = document.getElementById("elapsed-header");
+      if (el)  el.textContent  = txt;
+      if (hdr) hdr.textContent = txt;
+      if (!el && !hdr) this.#stopElapsedTicker();
     };
-    update(); // atualiza imediatamente (não aguarda 60s para exibir)
-    this.#elapsedInterval = setInterval(update, 60000);
+    update();
+    this.#elapsedInterval = setInterval(update, 10000);
   }
 
   #stopElapsedTicker() {
@@ -989,6 +993,10 @@ export class AppController {
             <i data-lucide="timer" class="w-3 h-3"></i>
             <span id="timer-restart-label">60s</span>
           </button>
+          <div class="flex items-center gap-1 bg-zinc-900/60 border border-zinc-800/60 rounded-full px-2.5 h-8">
+            <i data-lucide="clock" class="w-3 h-3 text-zinc-600 shrink-0"></i>
+            <span id="elapsed-header" class="text-[10px] font-mono text-zinc-500">0 min</span>
+          </div>
         </div>
         <button data-action="finish-workout" class="px-3 py-1.5 bg-theme-dim border border-theme-accent text-theme-primary text-xs font-bold rounded-lg uppercase active:scale-95 transition-transform">
           ${L.finishBtn}
@@ -1319,8 +1327,14 @@ export class AppController {
     const { cycleOrder = [], cyclePosition = 0, cycleDone = [], cycleGoal = 6 } = state;
     const allWorkouts = this.#allWorkouts();
 
-    const NAMES = { '1': 'Push A', '2': 'Legs A', '3': 'Pull A', '4': 'Push B', '5': 'Legs B', '6': 'Pull B' };
+    const NAMES   = { '1': 'Push A', '2': 'Legs A', '3': 'Pull A', '4': 'Push B', '5': 'Legs B', '6': 'Pull B' };
     const MUSCLES = { '1': 'Peito · Ombro · Tríceps', '2': 'Pernas A', '3': 'Costas · Bíceps', '4': 'Peito · Ombro · Tríceps', '5': 'Pernas B + Deadlift', '6': 'Costas · Bíceps' };
+
+    const lastFor  = (wId) => wId ? (state.history ?? []).find(h => h.workoutId === wId) : null;
+    const daysAgo  = (dateStr) => {
+      const d = Math.floor((Date.now() - new Date(dateStr)) / 86400000);
+      return d === 0 ? 'hoje' : d === 1 ? 'ontem' : `${d}d atrás`;
+    };
 
     const slots = cycleOrder.map((wId, i) => {
       const w          = wId ? allWorkouts.find(x => x.id === wId) : null;
@@ -1329,6 +1343,7 @@ export class AppController {
       const isOff      = wId === null;
       const name       = isOff ? 'Descanso' : (w?.label ?? NAMES[wId] ?? `Treino ${wId}`);
       const sub        = isOff ? 'Dia de recuperação' : (w?.subtitle ?? MUSCLES[wId] ?? '');
+      const last       = isOff ? null : lastFor(wId);
 
       const border = isDone ? 'border-green-800/60' : isCurrent ? 'border-theme-accent/60' : 'border-zinc-800/40';
       const bg     = isDone ? 'bg-green-950/30' : isCurrent ? 'bg-theme-dark/60' : 'bg-zinc-900/30';
@@ -1342,15 +1357,23 @@ export class AppController {
         ? `<span class="text-[8px] font-black text-theme-primary uppercase tracking-widest animate-pulse">ATUAL</span>`
         : '';
 
+      const lastRow = last
+        ? `<div class="text-[8px] text-zinc-700 font-mono mt-0.5 flex items-center gap-1">
+             <i data-lucide="clock" class="w-2.5 h-2.5 shrink-0"></i>
+             ${daysAgo(last.date)}${last.vol ? ` · ${(last.vol / 1000).toFixed(1)}t` : ''}
+             ${last.reps ? ` · ${last.reps} reps` : ''}
+           </div>`
+        : !isOff ? `<div class="text-[8px] text-zinc-800 font-mono mt-0.5">nunca feito</div>` : '';
+
       const startBtn = (!isOff && !isDone)
         ? `<button data-hub-action="hub-start" data-hub-payload="${wId}"
-                   class="ripple-target ml-auto px-3 py-1 rounded-lg bg-theme-dim border border-theme-accent/40
+                   class="ripple-target ml-auto px-3 py-1.5 rounded-lg bg-theme-dim border border-theme-accent/40
                           text-theme-primary text-[9px] font-black uppercase tracking-widest active:scale-90 transition-all shrink-0">
              Treinar
            </button>`
         : isDone
         ? `<button data-hub-action="hub-start" data-hub-payload="${wId}"
-                   class="ripple-target ml-auto px-3 py-1 rounded-lg bg-zinc-800/40 border border-zinc-700/40
+                   class="ripple-target ml-auto px-3 py-1.5 rounded-lg bg-zinc-800/40 border border-zinc-700/40
                           text-zinc-500 text-[9px] font-black uppercase tracking-widest active:scale-90 transition-all shrink-0">
              Refazer
            </button>`
@@ -1365,6 +1388,7 @@ export class AppController {
               ${badge}
             </div>
             <div class="text-[9px] text-zinc-600 truncate">${sub}</div>
+            ${lastRow}
           </div>
           ${startBtn}
         </div>`;
@@ -1414,9 +1438,19 @@ export class AppController {
     const { cycleOrder = [], cyclePosition = 0, cycleDone = [] } = state;
     const nextWId     = cycleOrder[cyclePosition] ?? null;
 
+    const lastFor = (wId) => (state.history ?? []).find(h => h.workoutId === wId);
+    const daysAgo = (dateStr) => {
+      const d = Math.floor((Date.now() - new Date(dateStr)) / 86400000);
+      return d === 0 ? 'hoje' : d === 1 ? 'ontem' : `${d}d atrás`;
+    };
+
     const cards = allWorkouts.map(w => {
       const isNext = w.id === nextWId;
       const isDone = cycleDone.includes(w.id);
+      const last   = lastFor(w.id);
+      const lastInfo = last
+        ? `<span class="text-zinc-700">·</span><span class="font-mono">${daysAgo(last.date)}</span>${last.vol ? `<span class="text-zinc-700">·</span><span class="text-theme-primary/60">${(last.vol / 1000).toFixed(1)}t</span>` : ''}`
+        : `<span class="text-zinc-800">nunca feito</span>`;
       return `
         <button data-hub-action="hub-start" data-hub-payload="${w.id}"
                 class="ripple-target w-full flex items-center gap-3 p-3 rounded-xl text-left
@@ -1426,12 +1460,16 @@ export class AppController {
             <i data-lucide="${isDone ? 'check-circle' : 'dumbbell'}" class="w-4 h-4 ${isDone ? 'text-green-400' : isNext ? 'text-theme-primary' : 'text-zinc-600'}"></i>
           </div>
           <div class="flex-1 min-w-0">
-            <div class="flex items-center gap-1.5">
+            <div class="flex items-center gap-1.5 flex-wrap">
               <span class="text-xs font-black ${isNext ? 'text-theme-primary' : 'text-white'}">${w.label ?? w.name}</span>
               ${isNext ? `<span class="text-[7px] font-black text-theme-primary uppercase tracking-widest bg-theme-dim px-1.5 py-0.5 rounded">PRÓXIMO</span>` : ''}
               ${isDone ? `<span class="text-[7px] font-black text-green-500 uppercase tracking-widest">✓ FEITO</span>` : ''}
             </div>
             <div class="text-[9px] text-zinc-500 truncate">${w.subtitle ?? w.description ?? ''}</div>
+            <div class="text-[8px] text-zinc-700 font-mono mt-0.5 flex items-center gap-1 flex-wrap">
+              <i data-lucide="clock" class="w-2.5 h-2.5 shrink-0"></i>
+              ${lastInfo}
+            </div>
           </div>
           <i data-lucide="chevron-right" class="w-3.5 h-3.5 text-zinc-600 shrink-0"></i>
         </button>`;
@@ -3256,8 +3294,15 @@ export class AppController {
     this.#modalLayer.innerHTML = `
       <div class="fixed inset-0 z-[80] flex items-center justify-center bg-black/90 backdrop-blur-sm animate-zoom-in p-4">
         <div class="glass-card w-full max-w-sm p-6 rounded-3xl border border-theme-dim shadow-[0_0_50px_var(--theme-dim)]">
-          <div class="mb-4 text-theme-primary animate-pulse flex justify-center">
-            <i data-lucide="trophy" class="w-12 h-12"></i>
+          <div class="flex items-center justify-between mb-4">
+            <div class="text-theme-primary animate-pulse">
+              <i data-lucide="trophy" class="w-10 h-10"></i>
+            </div>
+            <button id="cancel-finish"
+              class="w-9 h-9 flex items-center justify-center rounded-xl border border-zinc-700 text-zinc-500 hover:text-zinc-300 hover:border-zinc-500 active:scale-90 transition-all"
+              aria-label="Cancelar">
+              <i data-lucide="x" class="w-5 h-5"></i>
+            </button>
           </div>
           <h2 class="text-2xl font-black uppercase italic mb-1 text-white text-center">${L.doneTile}</h2>
           <p class="text-zinc-500 text-xs text-center mb-4 font-mono">${L.doneSub}</p>
@@ -3267,14 +3312,24 @@ export class AppController {
             class="w-full bg-zinc-900 border border-zinc-700 rounded-xl p-3 text-sm text-white placeholder-zinc-600 focus:outline-none focus:border-theme-primary resize-none mb-4 transition-all"
             rows="3"
           ></textarea>
-          <button id="confirm-finish"
-            class="w-full py-3 bg-theme-primary text-black font-black text-sm uppercase rounded-xl shadow-[0_0_15px_var(--theme-primary)] active:scale-95 transition-all">
-            FINALIZAR TREINO
-          </button>
+          <div class="flex gap-3">
+            <button id="cancel-finish-btn"
+              class="flex-1 py-3 bg-zinc-900 border border-zinc-700 rounded-xl text-zinc-400 font-bold text-sm uppercase active:scale-95 transition-all">
+              Cancelar
+            </button>
+            <button id="confirm-finish"
+              class="flex-1 py-3 bg-theme-primary text-black font-black text-sm uppercase rounded-xl shadow-[0_0_15px_var(--theme-primary)] active:scale-95 transition-all">
+              Finalizar
+            </button>
+          </div>
         </div>
       </div>
     `;
     if (window.lucide) lucide.createIcons({ nodes: [this.#modalLayer] });
+
+    const closeModal = () => this.#closeModal();
+    $("#cancel-finish",     this.#modalLayer)?.addEventListener("click", closeModal);
+    $("#cancel-finish-btn", this.#modalLayer)?.addEventListener("click", closeModal);
 
     $("#confirm-finish", this.#modalLayer)?.addEventListener("click", () => {
       const notes = (

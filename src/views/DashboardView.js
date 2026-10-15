@@ -147,6 +147,7 @@ export function renderDashboard(state, workouts, protocols = [], templates = [])
   const cycleLen    = cycleOrder.length;
   const nextWId     = cycleLen > 0 ? cycleOrder[cyclePosition] : null;
   const nextWorkout = nextWId ? workouts.find(w => w.id === nextWId) ?? null : null;
+  const nextLast    = nextWorkout ? (history ?? []).find(h => h.workoutId === nextWorkout.id) : null;
 
   // Dias consecutivos treinados (musculação + cardio) — para contexto nos cards Off/Flex
   const consecutiveDays = (() => {
@@ -258,6 +259,12 @@ export function renderDashboard(state, workouts, protocols = [], templates = [])
                 <div class="text-[9px] text-zinc-500 truncate">
                   ${nextWId === null ? 'Recuperação programada' : nextWorkout ? nextWorkout.subtitle : ''}
                 </div>
+                ${nextLast
+                  ? `<div class="text-[8px] text-zinc-700 font-mono mt-1 flex items-center gap-1">
+                       <i data-lucide="clock" class="w-2.5 h-2.5 shrink-0"></i>
+                       ${formatDate(nextLast.date)}${nextLast.vol ? ` · ${(nextLast.vol / 1000).toFixed(1)}t` : ''}
+                     </div>`
+                  : `<div class="text-[8px] text-zinc-800 font-mono mt-1">nunca feito</div>`}
               </div>
             </div>
           ` : ''}

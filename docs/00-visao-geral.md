@@ -1,10 +1,10 @@
-# 00 — Visão Geral · ForjaFit
+# 00 — Visão Geral · TREINO MONSTRO
 
 > Ler este arquivo antes de qualquer outro. É a âncora de contexto do projeto.
 
 ## O que é
 
-**ForjaFit** (interno: Treino Monstro) é um PWA de workout tracker pessoal gamificado.
+**TREINO MONSTRO** é um PWA de workout tracker pessoal gamificado.
 Funciona 100% offline, sem backend, sem banco de dados — tudo em localStorage.
 
 **Usuário único:** Cláudio Santana. Não é um SaaS. Decisões de UX são para uma pessoa específica.
@@ -34,7 +34,7 @@ Vanilla JS ES Modules + Tailwind CDN + Lucide 0.460.0 + localStorage + Service W
 |---|---|
 | Local | `http://localhost/treino-monstro/` |
 | Remoto | `https://survey-sedation-stellar.ngrok-free.dev/treino-monstro/` |
-| Instalado (PWA) | App "ForjaFit" na tela inicial do celular |
+| Instalado (PWA) | App "TREINO MONSTRO" na tela inicial do celular |
 
 ## Documentos relacionados
 
@@ -51,4 +51,4 @@ Vanilla JS ES Modules + Tailwind CDN + Lucide 0.460.0 + localStorage + Service W
 
 ## Versão atual
 
-**v6.6** — Cycle Overview, Workout Picker, Battle Report com duração em destaque, Skip Exercise, timer dual.
+**v6.7** — Undo série permanente, BattleReportView extraído, instalar.html, seed_julio, redesign PPL Cláudio, botão Cancelar no modal Finalizar Treino.

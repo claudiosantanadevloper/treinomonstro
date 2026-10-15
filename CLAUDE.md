@@ -1,4 +1,4 @@
-# ForjaFit — v6.6 (27/07/2026)
+# TREINO MONSTRO — v6.7 (15/10/2026)
 
 PWA workout tracker gamificado · Vanilla JS ES Modules · Tailwind CDN · localStorage · sem build
 `http://localhost/treino-monstro/` | ngrok: `https://survey-sedation-stellar.ngrok-free.dev/treino-monstro/`
