@@ -3,403 +3,325 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Medidas de Roupa — Cláudio</title>
+  <title>Calculadora de Tamanho — Cláudio</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <style>
     :root { --red: #ef4444; }
     body { background: #09090b; color: #fff; font-family: 'ui-monospace', monospace; }
     .glass { background: rgba(24,24,27,.8); border: 1px solid #27272a; border-radius: 16px; padding: 16px; }
-    .input-m {
-      background: rgba(39,39,42,.9); border: 1px solid #3f3f46; border-radius: 8px;
-      padding: 10px 12px; width: 100%; color: #fff; font-family: inherit;
-      font-size: 13px; text-align: center; transition: border-color .15s;
-    }
+    .input-m { background: rgba(39,39,42,.9); border: 1px solid #3f3f46; border-radius: 8px; padding: 10px 12px; width: 100%; color: #fff; font-family: inherit; font-size: 15px; text-align: center; transition: border-color .15s; -moz-appearance: textfield; }
+    .input-m::-webkit-outer-spin-button, .input-m::-webkit-inner-spin-button { -webkit-appearance: none; }
     .input-m:focus { outline: none; border-color: var(--red); }
-    .input-m::placeholder { color: #52525b; }
+    .input-m::placeholder { color: #3f3f46; }
     .field-label { font-size: 9px; font-weight: 700; text-transform: uppercase; letter-spacing: .08em; color: #52525b; margin-bottom: 4px; }
-    .section-title { font-size: 9px; font-weight: 900; text-transform: uppercase; letter-spacing: .12em; color: #71717a; margin-bottom: 12px; display: flex; align-items: center; gap: 6px; }
+    .section-title { font-size: 9px; font-weight: 900; text-transform: uppercase; letter-spacing: .12em; color: #71717a; margin-bottom: 10px; display: flex; align-items: center; gap: 6px; }
     .section-title::before { content: ''; display: block; height: 1px; width: 12px; background: #3f3f46; }
-    .btn-add {
-      width: 100%; padding: 13px; background: var(--red); color: #000;
-      font-weight: 900; font-size: 12px; text-transform: uppercase; letter-spacing: .1em;
-      border: none; border-radius: 12px; cursor: pointer; transition: opacity .15s, transform .1s;
-    }
-    .btn-add:active { transform: scale(.97); opacity: .85; }
-    .btn-add:disabled { opacity: .3; cursor: not-allowed; transform: none; }
-    .btn-outline {
-      padding: 10px 16px; background: transparent; color: #71717a;
-      font-weight: 700; font-size: 11px; text-transform: uppercase; letter-spacing: .08em;
-      border: 1px solid #3f3f46; border-radius: 10px; cursor: pointer; transition: all .15s;
-    }
-    .btn-outline:hover { border-color: #71717a; color: #a1a1aa; }
-    .badge { display: inline-block; padding: 2px 8px; border-radius: 999px; font-size: 9px; font-weight: 700; text-transform: uppercase; letter-spacing: .06em; }
-    .peca-chip {
-      background: rgba(39,39,42,.6); border: 1px solid #27272a; border-radius: 10px;
-      padding: 10px 12px; display: flex; align-items: center; gap: 8px;
-    }
-    select.input-m { cursor: pointer; }
-    select.input-m option { background: #18181b; }
-    .measure-val { font-size: 16px; font-weight: 900; color: #fff; }
-    .measure-unit { font-size: 10px; color: #52525b; }
-    .range-bar { height: 4px; background: #27272a; border-radius: 2px; position: relative; overflow: hidden; }
-    .range-fill { height: 100%; background: var(--red); border-radius: 2px; }
+    .cat-btn { flex: 1; padding: 10px 4px; background: rgba(39,39,42,.4); border: 1px solid #27272a; border-radius: 10px; font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: .05em; color: #71717a; cursor: pointer; transition: all .15s; text-align: center; }
+    .cat-btn.active { background: rgba(239,68,68,.12); border-color: rgba(239,68,68,.4); color: #f87171; }
+    .verdict-row { display: flex; align-items: center; gap: 10px; padding: 8px 10px; border-radius: 10px; font-size: 11px; }
+    .verdict-ok  { background: rgba(34,197,94,.08); border: 1px solid rgba(34,197,94,.25); }
+    .verdict-warn{ background: rgba(234,179,8,.08); border: 1px solid rgba(234,179,8,.25); }
+    .verdict-bad { background: rgba(239,68,68,.08); border: 1px solid rgba(239,68,68,.2); }
+    .size-row { border-bottom: 1px solid #18181b; }
+    .size-row:last-child { border-bottom: none; }
+    .pill { display: inline-flex; align-items: center; gap: 4px; padding: 3px 10px; border-radius: 999px; font-size: 10px; font-weight: 700; }
   </style>
 </head>
 <body class="min-h-screen pb-20">
 <div class="max-w-lg mx-auto px-4 pt-8 space-y-4">
 
   <!-- Header -->
-  <div class="text-center mb-4">
+  <div class="text-center mb-2">
     <div class="text-[10px] font-black tracking-[.2em] text-red-500 mb-1">⬡ NINJINHA BOM DE BRIGA ⬡</div>
-    <h1 class="text-2xl font-black tracking-tight">MEDIDAS DE ROUPA</h1>
-    <p class="text-[11px] text-zinc-500 mt-1">Meça peças que já servem · salva no celular</p>
+    <h1 class="text-2xl font-black tracking-tight">CALCULADORA DE TAMANHO</h1>
+    <p class="text-[11px] text-zinc-500 mt-1">Insira as medidas da marca · descobre o tamanho certo</p>
     <a href="index.html" class="text-[10px] text-red-500/50 hover:text-red-400 mt-2 inline-block">← voltar ao app</a>
   </div>
 
-  <!-- Diagrama SVG -->
-  <div class="glass" style="background:rgba(39,39,42,.3)">
-    <div class="section-title">Como medir</div>
-    <svg viewBox="0 0 320 260" class="w-full max-w-xs mx-auto block" style="max-height:220px">
-      <!-- Camiseta shape -->
-      <g fill="none" stroke="#3f3f46" stroke-width="1.5" stroke-linejoin="round">
-        <!-- corpo -->
-        <path d="M100 50 L75 70 L55 60 L45 100 L70 105 L70 220 L250 220 L250 105 L275 100 L265 60 L245 70 L220 50 Z" fill="rgba(39,39,42,.6)" stroke="#52525b"/>
-        <!-- gola -->
-        <path d="M100 50 Q160 80 220 50" fill="none" stroke="#71717a" stroke-width="1"/>
-        <!-- costura manga esq -->
-        <line x1="70" y1="105" x2="75" y2="70" stroke="#3f3f46" stroke-dasharray="3,3"/>
-        <!-- costura manga dir -->
-        <line x1="250" y1="105" x2="245" y2="70" stroke="#3f3f46" stroke-dasharray="3,3"/>
-      </g>
-
-      <!-- Seta COMPRIMENTO (esquerda) -->
-      <g stroke="#ef4444" stroke-width="1.2" fill="#ef4444">
-        <line x1="30" y1="50" x2="30" y2="220"/>
-        <polygon points="30,46 27,54 33,54"/>
-        <polygon points="30,224 27,216 33,216"/>
-        <line x1="30" y1="50" x2="40" y2="50"/>
-        <line x1="30" y1="220" x2="40" y2="220"/>
-      </g>
-      <text x="8" y="140" fill="#ef4444" font-size="8" font-weight="700" font-family="monospace" transform="rotate(-90,8,140)" text-anchor="middle" letter-spacing="1">COMPRIMENTO</text>
-
-      <!-- Seta LARGURA (baixo) -->
-      <g stroke="#3b82f6" stroke-width="1.2" fill="#3b82f6">
-        <line x1="70" y1="240" x2="250" y2="240"/>
-        <polygon points="66,240 74,237 74,243"/>
-        <polygon points="254,240 246,237 246,243"/>
-        <line x1="70" y1="240" x2="70" y2="230"/>
-        <line x1="250" y1="240" x2="250" y2="230"/>
-      </g>
-      <text x="160" y="255" fill="#3b82f6" font-size="8" font-weight="700" font-family="monospace" text-anchor="middle" letter-spacing="1">LARGURA</text>
-
-      <!-- Seta MANGA (direita) -->
-      <g stroke="#22c55e" stroke-width="1.2" fill="#22c55e">
-        <line x1="288" y1="60" x2="288" y2="100"/>
-        <polygon points="288,56 285,64 291,64"/>
-        <polygon points="288,104 285,96 291,96"/>
-        <line x1="288" y1="60" x2="268" y2="60"/>
-        <line x1="288" y1="100" x2="270" y2="100"/>
-      </g>
-      <text x="305" y="85" fill="#22c55e" font-size="8" font-weight="700" font-family="monospace" text-anchor="middle" transform="rotate(90,305,80)">MANGA</text>
-
-      <!-- Labels de legenda -->
-      <text x="160" y="145" fill="#71717a" font-size="9" font-family="monospace" text-anchor="middle">medir deitada no chão</text>
-    </svg>
-    <div class="grid grid-cols-3 gap-2 mt-3 text-center">
-      <div class="text-[9px]"><span style="color:#ef4444">■</span> <span class="text-zinc-500">Do ombro à barra</span></div>
-      <div class="text-[9px]"><span style="color:#3b82f6">■</span> <span class="text-zinc-500">De lado a lado (plana)</span></div>
-      <div class="text-[9px]"><span style="color:#22c55e">■</span> <span class="text-zinc-500">Do ombro ao punho</span></div>
+  <!-- Perfil Cláudio (fixo) -->
+  <div class="glass" style="background:rgba(239,68,68,.04);border-color:rgba(239,68,68,.2)">
+    <div class="section-title" style="margin-bottom:8px">Seu perfil (fixo)</div>
+    <div class="grid grid-cols-4 gap-2 text-center">
+      <div><div class="text-[8px] text-zinc-500 mb-1">ALTURA</div><div class="text-[13px] font-black text-red-400">188 cm</div></div>
+      <div><div class="text-[8px] text-zinc-500 mb-1">TÓRAX</div><div class="text-[13px] font-black text-red-400">102 cm</div></div>
+      <div><div class="text-[8px] text-zinc-500 mb-1">CINTURA</div><div class="text-[13px] font-black text-red-400">82 cm</div></div>
+      <div><div class="text-[8px] text-zinc-500 mb-1">QUADRIL</div><div class="text-[13px] font-black text-red-400">95 cm</div></div>
     </div>
   </div>
 
-  <!-- Formulário nova peça -->
+  <!-- Categoria -->
+  <div style="display:flex;gap:8px">
+    <button class="cat-btn active" id="cat-top"    onclick="setCat('top')">👕 Camiseta / Polo / Moletom</button>
+    <button class="cat-btn"        id="cat-bottom" onclick="setCat('bottom')">👖 Calça / Short</button>
+    <button class="cat-btn"        id="cat-jacket" onclick="setCat('jacket')">🧥 Jaqueta</button>
+  </div>
+
+  <!-- Tabela de entrada -->
   <div class="glass space-y-3">
-    <div class="section-title">Adicionar peça</div>
-    <div class="grid grid-cols-2 gap-3">
-      <div>
-        <div class="field-label">Tipo</div>
-        <select class="input-m" id="tipo">
-          <option value="camiseta">Camiseta</option>
-          <option value="camiseta-over">Camiseta Over</option>
-          <option value="polo">Polo</option>
-          <option value="regata">Regata</option>
-          <option value="calca">Calça</option>
-          <option value="bermuda">Bermuda</option>
-          <option value="moletom">Moletom</option>
-          <option value="outro">Outro</option>
-        </select>
-      </div>
-      <div>
-        <div class="field-label">Nome / marca (opcional)</div>
-        <input class="input-m" id="nome" placeholder="ex: Nike XGG" autocomplete="off">
-      </div>
-    </div>
-    <div class="grid grid-cols-3 gap-3">
-      <div>
-        <div class="field-label" style="color:#ef4444">Comprimento (cm)</div>
-        <input class="input-m" id="comprimento" type="number" inputmode="decimal" min="1" max="200" step="0.5" placeholder="78">
-      </div>
-      <div>
-        <div class="field-label" style="color:#3b82f6">Largura (cm)</div>
-        <input class="input-m" id="largura" type="number" inputmode="decimal" min="1" max="200" step="0.5" placeholder="66">
-      </div>
-      <div>
-        <div class="field-label" style="color:#22c55e">Manga (cm)</div>
-        <input class="input-m" id="manga" type="number" inputmode="decimal" min="0" max="100" step="0.5" placeholder="30">
-      </div>
-    </div>
-    <div>
-      <div class="field-label">Tamanho etiquetado (opcional)</div>
-      <input class="input-m" id="tamanhoEtiqueta" placeholder="ex: XGG, GG, 42, L..." autocomplete="off">
-    </div>
-    <div>
-      <div class="field-label">Observação (opcional)</div>
-      <input class="input-m" id="obs" placeholder="ex: serve bem · um pouco curta · larga nos ombros" autocomplete="off">
-    </div>
-    <button class="btn-add" id="btnAdd" onclick="adicionarPeca()">+ Adicionar peça</button>
-  </div>
+    <div class="section-title" id="formTitle">Informe as medidas da marca (cm)</div>
 
-  <!-- Lista de peças -->
-  <div id="secPecas" class="glass space-y-2" style="display:none">
-    <div class="section-title">Peças cadastradas</div>
-    <div id="listaPecas" class="space-y-2"></div>
-    <button class="btn-outline w-full mt-2" onclick="limparTudo()">🗑 Limpar tudo</button>
-  </div>
+    <!-- Cabeçalho das colunas muda por categoria -->
+    <div id="colHeaders" class="grid gap-2 text-center" style="grid-template-columns: 72px repeat(3, 1fr)">
+      <div></div>
+      <div class="field-label" style="color:#ef4444">COMP.</div>
+      <div class="field-label" style="color:#3b82f6">LARGURA</div>
+      <div class="field-label" style="color:#22c55e">MANGA</div>
+    </div>
 
-  <!-- Perfil de medidas -->
-  <div id="secPerfil" style="display:none">
-    <div class="glass space-y-4">
-      <div class="section-title">Seu perfil de medidas</div>
-      <div id="perfilContent"></div>
-      <button class="btn-add" onclick="copiarWhatsApp()" id="btnCopiar">📋 Copiar para WhatsApp</button>
+    <div id="sizeRows" class="space-y-2"></div>
+
+    <div style="display:flex;gap:8px;margin-top:4px">
+      <button onclick="addRow()" style="flex:1;padding:10px;background:rgba(39,39,42,.6);border:1px solid #3f3f46;border-radius:10px;color:#71717a;font-size:11px;font-weight:700;cursor:pointer">+ Tamanho</button>
+      <button onclick="calcular()" style="flex:2;padding:10px;background:var(--red);color:#000;font-size:12px;font-weight:900;text-transform:uppercase;letter-spacing:.08em;border:none;border-radius:10px;cursor:pointer">Calcular ▶</button>
     </div>
   </div>
 
-  <!-- Toast -->
-  <div id="toast" style="position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(80px);background:#22c55e;color:#000;font-weight:900;font-size:12px;padding:10px 20px;border-radius:999px;transition:transform .3s;z-index:100;pointer-events:none">
-    Copiado! ✓
-  </div>
+  <!-- Resultado -->
+  <div id="resultado" style="display:none"></div>
 
 </div>
-
 <script>
-const STORAGE_KEY = 'medidas_roupa_v1';
-
-function load() {
-  try { return JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]'); } catch { return []; }
-}
-function save(pecas) {
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(pecas));
-}
-
-const TIPOS_LABEL = {
-  'camiseta': 'Camiseta', 'camiseta-over': 'Camiseta Over', 'polo': 'Polo',
-  'regata': 'Regata', 'calca': 'Calça', 'bermuda': 'Bermuda',
-  'moletom': 'Moletom', 'outro': 'Outro',
+// ─── Perfil fixo Cláudio ───────────────────────────────────────────
+const CLAUDIO = {
+  altura:  188,
+  torax:   102,  // circunferência
+  cintura: 82,   // circunferência
+  quadril: 95,   // circunferência
+  braco:   37.5, // braço contraído
 };
 
-function adicionarPeca() {
-  const tipo   = document.getElementById('tipo').value;
-  const nome   = document.getElementById('nome').value.trim();
-  const comp   = parseFloat(document.getElementById('comprimento').value);
-  const larg   = parseFloat(document.getElementById('largura').value);
-  const manga  = parseFloat(document.getElementById('manga').value) || null;
-  const etiq   = document.getElementById('tamanhoEtiqueta').value.trim();
-  const obs    = document.getElementById('obs').value.trim();
+// ─── Limites por categoria ─────────────────────────────────────────
+// "min" = mínimo aceitável; "ideal" = centro da zona boa; "max" = máximo tolerável
+// Derivados do perfil: torax/2 = 51cm (largura plana mínima) + folga
+const LIMITS = {
+  top: {
+    comp:   { min: 75, ideal: 78, max: 84,
+              why: c => c < 75 ? 'curta demais (188 cm de altura — aparece a barriga ao levantar o braço)'
+                       : c > 84 ? 'muito longa (fica abaixo do cós, efeito vestido)'
+                       : c < 77 ? 'um pouco curta, cuidado'
+                       : 'comprimento ok para 188 cm' },
+    larg:   { min: 56, ideal: 62, max: 70,
+              why: l => l < 56 ? 'apertada no peito (tórax 102 cm — mínimo de 56 cm plana)'
+                       : l > 70 ? 'muito larga, perde o caimento'
+                       : l < 59 ? 'serve mas ajustada'
+                       : l < 65 ? 'largura ideal para V-taper'
+                       : 'folgada — ok para over/moletom' },
+    manga:  { min: 26, ideal: 29, max: 34,
+              why: m => m < 26 ? 'manga muito curta para os braços de 188 cm'
+                       : m > 34 ? 'manga muito comprida para camiseta'
+                       : m < 28 ? 'manga um pouco curta'
+                       : 'comprimento de manga ok' },
+  },
+  bottom: {
+    comp:   { min: 98, ideal: 105, max: 115,
+              why: c => c < 98 ? 'curta demais para pernas de 188 cm'
+                       : c > 115 ? 'muito comprida, sobra no chão'
+                       : c < 102 ? 'um pouco curta, fica na canela'
+                       : 'comprimento ok' },
+    cintura:{ min: 38, ideal: 43, max: 50,
+              why: c => c < 38 ? 'não fecha — cintura 82 cm (mínimo plano 41 cm)'
+                       : c > 50 ? 'muito larga, cai sem cinto'
+                       : c < 41 ? 'muito justa, difícil de fechar'
+                       : c < 46 ? 'cintura ok'
+                       : 'cintura folgada — precisa de cinto' },
+    quadril:{ min: 48, ideal: 53, max: 62,
+              why: q => q < 48 ? 'aperta no quadril/coxa (quadril 95 cm — mínimo 48 cm plano)'
+                       : q > 62 ? 'muito largo, cai do quadril'
+                       : q < 51 ? 'um pouco justo nas coxas'
+                       : 'quadril ok' },
+    entre:  { min: 75, ideal: 82, max: 92,
+              why: e => e < 75 ? 'entreperna curta para pernas de 188 cm'
+                       : e > 92 ? 'muito comprida, sobra no chão'
+                       : e < 78 ? 'um pouco curta'
+                       : 'entreperna ok' },
+  },
+  jacket: {
+    comp:   { min: 68, ideal: 73, max: 80,
+              why: c => c < 68 ? 'curta demais para 188 cm'
+                       : c > 80 ? 'muito longa'
+                       : c < 71 ? 'um pouco curta'
+                       : 'comprimento ok' },
+    larg:   { min: 56, ideal: 62, max: 70,
+              why: l => l < 56 ? 'apertada no peito'
+                       : l > 70 ? 'muito larga'
+                       : l < 59 ? 'ajustada'
+                       : 'largura ok' },
+    manga:  { min: 62, ideal: 66, max: 72,
+              why: m => m < 62 ? 'manga curta para braços de 188 cm'
+                       : m > 72 ? 'manga comprida demais'
+                       : m < 64 ? 'um pouco curta'
+                       : 'manga ok' },
+    ombro:  { min: 44, ideal: 48, max: 54,
+              why: o => o < 44 ? 'ombro pequeno — costura cai no braço'
+                       : o > 54 ? 'ombro grande demais'
+                       : o < 46 ? 'ombro um pouco justo'
+                       : 'ombro ok' },
+  },
+};
 
-  if (!comp || !larg) {
-    shakeField(!comp ? 'comprimento' : 'largura');
-    return;
+const COLS = {
+  top:    [['comp','Comp.','#ef4444'],['larg','Largura','#3b82f6'],['manga','Manga','#22c55e']],
+  bottom: [['comp','Comp.','#ef4444'],['cintura','Cintura','#a855f7'],['quadril','Quadril','#f59e0b'],['entre','Entreperna','#22c55e']],
+  jacket: [['comp','Comp.','#ef4444'],['larg','Largura','#3b82f6'],['manga','Manga','#22c55e'],['ombro','Ombro','#f59e0b']],
+};
+
+let cat = 'top';
+let rowCount = 0;
+
+function setCat(c) {
+  cat = c;
+  ['top','bottom','jacket'].forEach(x => document.getElementById('cat-'+x).classList.toggle('active', x===c));
+  document.getElementById('resultado').style.display = 'none';
+  rebuildForm();
+}
+
+function rebuildForm() {
+  const cols = COLS[cat];
+  const colCount = cols.length;
+  const gridCols = `72px repeat(${colCount}, 1fr)`;
+
+  // cabeçalho
+  document.getElementById('colHeaders').style.gridTemplateColumns = gridCols;
+  document.getElementById('colHeaders').innerHTML =
+    '<div></div>' + cols.map(([k,label,color]) =>
+      `<div class="field-label" style="color:${color};text-align:center">${label}</div>`
+    ).join('');
+
+  // reinicia linhas com 3 padrão (P, M, G, GG, XGG ou S/M/L/XL)
+  rowCount = 0;
+  document.getElementById('sizeRows').innerHTML = '';
+  ['P','M','G','GG','XGG'].forEach(sz => addRow(sz));
+}
+
+function addRow(label) {
+  const cols = COLS[cat];
+  const colCount = cols.length;
+  const gridCols = `72px repeat(${colCount}, 1fr)`;
+  const id = ++rowCount;
+
+  const inputs = cols.map(([k,label,color]) =>
+    `<input class="input-m" type="number" inputmode="decimal" min="1" max="300" step="0.5"
+            id="r${id}_${k}" placeholder="—"
+            style="padding:8px 4px;font-size:13px">`
+  ).join('');
+
+  const div = document.createElement('div');
+  div.className = 'size-row';
+  div.style.cssText = `display:grid;gap:6px;align-items:center;padding:6px 0;grid-template-columns:${gridCols}`;
+  div.innerHTML = `
+    <input class="input-m" id="r${id}_label" value="${label||''}"
+           placeholder="tam" style="padding:8px 4px;font-size:12px;font-weight:700;text-transform:uppercase">
+    ${inputs}
+  `;
+  document.getElementById('sizeRows').appendChild(div);
+}
+
+function score(val, lim) {
+  if (val == null || isNaN(val)) return null;
+  if (val < lim.min) return 'bad';
+  if (val > lim.max) return 'bad';
+  if (val < lim.min + (lim.ideal - lim.min) * 0.4) return 'warn';
+  if (val > lim.ideal + (lim.max - lim.ideal) * 0.7) return 'warn';
+  return 'ok';
+}
+
+function calcular() {
+  const cols  = COLS[cat];
+  const lims  = LIMITS[cat];
+  const rows  = [];
+
+  for (let i = 1; i <= rowCount; i++) {
+    const el = document.getElementById(`r${i}_label`);
+    if (!el) continue;
+    const label = el.value.trim() || `T${i}`;
+    const vals = {};
+    cols.forEach(([k]) => {
+      const v = parseFloat(document.getElementById(`r${i}_${k}`)?.value);
+      if (!isNaN(v) && v > 0) vals[k] = v;
+    });
+    if (Object.keys(vals).length > 0) rows.push({ label, vals });
   }
 
-  const pecas = load();
-  pecas.push({ id: Date.now(), tipo, nome, comp, larg, manga, etiq, obs });
-  save(pecas);
+  if (!rows.length) return;
 
-  // limpa form
-  ['nome','comprimento','largura','manga','tamanhoEtiqueta','obs'].forEach(id => {
-    document.getElementById(id).value = '';
+  // score global de cada tamanho
+  const scored = rows.map(r => {
+    const details = [];
+    let bad = 0, warn = 0, ok = 0;
+    cols.forEach(([k, colLabel, color]) => {
+      const v = r.vals[k];
+      if (v == null) return;
+      const s = score(v, lims[k]);
+      if (s === 'bad')  bad++;
+      if (s === 'warn') warn++;
+      if (s === 'ok')   ok++;
+      details.push({ key: k, label: colLabel, color, val: v, status: s, why: lims[k].why(v) });
+    });
+    const overall = bad > 0 ? 'bad' : warn > 0 ? 'warn' : 'ok';
+    return { ...r, details, bad, warn, ok, overall };
   });
 
-  renderizar();
-}
+  // melhor tamanho
+  const best = scored.filter(r => r.overall !== 'bad').sort((a,b) => a.warn - b.warn || a.bad - b.bad)[0];
 
-function removerPeca(id) {
-  const pecas = load().filter(p => p.id !== id);
-  save(pecas);
-  renderizar();
-}
-
-function shakeField(id) {
-  const el = document.getElementById(id);
-  el.style.borderColor = '#ef4444';
-  el.style.animation = 'none';
-  el.focus();
-  setTimeout(() => { el.style.borderColor = ''; }, 1200);
-}
-
-function fmt(v) {
-  return v != null ? v.toFixed(1).replace('.0', '') + ' cm' : '—';
-}
-
-function renderizar() {
-  const pecas = load();
-
-  // seção lista
-  const secPecas = document.getElementById('secPecas');
-  const lista    = document.getElementById('listaPecas');
-  secPecas.style.display = pecas.length ? '' : 'none';
-
-  lista.innerHTML = pecas.map(p => `
-    <div class="peca-chip">
-      <div style="flex:1;min-width:0">
-        <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap">
-          <span class="badge" style="background:rgba(239,68,68,.15);color:#f87171;border:1px solid rgba(239,68,68,.3)">${TIPOS_LABEL[p.tipo] ?? p.tipo}</span>
-          ${p.etiq ? `<span class="badge" style="background:rgba(39,39,42,.8);border:1px solid #3f3f46;color:#a1a1aa">${p.etiq}</span>` : ''}
-          ${p.nome ? `<span style="font-size:10px;color:#71717a">${p.nome}</span>` : ''}
-        </div>
-        <div style="display:flex;gap:12px;margin-top:6px;flex-wrap:wrap">
-          <span style="font-size:11px"><span style="color:#ef4444">↕</span> <b>${fmt(p.comp)}</b></span>
-          <span style="font-size:11px"><span style="color:#3b82f6">↔</span> <b>${fmt(p.larg)}</b></span>
-          ${p.manga != null ? `<span style="font-size:11px"><span style="color:#22c55e">↗</span> <b>${fmt(p.manga)}</b></span>` : ''}
-        </div>
-        ${p.obs ? `<div style="font-size:9px;color:#52525b;margin-top:3px">${p.obs}</div>` : ''}
-      </div>
-      <button onclick="removerPeca(${p.id})" style="background:rgba(239,68,68,.1);border:1px solid rgba(239,68,68,.2);color:#f87171;border-radius:8px;padding:6px 10px;font-size:11px;cursor:pointer;flex-shrink:0">✕</button>
-    </div>
-  `).join('');
-
-  // seção perfil
-  const secPerfil = document.getElementById('secPerfil');
-  secPerfil.style.display = pecas.length ? '' : 'none';
-  if (!pecas.length) return;
-
-  // agrupa por tipo
-  const grupos = {};
-  for (const p of pecas) {
-    if (!grupos[p.tipo]) grupos[p.tipo] = [];
-    grupos[p.tipo].push(p);
-  }
+  const icon = { ok: '✅', warn: '⚠️', bad: '❌' };
+  const tag  = { ok: '#22c55e', warn: '#eab308', bad: '#ef4444' };
+  const tagBg= { ok: 'rgba(34,197,94,.12)', warn: 'rgba(234,179,8,.12)', bad: 'rgba(239,68,68,.1)' };
+  const tagBorder = { ok: 'rgba(34,197,94,.3)', warn: 'rgba(234,179,8,.3)', bad: 'rgba(239,68,68,.25)' };
+  const tagLabel = { ok: 'SERVE', warn: 'BORDA', bad: 'NÃO SERVE' };
 
   let html = '';
-  for (const [tipo, items] of Object.entries(grupos)) {
-    const comps  = items.map(p => p.comp);
-    const largs  = items.map(p => p.larg);
-    const mangas = items.map(p => p.manga).filter(v => v != null);
 
-    const minC = Math.min(...comps), maxC = Math.max(...comps);
-    const minL = Math.min(...largs), maxL = Math.max(...largs);
-    const minM = mangas.length ? Math.min(...mangas) : null;
-    const maxM = mangas.length ? Math.max(...mangas) : null;
-
-    const range = (min, max, color) => {
-      if (min === max) return `<span style="color:${color};font-size:13px;font-weight:900">${fmt(min)}</span>`;
-      return `<span style="color:${color};font-size:13px;font-weight:900">${fmt(min)} – ${fmt(max)}</span>`;
-    };
-
-    html += `
-      <div style="margin-bottom:16px">
-        <div style="font-size:10px;font-weight:700;color:#a1a1aa;margin-bottom:8px;display:flex;align-items:center;gap:6px">
-          ${TIPOS_LABEL[tipo] ?? tipo}
-          <span style="font-size:9px;color:#52525b">${items.length} peça${items.length > 1 ? 's' : ''}</span>
-        </div>
-        <div class="grid grid-cols-3 gap-2 text-center">
-          <div style="background:rgba(239,68,68,.06);border:1px solid rgba(239,68,68,.15);border-radius:10px;padding:10px 6px">
-            <div style="font-size:8px;color:#ef4444;font-weight:700;margin-bottom:4px">COMPRIMENTO</div>
-            ${range(minC, maxC, '#f87171')}
-          </div>
-          <div style="background:rgba(59,130,246,.06);border:1px solid rgba(59,130,246,.15);border-radius:10px;padding:10px 6px">
-            <div style="font-size:8px;color:#3b82f6;font-weight:700;margin-bottom:4px">LARGURA</div>
-            ${range(minL, maxL, '#93c5fd')}
-          </div>
-          <div style="background:rgba(34,197,94,.06);border:1px solid rgba(34,197,94,.15);border-radius:10px;padding:10px 6px">
-            <div style="font-size:8px;color:#22c55e;font-weight:700;margin-bottom:4px">MANGA</div>
-            ${mangas.length ? range(minM, maxM, '#86efac') : '<span style="color:#3f3f46;font-size:11px">—</span>'}
-          </div>
-        </div>
-      </div>
-    `;
+  // destaque do melhor
+  if (best) {
+    html += `<div class="glass" style="border-color:rgba(34,197,94,.4);background:rgba(34,197,94,.06);margin-bottom:0">
+      <div style="font-size:10px;color:#4ade80;font-weight:700;margin-bottom:4px">RECOMENDAÇÃO</div>
+      <div style="font-size:28px;font-weight:900;line-height:1">${best.label}</div>
+      <div style="font-size:11px;color:#86efac;margin-top:4px">${best.warn > 0 ? 'Melhor opção disponível — ver observações abaixo' : 'Tamanho ideal para seu corpo'}</div>
+    </div>`;
+  } else {
+    html += `<div class="glass" style="border-color:rgba(239,68,68,.3);background:rgba(239,68,68,.06)">
+      <div style="font-size:12px;font-weight:700;color:#f87171">Nenhum tamanho serve</div>
+      <div style="font-size:11px;color:#71717a;margin-top:4px">Esta marca não tem corte para suas medidas. Veja os detalhes abaixo.</div>
+    </div>`;
   }
 
-  document.getElementById('perfilContent').innerHTML = html;
-}
+  // tabela de todos os tamanhos
+  html += `<div class="glass space-y-3" style="margin-top:0">
+    <div class="section-title">Análise por tamanho</div>`;
 
-function copiarWhatsApp() {
-  const pecas = load();
-  if (!pecas.length) return;
+  for (const r of scored) {
+    const isBest = best && r.label === best.label;
+    html += `<div style="border:1px solid ${isBest ? 'rgba(34,197,94,.3)' : '#1f1f23'};border-radius:12px;padding:12px;background:${isBest ? 'rgba(34,197,94,.04)' : 'transparent'}">
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px">
+        <span style="font-size:18px;font-weight:900">${r.label}</span>
+        <span class="pill" style="background:${tagBg[r.overall]};border:1px solid ${tagBorder[r.overall]};color:${tag[r.overall]}">${icon[r.overall]} ${tagLabel[r.overall]}</span>
+        ${isBest ? '<span class="pill" style="background:rgba(34,197,94,.15);border:1px solid rgba(34,197,94,.3);color:#4ade80">★ MELHOR</span>' : ''}
+      </div>`;
 
-  const grupos = {};
-  for (const p of pecas) {
-    if (!grupos[p.tipo]) grupos[p.tipo] = [];
-    grupos[p.tipo].push(p);
-  }
-
-  let texto = '👕 *MEDIDAS DE ROUPA — CLÁUDIO*\n';
-  texto += '_(peças que já servem como referência)_\n\n';
-
-  for (const [tipo, items] of Object.entries(grupos)) {
-    const comps  = items.map(p => p.comp);
-    const largs  = items.map(p => p.larg);
-    const mangas = items.map(p => p.manga).filter(v => v != null);
-
-    const minC = Math.min(...comps), maxC = Math.max(...comps);
-    const minL = Math.min(...largs), maxL = Math.max(...largs);
-    const minM = mangas.length ? Math.min(...mangas) : null;
-    const maxM = mangas.length ? Math.max(...mangas) : null;
-
-    const fmtRange = (min, max) => min === max ? `${min} cm` : `${min}–${max} cm`;
-
-    texto += `*${TIPOS_LABEL[tipo] ?? tipo}* (${items.length} ref)\n`;
-    texto += `↕ Comprimento: ${fmtRange(minC, maxC)}\n`;
-    texto += `↔ Largura: ${fmtRange(minL, maxL)}\n`;
-    if (minM != null) texto += `↗ Manga: ${fmtRange(minM, maxM)}\n`;
-
-    if (items.length > 1) {
-      texto += '\n_Referências:_\n';
-      for (const p of items) {
-        texto += `  • ${p.etiq || p.nome || p.tipo}: comp ${p.comp} · larg ${p.larg}${p.manga ? ' · manga ' + p.manga : ''}${p.obs ? ' · ' + p.obs : ''}\n`;
-      }
+    for (const d of r.details) {
+      if (d.status == null) continue;
+      html += `<div class="verdict-row verdict-${d.status}" style="margin-bottom:4px">
+        <span style="font-size:16px">${icon[d.status]}</span>
+        <div style="flex:1">
+          <span style="color:${d.color};font-weight:700;font-size:10px">${d.label}</span>
+          <span style="color:#a1a1aa;margin-left:6px">${d.val} cm</span>
+          <div style="font-size:10px;color:${d.status==='ok'?'#86efac':d.status==='warn'?'#fde047':'#f87171'};margin-top:1px">${d.why}</div>
+        </div>
+      </div>`;
     }
-    texto += '\n';
+    html += `</div>`;
   }
+  html += `</div>`;
 
-  texto += '_(medido deitado no chão · largura = meia medida do tecido)_';
-
-  navigator.clipboard.writeText(texto).then(() => {
-    const toast = document.getElementById('toast');
-    toast.style.transform = 'translateX(-50%) translateY(0)';
-    setTimeout(() => { toast.style.transform = 'translateX(-50%) translateY(80px)'; }, 2000);
-  }).catch(() => {
-    // fallback: select em textarea
-    const ta = document.createElement('textarea');
-    ta.value = texto;
-    ta.style.position = 'fixed';
-    ta.style.opacity = '0';
-    document.body.appendChild(ta);
-    ta.select();
-    document.execCommand('copy');
-    document.body.removeChild(ta);
-    const toast = document.getElementById('toast');
-    toast.style.transform = 'translateX(-50%) translateY(0)';
-    setTimeout(() => { toast.style.transform = 'translateX(-50%) translateY(80px)'; }, 2000);
-  });
-}
-
-function limparTudo() {
-  if (!confirm('Apagar todas as peças cadastradas?')) return;
-  localStorage.removeItem(STORAGE_KEY);
-  renderizar();
+  const el = document.getElementById('resultado');
+  el.style.display = '';
+  el.innerHTML = `<div class="space-y-3">${html}</div>`;
+  el.scrollIntoView({ behavior: 'smooth', block: 'start' });
 }
 
 // init
-renderizar();
-
-// Enter no form
-document.querySelectorAll('.input-m').forEach(el => {
-  el.addEventListener('keydown', e => {
-    if (e.key === 'Enter') adicionarPeca();
-  });
-});
+rebuildForm();
 </script>
 </body>
 </html>
