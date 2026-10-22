@@ -1,0 +1,405 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Medidas de Roupa — Cláudio</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    :root { --red: #ef4444; }
+    body { background: #09090b; color: #fff; font-family: 'ui-monospace', monospace; }
+    .glass { background: rgba(24,24,27,.8); border: 1px solid #27272a; border-radius: 16px; padding: 16px; }
+    .input-m {
+      background: rgba(39,39,42,.9); border: 1px solid #3f3f46; border-radius: 8px;
+      padding: 10px 12px; width: 100%; color: #fff; font-family: inherit;
+      font-size: 13px; text-align: center; transition: border-color .15s;
+    }
+    .input-m:focus { outline: none; border-color: var(--red); }
+    .input-m::placeholder { color: #52525b; }
+    .field-label { font-size: 9px; font-weight: 700; text-transform: uppercase; letter-spacing: .08em; color: #52525b; margin-bottom: 4px; }
+    .section-title { font-size: 9px; font-weight: 900; text-transform: uppercase; letter-spacing: .12em; color: #71717a; margin-bottom: 12px; display: flex; align-items: center; gap: 6px; }
+    .section-title::before { content: ''; display: block; height: 1px; width: 12px; background: #3f3f46; }
+    .btn-add {
+      width: 100%; padding: 13px; background: var(--red); color: #000;
+      font-weight: 900; font-size: 12px; text-transform: uppercase; letter-spacing: .1em;
+      border: none; border-radius: 12px; cursor: pointer; transition: opacity .15s, transform .1s;
+    }
+    .btn-add:active { transform: scale(.97); opacity: .85; }
+    .btn-add:disabled { opacity: .3; cursor: not-allowed; transform: none; }
+    .btn-outline {
+      padding: 10px 16px; background: transparent; color: #71717a;
+      font-weight: 700; font-size: 11px; text-transform: uppercase; letter-spacing: .08em;
+      border: 1px solid #3f3f46; border-radius: 10px; cursor: pointer; transition: all .15s;
+    }
+    .btn-outline:hover { border-color: #71717a; color: #a1a1aa; }
+    .badge { display: inline-block; padding: 2px 8px; border-radius: 999px; font-size: 9px; font-weight: 700; text-transform: uppercase; letter-spacing: .06em; }
+    .peca-chip {
+      background: rgba(39,39,42,.6); border: 1px solid #27272a; border-radius: 10px;
+      padding: 10px 12px; display: flex; align-items: center; gap: 8px;
+    }
+    select.input-m { cursor: pointer; }
+    select.input-m option { background: #18181b; }
+    .measure-val { font-size: 16px; font-weight: 900; color: #fff; }
+    .measure-unit { font-size: 10px; color: #52525b; }
+    .range-bar { height: 4px; background: #27272a; border-radius: 2px; position: relative; overflow: hidden; }
+    .range-fill { height: 100%; background: var(--red); border-radius: 2px; }
+  </style>
+</head>
+<body class="min-h-screen pb-20">
+<div class="max-w-lg mx-auto px-4 pt-8 space-y-4">
+
+  <!-- Header -->
+  <div class="text-center mb-4">
+    <div class="text-[10px] font-black tracking-[.2em] text-red-500 mb-1">⬡ NINJINHA BOM DE BRIGA ⬡</div>
+    <h1 class="text-2xl font-black tracking-tight">MEDIDAS DE ROUPA</h1>
+    <p class="text-[11px] text-zinc-500 mt-1">Meça peças que já servem · salva no celular</p>
+    <a href="index.html" class="text-[10px] text-red-500/50 hover:text-red-400 mt-2 inline-block">← voltar ao app</a>
+  </div>
+
+  <!-- Diagrama SVG -->
+  <div class="glass" style="background:rgba(39,39,42,.3)">
+    <div class="section-title">Como medir</div>
+    <svg viewBox="0 0 320 260" class="w-full max-w-xs mx-auto block" style="max-height:220px">
+      <!-- Camiseta shape -->
+      <g fill="none" stroke="#3f3f46" stroke-width="1.5" stroke-linejoin="round">
+        <!-- corpo -->
+        <path d="M100 50 L75 70 L55 60 L45 100 L70 105 L70 220 L250 220 L250 105 L275 100 L265 60 L245 70 L220 50 Z" fill="rgba(39,39,42,.6)" stroke="#52525b"/>
+        <!-- gola -->
+        <path d="M100 50 Q160 80 220 50" fill="none" stroke="#71717a" stroke-width="1"/>
+        <!-- costura manga esq -->
+        <line x1="70" y1="105" x2="75" y2="70" stroke="#3f3f46" stroke-dasharray="3,3"/>
+        <!-- costura manga dir -->
+        <line x1="250" y1="105" x2="245" y2="70" stroke="#3f3f46" stroke-dasharray="3,3"/>
+      </g>
+
+      <!-- Seta COMPRIMENTO (esquerda) -->
+      <g stroke="#ef4444" stroke-width="1.2" fill="#ef4444">
+        <line x1="30" y1="50" x2="30" y2="220"/>
+        <polygon points="30,46 27,54 33,54"/>
+        <polygon points="30,224 27,216 33,216"/>
+        <line x1="30" y1="50" x2="40" y2="50"/>
+        <line x1="30" y1="220" x2="40" y2="220"/>
+      </g>
+      <text x="8" y="140" fill="#ef4444" font-size="8" font-weight="700" font-family="monospace" transform="rotate(-90,8,140)" text-anchor="middle" letter-spacing="1">COMPRIMENTO</text>
+
+      <!-- Seta LARGURA (baixo) -->
+      <g stroke="#3b82f6" stroke-width="1.2" fill="#3b82f6">
+        <line x1="70" y1="240" x2="250" y2="240"/>
+        <polygon points="66,240 74,237 74,243"/>
+        <polygon points="254,240 246,237 246,243"/>
+        <line x1="70" y1="240" x2="70" y2="230"/>
+        <line x1="250" y1="240" x2="250" y2="230"/>
+      </g>
+      <text x="160" y="255" fill="#3b82f6" font-size="8" font-weight="700" font-family="monospace" text-anchor="middle" letter-spacing="1">LARGURA</text>
+
+      <!-- Seta MANGA (direita) -->
+      <g stroke="#22c55e" stroke-width="1.2" fill="#22c55e">
+        <line x1="288" y1="60" x2="288" y2="100"/>
+        <polygon points="288,56 285,64 291,64"/>
+        <polygon points="288,104 285,96 291,96"/>
+        <line x1="288" y1="60" x2="268" y2="60"/>
+        <line x1="288" y1="100" x2="270" y2="100"/>
+      </g>
+      <text x="305" y="85" fill="#22c55e" font-size="8" font-weight="700" font-family="monospace" text-anchor="middle" transform="rotate(90,305,80)">MANGA</text>
+
+      <!-- Labels de legenda -->
+      <text x="160" y="145" fill="#71717a" font-size="9" font-family="monospace" text-anchor="middle">medir deitada no chão</text>
+    </svg>
+    <div class="grid grid-cols-3 gap-2 mt-3 text-center">
+      <div class="text-[9px]"><span style="color:#ef4444">■</span> <span class="text-zinc-500">Do ombro à barra</span></div>
+      <div class="text-[9px]"><span style="color:#3b82f6">■</span> <span class="text-zinc-500">De lado a lado (plana)</span></div>
+      <div class="text-[9px]"><span style="color:#22c55e">■</span> <span class="text-zinc-500">Do ombro ao punho</span></div>
+    </div>
+  </div>
+
+  <!-- Formulário nova peça -->
+  <div class="glass space-y-3">
+    <div class="section-title">Adicionar peça</div>
+    <div class="grid grid-cols-2 gap-3">
+      <div>
+        <div class="field-label">Tipo</div>
+        <select class="input-m" id="tipo">
+          <option value="camiseta">Camiseta</option>
+          <option value="camiseta-over">Camiseta Over</option>
+          <option value="polo">Polo</option>
+          <option value="regata">Regata</option>
+          <option value="calca">Calça</option>
+          <option value="bermuda">Bermuda</option>
+          <option value="moletom">Moletom</option>
+          <option value="outro">Outro</option>
+        </select>
+      </div>
+      <div>
+        <div class="field-label">Nome / marca (opcional)</div>
+        <input class="input-m" id="nome" placeholder="ex: Nike XGG" autocomplete="off">
+      </div>
+    </div>
+    <div class="grid grid-cols-3 gap-3">
+      <div>
+        <div class="field-label" style="color:#ef4444">Comprimento (cm)</div>
+        <input class="input-m" id="comprimento" type="number" inputmode="decimal" min="1" max="200" step="0.5" placeholder="78">
+      </div>
+      <div>
+        <div class="field-label" style="color:#3b82f6">Largura (cm)</div>
+        <input class="input-m" id="largura" type="number" inputmode="decimal" min="1" max="200" step="0.5" placeholder="66">
+      </div>
+      <div>
+        <div class="field-label" style="color:#22c55e">Manga (cm)</div>
+        <input class="input-m" id="manga" type="number" inputmode="decimal" min="0" max="100" step="0.5" placeholder="30">
+      </div>
+    </div>
+    <div>
+      <div class="field-label">Tamanho etiquetado (opcional)</div>
+      <input class="input-m" id="tamanhoEtiqueta" placeholder="ex: XGG, GG, 42, L..." autocomplete="off">
+    </div>
+    <div>
+      <div class="field-label">Observação (opcional)</div>
+      <input class="input-m" id="obs" placeholder="ex: serve bem · um pouco curta · larga nos ombros" autocomplete="off">
+    </div>
+    <button class="btn-add" id="btnAdd" onclick="adicionarPeca()">+ Adicionar peça</button>
+  </div>
+
+  <!-- Lista de peças -->
+  <div id="secPecas" class="glass space-y-2" style="display:none">
+    <div class="section-title">Peças cadastradas</div>
+    <div id="listaPecas" class="space-y-2"></div>
+    <button class="btn-outline w-full mt-2" onclick="limparTudo()">🗑 Limpar tudo</button>
+  </div>
+
+  <!-- Perfil de medidas -->
+  <div id="secPerfil" style="display:none">
+    <div class="glass space-y-4">
+      <div class="section-title">Seu perfil de medidas</div>
+      <div id="perfilContent"></div>
+      <button class="btn-add" onclick="copiarWhatsApp()" id="btnCopiar">📋 Copiar para WhatsApp</button>
+    </div>
+  </div>
+
+  <!-- Toast -->
+  <div id="toast" style="position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(80px);background:#22c55e;color:#000;font-weight:900;font-size:12px;padding:10px 20px;border-radius:999px;transition:transform .3s;z-index:100;pointer-events:none">
+    Copiado! ✓
+  </div>
+
+</div>
+
+<script>
+const STORAGE_KEY = 'medidas_roupa_v1';
+
+function load() {
+  try { return JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]'); } catch { return []; }
+}
+function save(pecas) {
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(pecas));
+}
+
+const TIPOS_LABEL = {
+  'camiseta': 'Camiseta', 'camiseta-over': 'Camiseta Over', 'polo': 'Polo',
+  'regata': 'Regata', 'calca': 'Calça', 'bermuda': 'Bermuda',
+  'moletom': 'Moletom', 'outro': 'Outro',
+};
+
+function adicionarPeca() {
+  const tipo   = document.getElementById('tipo').value;
+  const nome   = document.getElementById('nome').value.trim();
+  const comp   = parseFloat(document.getElementById('comprimento').value);
+  const larg   = parseFloat(document.getElementById('largura').value);
+  const manga  = parseFloat(document.getElementById('manga').value) || null;
+  const etiq   = document.getElementById('tamanhoEtiqueta').value.trim();
+  const obs    = document.getElementById('obs').value.trim();
+
+  if (!comp || !larg) {
+    shakeField(!comp ? 'comprimento' : 'largura');
+    return;
+  }
+
+  const pecas = load();
+  pecas.push({ id: Date.now(), tipo, nome, comp, larg, manga, etiq, obs });
+  save(pecas);
+
+  // limpa form
+  ['nome','comprimento','largura','manga','tamanhoEtiqueta','obs'].forEach(id => {
+    document.getElementById(id).value = '';
+  });
+
+  renderizar();
+}
+
+function removerPeca(id) {
+  const pecas = load().filter(p => p.id !== id);
+  save(pecas);
+  renderizar();
+}
+
+function shakeField(id) {
+  const el = document.getElementById(id);
+  el.style.borderColor = '#ef4444';
+  el.style.animation = 'none';
+  el.focus();
+  setTimeout(() => { el.style.borderColor = ''; }, 1200);
+}
+
+function fmt(v) {
+  return v != null ? v.toFixed(1).replace('.0', '') + ' cm' : '—';
+}
+
+function renderizar() {
+  const pecas = load();
+
+  // seção lista
+  const secPecas = document.getElementById('secPecas');
+  const lista    = document.getElementById('listaPecas');
+  secPecas.style.display = pecas.length ? '' : 'none';
+
+  lista.innerHTML = pecas.map(p => `
+    <div class="peca-chip">
+      <div style="flex:1;min-width:0">
+        <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap">
+          <span class="badge" style="background:rgba(239,68,68,.15);color:#f87171;border:1px solid rgba(239,68,68,.3)">${TIPOS_LABEL[p.tipo] ?? p.tipo}</span>
+          ${p.etiq ? `<span class="badge" style="background:rgba(39,39,42,.8);border:1px solid #3f3f46;color:#a1a1aa">${p.etiq}</span>` : ''}
+          ${p.nome ? `<span style="font-size:10px;color:#71717a">${p.nome}</span>` : ''}
+        </div>
+        <div style="display:flex;gap:12px;margin-top:6px;flex-wrap:wrap">
+          <span style="font-size:11px"><span style="color:#ef4444">↕</span> <b>${fmt(p.comp)}</b></span>
+          <span style="font-size:11px"><span style="color:#3b82f6">↔</span> <b>${fmt(p.larg)}</b></span>
+          ${p.manga != null ? `<span style="font-size:11px"><span style="color:#22c55e">↗</span> <b>${fmt(p.manga)}</b></span>` : ''}
+        </div>
+        ${p.obs ? `<div style="font-size:9px;color:#52525b;margin-top:3px">${p.obs}</div>` : ''}
+      </div>
+      <button onclick="removerPeca(${p.id})" style="background:rgba(239,68,68,.1);border:1px solid rgba(239,68,68,.2);color:#f87171;border-radius:8px;padding:6px 10px;font-size:11px;cursor:pointer;flex-shrink:0">✕</button>
+    </div>
+  `).join('');
+
+  // seção perfil
+  const secPerfil = document.getElementById('secPerfil');
+  secPerfil.style.display = pecas.length ? '' : 'none';
+  if (!pecas.length) return;
+
+  // agrupa por tipo
+  const grupos = {};
+  for (const p of pecas) {
+    if (!grupos[p.tipo]) grupos[p.tipo] = [];
+    grupos[p.tipo].push(p);
+  }
+
+  let html = '';
+  for (const [tipo, items] of Object.entries(grupos)) {
+    const comps  = items.map(p => p.comp);
+    const largs  = items.map(p => p.larg);
+    const mangas = items.map(p => p.manga).filter(v => v != null);
+
+    const minC = Math.min(...comps), maxC = Math.max(...comps);
+    const minL = Math.min(...largs), maxL = Math.max(...largs);
+    const minM = mangas.length ? Math.min(...mangas) : null;
+    const maxM = mangas.length ? Math.max(...mangas) : null;
+
+    const range = (min, max, color) => {
+      if (min === max) return `<span style="color:${color};font-size:13px;font-weight:900">${fmt(min)}</span>`;
+      return `<span style="color:${color};font-size:13px;font-weight:900">${fmt(min)} – ${fmt(max)}</span>`;
+    };
+
+    html += `
+      <div style="margin-bottom:16px">
+        <div style="font-size:10px;font-weight:700;color:#a1a1aa;margin-bottom:8px;display:flex;align-items:center;gap:6px">
+          ${TIPOS_LABEL[tipo] ?? tipo}
+          <span style="font-size:9px;color:#52525b">${items.length} peça${items.length > 1 ? 's' : ''}</span>
+        </div>
+        <div class="grid grid-cols-3 gap-2 text-center">
+          <div style="background:rgba(239,68,68,.06);border:1px solid rgba(239,68,68,.15);border-radius:10px;padding:10px 6px">
+            <div style="font-size:8px;color:#ef4444;font-weight:700;margin-bottom:4px">COMPRIMENTO</div>
+            ${range(minC, maxC, '#f87171')}
+          </div>
+          <div style="background:rgba(59,130,246,.06);border:1px solid rgba(59,130,246,.15);border-radius:10px;padding:10px 6px">
+            <div style="font-size:8px;color:#3b82f6;font-weight:700;margin-bottom:4px">LARGURA</div>
+            ${range(minL, maxL, '#93c5fd')}
+          </div>
+          <div style="background:rgba(34,197,94,.06);border:1px solid rgba(34,197,94,.15);border-radius:10px;padding:10px 6px">
+            <div style="font-size:8px;color:#22c55e;font-weight:700;margin-bottom:4px">MANGA</div>
+            ${mangas.length ? range(minM, maxM, '#86efac') : '<span style="color:#3f3f46;font-size:11px">—</span>'}
+          </div>
+        </div>
+      </div>
+    `;
+  }
+
+  document.getElementById('perfilContent').innerHTML = html;
+}
+
+function copiarWhatsApp() {
+  const pecas = load();
+  if (!pecas.length) return;
+
+  const grupos = {};
+  for (const p of pecas) {
+    if (!grupos[p.tipo]) grupos[p.tipo] = [];
+    grupos[p.tipo].push(p);
+  }
+
+  let texto = '👕 *MEDIDAS DE ROUPA — CLÁUDIO*\n';
+  texto += '_(peças que já servem como referência)_\n\n';
+
+  for (const [tipo, items] of Object.entries(grupos)) {
+    const comps  = items.map(p => p.comp);
+    const largs  = items.map(p => p.larg);
+    const mangas = items.map(p => p.manga).filter(v => v != null);
+
+    const minC = Math.min(...comps), maxC = Math.max(...comps);
+    const minL = Math.min(...largs), maxL = Math.max(...largs);
+    const minM = mangas.length ? Math.min(...mangas) : null;
+    const maxM = mangas.length ? Math.max(...mangas) : null;
+
+    const fmtRange = (min, max) => min === max ? `${min} cm` : `${min}–${max} cm`;
+
+    texto += `*${TIPOS_LABEL[tipo] ?? tipo}* (${items.length} ref)\n`;
+    texto += `↕ Comprimento: ${fmtRange(minC, maxC)}\n`;
+    texto += `↔ Largura: ${fmtRange(minL, maxL)}\n`;
+    if (minM != null) texto += `↗ Manga: ${fmtRange(minM, maxM)}\n`;
+
+    if (items.length > 1) {
+      texto += '\n_Referências:_\n';
+      for (const p of items) {
+        texto += `  • ${p.etiq || p.nome || p.tipo}: comp ${p.comp} · larg ${p.larg}${p.manga ? ' · manga ' + p.manga : ''}${p.obs ? ' · ' + p.obs : ''}\n`;
+      }
+    }
+    texto += '\n';
+  }
+
+  texto += '_(medido deitado no chão · largura = meia medida do tecido)_';
+
+  navigator.clipboard.writeText(texto).then(() => {
+    const toast = document.getElementById('toast');
+    toast.style.transform = 'translateX(-50%) translateY(0)';
+    setTimeout(() => { toast.style.transform = 'translateX(-50%) translateY(80px)'; }, 2000);
+  }).catch(() => {
+    // fallback: select em textarea
+    const ta = document.createElement('textarea');
+    ta.value = texto;
+    ta.style.position = 'fixed';
+    ta.style.opacity = '0';
+    document.body.appendChild(ta);
+    ta.select();
+    document.execCommand('copy');
+    document.body.removeChild(ta);
+    const toast = document.getElementById('toast');
+    toast.style.transform = 'translateX(-50%) translateY(0)';
+    setTimeout(() => { toast.style.transform = 'translateX(-50%) translateY(80px)'; }, 2000);
+  });
+}
+
+function limparTudo() {
+  if (!confirm('Apagar todas as peças cadastradas?')) return;
+  localStorage.removeItem(STORAGE_KEY);
+  renderizar();
+}
+
+// init
+renderizar();
+
+// Enter no form
+document.querySelectorAll('.input-m').forEach(el => {
+  el.addEventListener('keydown', e => {
+    if (e.key === 'Enter') adicionarPeca();
+  });
+});
+</script>
+</body>
+</html>
