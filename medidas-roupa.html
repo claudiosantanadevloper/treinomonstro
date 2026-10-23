@@ -16,15 +16,22 @@
     .field-label { font-size: 9px; font-weight: 700; text-transform: uppercase; letter-spacing: .08em; color: #52525b; margin-bottom: 4px; }
     .section-title { font-size: 9px; font-weight: 900; text-transform: uppercase; letter-spacing: .12em; color: #71717a; margin-bottom: 10px; display: flex; align-items: center; gap: 6px; }
     .section-title::before { content: ''; display: block; height: 1px; width: 12px; background: #3f3f46; }
-    .cat-btn { flex: 1; padding: 10px 4px; background: rgba(39,39,42,.4); border: 1px solid #27272a; border-radius: 10px; font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: .05em; color: #71717a; cursor: pointer; transition: all .15s; text-align: center; }
+    .cat-btn { flex: 1; padding: 9px 4px; background: rgba(39,39,42,.4); border: 1px solid #27272a; border-radius: 10px; font-size: 9px; font-weight: 700; text-transform: uppercase; letter-spacing: .04em; color: #71717a; cursor: pointer; transition: all .15s; text-align: center; line-height: 1.4; }
     .cat-btn.active { background: rgba(239,68,68,.12); border-color: rgba(239,68,68,.4); color: #f87171; }
-    .verdict-row { display: flex; align-items: center; gap: 10px; padding: 8px 10px; border-radius: 10px; font-size: 11px; }
-    .verdict-ok  { background: rgba(34,197,94,.08); border: 1px solid rgba(34,197,94,.25); }
-    .verdict-warn{ background: rgba(234,179,8,.08); border: 1px solid rgba(234,179,8,.25); }
-    .verdict-bad { background: rgba(239,68,68,.08); border: 1px solid rgba(239,68,68,.2); }
+    .fit-btn { flex: 1; padding: 8px 4px; background: rgba(39,39,42,.3); border: 1px solid #27272a; border-radius: 8px; font-size: 9px; font-weight: 700; text-transform: uppercase; letter-spacing: .04em; color: #52525b; cursor: pointer; transition: all .15s; text-align: center; }
+    .fit-btn.active { background: rgba(168,85,247,.12); border-color: rgba(168,85,247,.4); color: #c084fc; }
+    .verdict-row { display: flex; align-items: flex-start; gap: 10px; padding: 8px 10px; border-radius: 10px; font-size: 11px; }
+    .verdict-ok   { background: rgba(34,197,94,.08);  border: 1px solid rgba(34,197,94,.25); }
+    .verdict-warn { background: rgba(234,179,8,.08);  border: 1px solid rgba(234,179,8,.25); }
+    .verdict-bad  { background: rgba(239,68,68,.08);  border: 1px solid rgba(239,68,68,.2); }
     .size-row { border-bottom: 1px solid #18181b; }
     .size-row:last-child { border-bottom: none; }
     .pill { display: inline-flex; align-items: center; gap: 4px; padding: 3px 10px; border-radius: 999px; font-size: 10px; font-weight: 700; }
+    .shoe-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; }
+    .shoe-cell { background: rgba(39,39,42,.5); border: 1px solid #27272a; border-radius: 8px; padding: 8px 4px; text-align: center; cursor: pointer; transition: all .15s; }
+    .shoe-cell:hover { border-color: #3f3f46; }
+    .shoe-cell.match { background: rgba(34,197,94,.1); border-color: rgba(34,197,94,.4); }
+    .shoe-cell.near  { background: rgba(234,179,8,.08); border-color: rgba(234,179,8,.3); }
   </style>
 </head>
 <body class="min-h-screen pb-20">
@@ -38,41 +45,51 @@
     <a href="index.html" class="text-[10px] text-red-500/50 hover:text-red-400 mt-2 inline-block">← voltar ao app</a>
   </div>
 
-  <!-- Perfil Cláudio (fixo) -->
+  <!-- Perfil Cláudio -->
   <div class="glass" style="background:rgba(239,68,68,.04);border-color:rgba(239,68,68,.2)">
     <div class="section-title" style="margin-bottom:8px">Seu perfil (fixo)</div>
-    <div class="grid grid-cols-4 gap-2 text-center">
-      <div><div class="text-[8px] text-zinc-500 mb-1">ALTURA</div><div class="text-[13px] font-black text-red-400">188 cm</div></div>
-      <div><div class="text-[8px] text-zinc-500 mb-1">TÓRAX</div><div class="text-[13px] font-black text-red-400">102 cm</div></div>
-      <div><div class="text-[8px] text-zinc-500 mb-1">CINTURA</div><div class="text-[13px] font-black text-red-400">82 cm</div></div>
-      <div><div class="text-[8px] text-zinc-500 mb-1">QUADRIL</div><div class="text-[13px] font-black text-red-400">95 cm</div></div>
+    <div class="grid grid-cols-5 gap-2 text-center">
+      <div><div class="text-[8px] text-zinc-500 mb-1">ALTURA</div><div class="text-[12px] font-black text-red-400">188cm</div></div>
+      <div><div class="text-[8px] text-zinc-500 mb-1">TÓRAX</div><div class="text-[12px] font-black text-red-400">102cm</div></div>
+      <div><div class="text-[8px] text-zinc-500 mb-1">CINTURA</div><div class="text-[12px] font-black text-red-400">82cm</div></div>
+      <div><div class="text-[8px] text-zinc-500 mb-1">QUADRIL</div><div class="text-[12px] font-black text-red-400">95cm</div></div>
+      <div><div class="text-[8px] text-zinc-500 mb-1">PÉ</div><div class="text-[12px] font-black text-red-400">28.5</div></div>
     </div>
   </div>
 
   <!-- Categoria -->
-  <div style="display:flex;gap:8px">
-    <button class="cat-btn active" id="cat-top"    onclick="setCat('top')">👕 Camiseta / Polo / Moletom</button>
-    <button class="cat-btn"        id="cat-bottom" onclick="setCat('bottom')">👖 Calça / Short</button>
-    <button class="cat-btn"        id="cat-jacket" onclick="setCat('jacket')">🧥 Jaqueta</button>
+  <div style="display:flex;gap:6px">
+    <button class="cat-btn active" id="cat-top"    onclick="setCat('top')">👕<br>Camiseta</button>
+    <button class="cat-btn"        id="cat-bottom" onclick="setCat('bottom')">👖<br>Calça/Short</button>
+    <button class="cat-btn"        id="cat-jacket" onclick="setCat('jacket')">🧥<br>Jaqueta</button>
+    <button class="cat-btn"        id="cat-shoe"   onclick="setCat('shoe')">👟<br>Calçado</button>
   </div>
 
-  <!-- Tabela de entrada -->
-  <div class="glass space-y-3">
-    <div class="section-title" id="formTitle">Informe as medidas da marca (cm)</div>
+  <!-- Controles contextuais (modelagem para tops/jacket, subtipo para bottom) -->
+  <div id="ctxControls" class="glass space-y-2" style="padding:12px"></div>
 
-    <!-- Cabeçalho das colunas muda por categoria -->
-    <div id="colHeaders" class="grid gap-2 text-center" style="grid-template-columns: 72px repeat(3, 1fr)">
-      <div></div>
-      <div class="field-label" style="color:#ef4444">COMP.</div>
-      <div class="field-label" style="color:#3b82f6">LARGURA</div>
-      <div class="field-label" style="color:#22c55e">MANGA</div>
-    </div>
-
+  <!-- Tabela de entrada (oculta para calçados) -->
+  <div id="measureForm" class="glass space-y-3">
+    <div class="section-title">Medidas da marca (cm)</div>
+    <div id="colHeaders" class="grid gap-2 text-center"></div>
     <div id="sizeRows" class="space-y-2"></div>
-
     <div style="display:flex;gap:8px;margin-top:4px">
       <button onclick="addRow()" style="flex:1;padding:10px;background:rgba(39,39,42,.6);border:1px solid #3f3f46;border-radius:10px;color:#71717a;font-size:11px;font-weight:700;cursor:pointer">+ Tamanho</button>
       <button onclick="calcular()" style="flex:2;padding:10px;background:var(--red);color:#000;font-size:12px;font-weight:900;text-transform:uppercase;letter-spacing:.08em;border:none;border-radius:10px;cursor:pointer">Calcular ▶</button>
+    </div>
+  </div>
+
+  <!-- Seção calçados -->
+  <div id="shoeSection" style="display:none">
+    <div class="glass space-y-4">
+      <div class="section-title">Conversão de numeração</div>
+      <div style="background:rgba(34,197,94,.06);border:1px solid rgba(34,197,94,.25);border-radius:10px;padding:10px;text-align:center">
+        <div style="font-size:9px;color:#4ade80;font-weight:700;margin-bottom:2px">SEU TAMANHO BRASILEIRO</div>
+        <div style="font-size:32px;font-weight:900;line-height:1">43</div>
+        <div style="font-size:10px;color:#86efac;margin-top:2px">baseado em BR 28.5 cm (comprimento do pé)</div>
+      </div>
+      <div id="shoeTable"></div>
+      <div style="font-size:9px;color:#52525b;text-align:center;margin-top:-8px">★ = seu número exato · ★ amarelo = meio número acima/abaixo</div>
     </div>
   </div>
 
@@ -81,154 +98,249 @@
 
 </div>
 <script>
-// ─── Perfil fixo Cláudio ───────────────────────────────────────────
-const CLAUDIO = {
-  altura:  188,
-  torax:   102,  // circunferência
-  cintura: 82,   // circunferência
-  quadril: 95,   // circunferência
-  braco:   37.5, // braço contraído
-};
+// ─── Perfil Cláudio ────────────────────────────────────────────────
+const C = { altura:188, torax:102, cintura:82, quadril:95, pe:28.5 };
 
-// ─── Limites por categoria ─────────────────────────────────────────
-// "min" = mínimo aceitável; "ideal" = centro da zona boa; "max" = máximo tolerável
-// Derivados do perfil: torax/2 = 51cm (largura plana mínima) + folga
-const LIMITS = {
-  top: {
-    comp:   { min: 75, ideal: 78, max: 84,
-              why: c => c < 75 ? 'curta demais (188 cm de altura — aparece a barriga ao levantar o braço)'
-                       : c > 84 ? 'muito longa (fica abaixo do cós, efeito vestido)'
-                       : c < 77 ? 'um pouco curta, cuidado'
-                       : 'comprimento ok para 188 cm' },
-    larg:   { min: 56, ideal: 62, max: 70,
-              why: l => l < 56 ? 'apertada no peito (tórax 102 cm — mínimo de 56 cm plana)'
-                       : l > 70 ? 'muito larga, perde o caimento'
-                       : l < 59 ? 'serve mas ajustada'
-                       : l < 65 ? 'largura ideal para V-taper'
-                       : 'folgada — ok para over/moletom' },
-    manga:  { min: 26, ideal: 29, max: 34,
-              why: m => m < 26 ? 'manga muito curta para os braços de 188 cm'
-                       : m > 34 ? 'manga muito comprida para camiseta'
-                       : m < 28 ? 'manga um pouco curta'
-                       : 'comprimento de manga ok' },
-  },
-  bottom: {
-    comp:   { min: 98, ideal: 105, max: 115,
-              why: c => c < 98 ? 'curta demais para pernas de 188 cm'
-                       : c > 115 ? 'muito comprida, sobra no chão'
-                       : c < 102 ? 'um pouco curta, fica na canela'
-                       : 'comprimento ok' },
-    cintura:{ min: 38, ideal: 43, max: 50,
-              why: c => c < 38 ? 'não fecha — cintura 82 cm (mínimo plano 41 cm)'
-                       : c > 50 ? 'muito larga, cai sem cinto'
-                       : c < 41 ? 'muito justa, difícil de fechar'
-                       : c < 46 ? 'cintura ok'
-                       : 'cintura folgada — precisa de cinto' },
-    quadril:{ min: 48, ideal: 53, max: 62,
-              why: q => q < 48 ? 'aperta no quadril/coxa (quadril 95 cm — mínimo 48 cm plano)'
-                       : q > 62 ? 'muito largo, cai do quadril'
-                       : q < 51 ? 'um pouco justo nas coxas'
-                       : 'quadril ok' },
-    entre:  { min: 75, ideal: 82, max: 92,
-              why: e => e < 75 ? 'entreperna curta para pernas de 188 cm'
-                       : e > 92 ? 'muito comprida, sobra no chão'
-                       : e < 78 ? 'um pouco curta'
-                       : 'entreperna ok' },
-  },
-  jacket: {
-    comp:   { min: 68, ideal: 73, max: 80,
-              why: c => c < 68 ? 'curta demais para 188 cm'
-                       : c > 80 ? 'muito longa'
-                       : c < 71 ? 'um pouco curta'
-                       : 'comprimento ok' },
-    larg:   { min: 56, ideal: 62, max: 70,
-              why: l => l < 56 ? 'apertada no peito'
-                       : l > 70 ? 'muito larga'
-                       : l < 59 ? 'ajustada'
-                       : 'largura ok' },
-    manga:  { min: 62, ideal: 66, max: 72,
-              why: m => m < 62 ? 'manga curta para braços de 188 cm'
-                       : m > 72 ? 'manga comprida demais'
-                       : m < 64 ? 'um pouco curta'
-                       : 'manga ok' },
-    ombro:  { min: 44, ideal: 48, max: 54,
-              why: o => o < 44 ? 'ombro pequeno — costura cai no braço'
-                       : o > 54 ? 'ombro grande demais'
-                       : o < 46 ? 'ombro um pouco justo'
-                       : 'ombro ok' },
-  },
-};
+// ─── Modelagem — ajusta limites de largura ─────────────────────────
+// slim: -5cm na larg max (fica justo); regular: base; over: +6cm na larg min/max
+const FIT_DELTA = { slim: { larg:[-2,0,-6], ombro:[0,0,-2] }, regular: { larg:[0,0,0], ombro:[0,0,0] }, over: { larg:[6,4,6], ombro:[0,0,0] } };
+// [min, ideal, max] delta
 
-const COLS = {
-  top:    [['comp','Comp.','#ef4444'],['larg','Largura','#3b82f6'],['manga','Manga','#22c55e']],
-  bottom: [['comp','Comp.','#ef4444'],['cintura','Cintura','#a855f7'],['quadril','Quadril','#f59e0b'],['entre','Entreperna','#22c55e']],
-  jacket: [['comp','Comp.','#ef4444'],['larg','Largura','#3b82f6'],['manga','Manga','#22c55e'],['ombro','Ombro','#f59e0b']],
-};
+// ─── Limites base ──────────────────────────────────────────────────
+function makeLimits(fitMode, subtype) {
+  const fd = FIT_DELTA[fitMode] ?? FIT_DELTA.regular;
 
-let cat = 'top';
+  // Parte de cima
+  const topLarg = {
+    slim:    { min: 54, ideal: 58, max: 62,  why: l => l < 54 ? 'apertada no peito — tórax 102 cm' : l > 62 ? 'larga demais para slim fit' : l < 56 ? 'bem ajustada — ok se for slim' : 'largura ideal slim' },
+    regular: { min: 56, ideal: 62, max: 68,  why: l => l < 56 ? 'apertada no peito — mínimo 56 cm plana' : l > 68 ? 'muito larga para regular' : l < 59 ? 'ajustada mas serve' : l < 65 ? 'largura ideal — V-taper fica bem' : 'folgada mas ok' },
+    over:    { min: 62, ideal: 68, max: 76,  why: l => l < 62 ? 'pouco larga para over (seu tórax é 102 cm)' : l > 76 ? 'excessivamente larga' : l < 65 ? 'over leve' : 'largura over ok' },
+  };
+
+  // Comprimento de calça por subtipo
+  const bottomComp = {
+    shorts:   { min: 42, ideal: 52, max: 60, why: c => c < 42 ? 'shorts muito curto' : c > 60 ? 'longo demais para shorts (vira bermuda)' : c < 46 ? 'bem curto' : 'comprimento de shorts ok' },
+    bermuda:  { min: 55, ideal: 62, max: 72, why: c => c < 55 ? 'bermuda curta para suas pernas' : c > 72 ? 'longa demais (vira calça)' : c < 58 ? 'um pouco curta' : 'comprimento de bermuda ok' },
+    calca:    { min: 98, ideal: 105, max: 115, why: c => c < 98 ? 'curta para pernas de 188 cm' : c > 115 ? 'sobra no chão' : c < 102 ? 'um pouco curta' : 'comprimento ok' },
+    moletom:  { min: 98, ideal: 106, max: 116, why: c => c < 98 ? 'curta para 188 cm' : c > 116 ? 'sobra no chão' : c < 102 ? 'um pouco curta' : 'comprimento ok' },
+  };
+
+  const sub = subtype || 'calca';
+  const fit = fitMode || 'regular';
+
+  return {
+    top: {
+      comp:  { min:75, ideal:78, max:84, why: c => c<75?'curta demais — 188 cm, barriga aparece ao levantar o braço':c>84?'longa demais (abaixo do cós)':c<77?'um pouco curta':fit==='over'&&c>80?'longa no over — tendência':fit==='slim'&&c<76?'slim costuma ser mais curta':'comprimento ok para 188 cm' },
+      larg:  topLarg[fit],
+      manga: { min:26, ideal:29, max:fit==='over'?36:34, why: m => m<26?'manga curta para braços de 188 cm':m>36?'manga muito longa para camiseta':m<28?'um pouco curta':fit==='over'&&m>32?'manga over — intencional':'manga ok' },
+    },
+    bottom: {
+      comp:    bottomComp[sub],
+      cintura: { min:38, ideal:44, max:50, why: c => c<38?'não fecha — cintura 82 cm (mínimo plano 41 cm)':c>50?'muito larga, cai sem cinto':c<41?'muito justa':c<47?'cintura ok':'cintura folgada — precisa de cinto' },
+      quadril: { min:48, ideal:54, max:63, why: q => q<48?'aperta no quadril/coxa (quadril 95 cm, coxa D 57 cm)':q>63?'muito largo':q<51?'um pouco justo nas coxas':'quadril ok' },
+      entre:   sub==='calca'||sub==='moletom'
+               ? { min:75, ideal:82, max:92, why: e => e<75?'entreperna curta para pernas de 188 cm':e>92?'sobra no chão':e<78?'um pouco curta':'entreperna ok' }
+               : null,
+    },
+    jacket: {
+      comp:  { min:68, ideal:73, max:80, why: c => c<68?'curta demais para 188 cm':c>80?'muito longa':c<71?'um pouco curta':'comprimento ok' },
+      larg:  topLarg[fit],
+      manga: { min:62, ideal:67, max:73, why: m => m<62?'manga curta para braços de 188 cm':m>73?'muito longa':m<64?'um pouco curta':'manga ok' },
+      ombro: { min:44, ideal:48, max:54, why: o => o<44?'costura cai no braço':o>54?'ombro grande demais':o<46?'um pouco justo':'ombro ok' },
+    },
+  };
+}
+
+// ─── Definição de colunas por categoria/subtipo ────────────────────
+function getCols(cat, subtype) {
+  if (cat === 'top')    return [['comp','Comp.','#ef4444'],['larg','Largura','#3b82f6'],['manga','Manga','#22c55e']];
+  if (cat === 'jacket') return [['comp','Comp.','#ef4444'],['larg','Largura','#3b82f6'],['manga','Manga','#22c55e'],['ombro','Ombro','#f59e0b']];
+  // bottom — entreperna só para calça/moletom
+  const base = [['comp','Comp.','#ef4444'],['cintura','Cintura','#a855f7'],['quadril','Quadril','#f59e0b']];
+  if (subtype === 'calca' || subtype === 'moletom') base.push(['entre','Entreperna','#22c55e']);
+  return base;
+}
+
+const DEFAULT_LABELS = { top:['P','M','G','GG','XGG'], bottom:['36','38','40','42','44'], jacket:['P','M','G','GG','XGG'], shoe:[] };
+
+let cat      = 'top';
+let fitMode  = 'regular';
+let subtype  = 'calca';
 let rowCount = 0;
+
+// ─── Calçados — tabela de conversão ───────────────────────────────
+// BR cm → BR num → EU → US → UK → IT
+const SHOE_TABLE = [
+  [23.5,36,4,3.5,35],
+  [24,  37,5,4.5,36],
+  [24.5,37,5.5,5, 37],
+  [25,  38,6,5.5,38],
+  [25.5,39,7,6,  39],
+  [26,  39,7.5,6.5,39],
+  [26.5,40,8,7,  40],
+  [27,  41,9,8,  41],
+  [27.5,41,9.5,8.5,41],
+  [28,  42,10,9, 42],
+  [28.5,43,10.5,9.5,43],  // ← Cláudio
+  [29,  43,11,10,43],
+  [29.5,44,11.5,10.5,44],
+  [30,  45,12,11,45],
+  [30.5,45,12.5,11.5,45],
+  [31,  46,13,12,46],
+];
+
+function renderShoeTable() {
+  const meu = C.pe; // 28.5
+  let html = `<div style="overflow-x:auto">
+    <table style="width:100%;border-collapse:collapse;font-size:11px">
+      <thead>
+        <tr style="border-bottom:1px solid #27272a">
+          <th style="padding:6px 8px;text-align:left;font-size:9px;color:#52525b;font-weight:700">BR cm</th>
+          <th style="padding:6px 8px;text-align:center;font-size:9px;color:#ef4444;font-weight:700">BR Nº</th>
+          <th style="padding:6px 8px;text-align:center;font-size:9px;color:#3b82f6;font-weight:700">EU</th>
+          <th style="padding:6px 8px;text-align:center;font-size:9px;color:#22c55e;font-weight:700">US</th>
+          <th style="padding:6px 8px;text-align:center;font-size:9px;color:#a855f7;font-weight:700">UK</th>
+          <th style="padding:6px 8px;text-align:center;font-size:9px;color:#f59e0b;font-weight:700">IT</th>
+        </tr>
+      </thead>
+      <tbody>`;
+
+  for (const [cm, br, eu, us, uk, it] of SHOE_TABLE) {
+    const isMe   = cm === meu;
+    const isNear = Math.abs(cm - meu) === 0.5;
+    const bg     = isMe ? 'rgba(34,197,94,.08)' : isNear ? 'rgba(234,179,8,.06)' : 'transparent';
+    const border = isMe ? 'border-bottom:1px solid rgba(34,197,94,.2)' : 'border-bottom:1px solid #18181b';
+    const star   = isMe ? '<span style="color:#4ade80;font-size:10px"> ★</span>' : isNear ? '<span style="color:#eab308;font-size:10px"> ★</span>' : '';
+    html += `<tr style="background:${bg};${border}">
+      <td style="padding:7px 8px;color:${isMe?'#4ade80':isNear?'#fde047':'#71717a'};font-weight:${isMe||isNear?'700':'400'}">${cm} cm${star}</td>
+      <td style="padding:7px 8px;text-align:center;font-weight:${isMe?'900':'700'};color:${isMe?'#f87171':'#e4e4e7'}">${br}${isMe?' ←':''}</td>
+      <td style="padding:7px 8px;text-align:center;color:#93c5fd">${eu}</td>
+      <td style="padding:7px 8px;text-align:center;color:#86efac">${us}</td>
+      <td style="padding:7px 8px;text-align:center;color:#c084fc">${uk}</td>
+      <td style="padding:7px 8px;text-align:center;color:#fbbf24">${it}</td>
+    </tr>`;
+  }
+  html += `</tbody></table></div>`;
+
+  // dica
+  html += `<div style="background:rgba(59,130,246,.06);border:1px solid rgba(59,130,246,.2);border-radius:10px;padding:10px;margin-top:8px">
+    <div style="font-size:9px;color:#93c5fd;font-weight:700;margin-bottom:4px">💡 DICA PARA COMPRA ONLINE</div>
+    <div style="font-size:10px;color:#71717a;line-height:1.6">
+      Seu pé BR 28,5 cm = <b style="color:#fff">43 BR / 43 EU / US 10.5 / UK 9.5</b>.<br>
+      Em marcas asiáticas (Adidas Yeezy, Nike importado): prefira <b style="color:#fde047">EU 44</b> — costumam calçar um número menor.<br>
+      Em marcas nacionais (Olympikus, Mizuno BR): <b style="color:#fde047">43</b> certo.
+    </div>
+  </div>`;
+
+  document.getElementById('shoeTable').innerHTML = html;
+}
+
+// ─── Controles contextuais ─────────────────────────────────────────
+function renderCtxControls() {
+  const el = document.getElementById('ctxControls');
+
+  if (cat === 'top' || cat === 'jacket') {
+    el.innerHTML = `
+      <div class="field-label" style="margin-bottom:6px">Modelagem desejada</div>
+      <div style="display:flex;gap:6px">
+        <button class="fit-btn ${fitMode==='slim'?'active':''}"    onclick="setFit('slim')">Slim Fit<br><span style="font-weight:400;text-transform:none;font-size:8px">corpo aparece</span></button>
+        <button class="fit-btn ${fitMode==='regular'?'active':''}" onclick="setFit('regular')">Regular<br><span style="font-weight:400;text-transform:none;font-size:8px">equilibrado</span></button>
+        <button class="fit-btn ${fitMode==='over'?'active':''}"    onclick="setFit('over')">Oversized<br><span style="font-weight:400;text-transform:none;font-size:8px">folgado/drop</span></button>
+      </div>`;
+    el.style.display = '';
+  } else if (cat === 'bottom') {
+    el.innerHTML = `
+      <div class="field-label" style="margin-bottom:6px">Tipo de peça</div>
+      <div style="display:flex;gap:6px">
+        <button class="fit-btn ${subtype==='shorts'?'active':''}"  onclick="setSub('shorts')">Shorts<br><span style="font-weight:400;font-size:8px;text-transform:none">42–60 cm</span></button>
+        <button class="fit-btn ${subtype==='bermuda'?'active':''}" onclick="setSub('bermuda')">Bermuda<br><span style="font-weight:400;font-size:8px;text-transform:none">55–72 cm</span></button>
+        <button class="fit-btn ${subtype==='calca'?'active':''}"   onclick="setSub('calca')">Calça<br><span style="font-weight:400;font-size:8px;text-transform:none">98–115 cm</span></button>
+        <button class="fit-btn ${subtype==='moletom'?'active':''}" onclick="setSub('moletom')">Moletom<br><span style="font-weight:400;font-size:8px;text-transform:none">+folga</span></button>
+      </div>`;
+    el.style.display = '';
+  } else {
+    el.style.display = 'none';
+  }
+}
+
+function setFit(f) {
+  fitMode = f;
+  renderCtxControls();
+  document.getElementById('resultado').style.display = 'none';
+}
+
+function setSub(s) {
+  subtype = s;
+  renderCtxControls();
+  rebuildForm();
+  document.getElementById('resultado').style.display = 'none';
+}
 
 function setCat(c) {
   cat = c;
-  ['top','bottom','jacket'].forEach(x => document.getElementById('cat-'+x).classList.toggle('active', x===c));
+  ['top','bottom','jacket','shoe'].forEach(x => document.getElementById('cat-'+x).classList.toggle('active', x===c));
   document.getElementById('resultado').style.display = 'none';
-  rebuildForm();
+
+  const isShoe = c === 'shoe';
+  document.getElementById('measureForm').style.display  = isShoe ? 'none' : '';
+  document.getElementById('shoeSection').style.display  = isShoe ? '' : 'none';
+
+  renderCtxControls();
+  if (!isShoe) rebuildForm();
+  else renderShoeTable();
 }
 
+// ─── Formulário de medidas ─────────────────────────────────────────
 function rebuildForm() {
-  const cols = COLS[cat];
-  const colCount = cols.length;
-  const gridCols = `72px repeat(${colCount}, 1fr)`;
+  const cols = getCols(cat, subtype);
+  const gridCols = `64px repeat(${cols.length}, 1fr)`;
 
-  // cabeçalho
   document.getElementById('colHeaders').style.gridTemplateColumns = gridCols;
   document.getElementById('colHeaders').innerHTML =
     '<div></div>' + cols.map(([k,label,color]) =>
       `<div class="field-label" style="color:${color};text-align:center">${label}</div>`
     ).join('');
 
-  // reinicia linhas com 3 padrão (P, M, G, GG, XGG ou S/M/L/XL)
   rowCount = 0;
   document.getElementById('sizeRows').innerHTML = '';
-  ['P','M','G','GG','XGG'].forEach(sz => addRow(sz));
+  (DEFAULT_LABELS[cat] || ['P','M','G','GG','XGG']).forEach(sz => addRow(sz));
 }
 
 function addRow(label) {
-  const cols = COLS[cat];
-  const colCount = cols.length;
-  const gridCols = `72px repeat(${colCount}, 1fr)`;
+  const cols = getCols(cat, subtype);
+  const gridCols = `64px repeat(${cols.length}, 1fr)`;
   const id = ++rowCount;
 
-  const inputs = cols.map(([k,label,color]) =>
+  const inputs = cols.map(([k]) =>
     `<input class="input-m" type="number" inputmode="decimal" min="1" max="300" step="0.5"
-            id="r${id}_${k}" placeholder="—"
-            style="padding:8px 4px;font-size:13px">`
+            id="r${id}_${k}" placeholder="—" style="padding:8px 4px;font-size:13px">`
   ).join('');
 
   const div = document.createElement('div');
   div.className = 'size-row';
-  div.style.cssText = `display:grid;gap:6px;align-items:center;padding:6px 0;grid-template-columns:${gridCols}`;
+  div.style.cssText = `display:grid;gap:5px;align-items:center;padding:6px 0;grid-template-columns:${gridCols}`;
   div.innerHTML = `
     <input class="input-m" id="r${id}_label" value="${label||''}"
            placeholder="tam" style="padding:8px 4px;font-size:12px;font-weight:700;text-transform:uppercase">
-    ${inputs}
-  `;
+    ${inputs}`;
   document.getElementById('sizeRows').appendChild(div);
 }
 
+// ─── Score ─────────────────────────────────────────────────────────
 function score(val, lim) {
-  if (val == null || isNaN(val)) return null;
+  if (val == null || isNaN(val) || !lim) return null;
   if (val < lim.min) return 'bad';
   if (val > lim.max) return 'bad';
-  if (val < lim.min + (lim.ideal - lim.min) * 0.4) return 'warn';
+  if (val < lim.min + (lim.ideal - lim.min) * 0.35) return 'warn';
   if (val > lim.ideal + (lim.max - lim.ideal) * 0.7) return 'warn';
   return 'ok';
 }
 
+// ─── Calcular ──────────────────────────────────────────────────────
 function calcular() {
-  const cols  = COLS[cat];
-  const lims  = LIMITS[cat];
-  const rows  = [];
+  const cols = getCols(cat, subtype);
+  const lims = makeLimits(fitMode, subtype)[cat];
+  const rows = [];
 
   for (let i = 1; i <= rowCount; i++) {
     const el = document.getElementById(`r${i}_label`);
@@ -241,72 +353,85 @@ function calcular() {
     });
     if (Object.keys(vals).length > 0) rows.push({ label, vals });
   }
-
   if (!rows.length) return;
 
-  // score global de cada tamanho
+  const fitLabel = { slim:'Slim Fit', regular:'Regular', over:'Oversized' };
+  const subLabel = { shorts:'Shorts', bermuda:'Bermuda', calca:'Calça', moletom:'Moletom calça' };
+  const modeNote = cat === 'shoe' ? '' : cat === 'bottom'
+    ? ` · ${subLabel[subtype]}`
+    : ` · ${fitLabel[fitMode]}`;
+
+  const icon = { ok:'✅', warn:'⚠️', bad:'❌' };
+  const tag  = { ok:'#22c55e', warn:'#eab308', bad:'#ef4444' };
+  const tagBg= { ok:'rgba(34,197,94,.12)', warn:'rgba(234,179,8,.12)', bad:'rgba(239,68,68,.1)' };
+  const tagBd= { ok:'rgba(34,197,94,.3)', warn:'rgba(234,179,8,.3)', bad:'rgba(239,68,68,.25)' };
+  const tagLb= { ok:'SERVE', warn:'BORDA', bad:'NÃO SERVE' };
+  const colMeta = Object.fromEntries(cols.map(([k,l,c])=>[k,{label:l,color:c}]));
+
   const scored = rows.map(r => {
     const details = [];
-    let bad = 0, warn = 0, ok = 0;
-    cols.forEach(([k, colLabel, color]) => {
+    let bad=0, warn=0, ok=0;
+    cols.forEach(([k]) => {
       const v = r.vals[k];
-      if (v == null) return;
-      const s = score(v, lims[k]);
-      if (s === 'bad')  bad++;
-      if (s === 'warn') warn++;
-      if (s === 'ok')   ok++;
-      details.push({ key: k, label: colLabel, color, val: v, status: s, why: lims[k].why(v) });
+      const lim = lims[k];
+      if (v == null || !lim) return;
+      const s = score(v, lim);
+      if (s==='bad') bad++; else if (s==='warn') warn++; else ok++;
+      details.push({ key:k, label:colMeta[k].label, color:colMeta[k].color, val:v, status:s, why:lim.why(v) });
     });
-    const overall = bad > 0 ? 'bad' : warn > 0 ? 'warn' : 'ok';
+    const overall = bad>0 ? 'bad' : warn>0 ? 'warn' : 'ok';
     return { ...r, details, bad, warn, ok, overall };
   });
 
-  // melhor tamanho
-  const best = scored.filter(r => r.overall !== 'bad').sort((a,b) => a.warn - b.warn || a.bad - b.bad)[0];
-
-  const icon = { ok: '✅', warn: '⚠️', bad: '❌' };
-  const tag  = { ok: '#22c55e', warn: '#eab308', bad: '#ef4444' };
-  const tagBg= { ok: 'rgba(34,197,94,.12)', warn: 'rgba(234,179,8,.12)', bad: 'rgba(239,68,68,.1)' };
-  const tagBorder = { ok: 'rgba(34,197,94,.3)', warn: 'rgba(234,179,8,.3)', bad: 'rgba(239,68,68,.25)' };
-  const tagLabel = { ok: 'SERVE', warn: 'BORDA', bad: 'NÃO SERVE' };
+  const best = scored.filter(r=>r.overall!=='bad').sort((a,b)=>a.warn-b.warn||a.bad-b.bad)[0];
 
   let html = '';
 
-  // destaque do melhor
+  // Hero resultado
   if (best) {
-    html += `<div class="glass" style="border-color:rgba(34,197,94,.4);background:rgba(34,197,94,.06);margin-bottom:0">
-      <div style="font-size:10px;color:#4ade80;font-weight:700;margin-bottom:4px">RECOMENDAÇÃO</div>
-      <div style="font-size:28px;font-weight:900;line-height:1">${best.label}</div>
-      <div style="font-size:11px;color:#86efac;margin-top:4px">${best.warn > 0 ? 'Melhor opção disponível — ver observações abaixo' : 'Tamanho ideal para seu corpo'}</div>
+    const extra = best.warn > 0
+      ? `<div style="font-size:10px;color:#fde047;margin-top:6px">⚠️ ${best.warn} medida${best.warn>1?'s':''} na borda — ver análise abaixo</div>`
+      : `<div style="font-size:10px;color:#86efac;margin-top:6px">Todas as medidas dentro do ideal</div>`;
+    html += `<div class="glass" style="border-color:rgba(34,197,94,.4);background:rgba(34,197,94,.06)">
+      <div style="font-size:9px;color:#4ade80;font-weight:700;letter-spacing:.1em">RECOMENDAÇÃO${modeNote}</div>
+      <div style="font-size:36px;font-weight:900;line-height:1.1;margin-top:4px">${best.label}</div>
+      ${extra}
     </div>`;
   } else {
+    // verifica se algum é "quase ok" para sugerir alfaiataria
+    const closest = scored.sort((a,b)=>a.bad-b.bad)[0];
+    const tailorTip = closest?.details.filter(d=>d.status==='bad').length === 1
+      ? `<div style="font-size:10px;color:#fde047;margin-top:6px">💡 ${closest.label} tem só 1 medida ruim — considere comprar e ajustar no costureiro</div>`
+      : '';
     html += `<div class="glass" style="border-color:rgba(239,68,68,.3);background:rgba(239,68,68,.06)">
-      <div style="font-size:12px;font-weight:700;color:#f87171">Nenhum tamanho serve</div>
-      <div style="font-size:11px;color:#71717a;margin-top:4px">Esta marca não tem corte para suas medidas. Veja os detalhes abaixo.</div>
+      <div style="font-size:12px;font-weight:700;color:#f87171">❌ Nenhum tamanho serve${modeNote}</div>
+      <div style="font-size:11px;color:#71717a;margin-top:4px">Esta marca não tem corte para seu corpo. Veja os detalhes abaixo.</div>
+      ${tailorTip}
     </div>`;
   }
 
-  // tabela de todos os tamanhos
-  html += `<div class="glass space-y-3" style="margin-top:0">
+  // Análise por tamanho
+  html += `<div class="glass space-y-3">
     <div class="section-title">Análise por tamanho</div>`;
 
   for (const r of scored) {
     const isBest = best && r.label === best.label;
-    html += `<div style="border:1px solid ${isBest ? 'rgba(34,197,94,.3)' : '#1f1f23'};border-radius:12px;padding:12px;background:${isBest ? 'rgba(34,197,94,.04)' : 'transparent'}">
-      <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px">
-        <span style="font-size:18px;font-weight:900">${r.label}</span>
-        <span class="pill" style="background:${tagBg[r.overall]};border:1px solid ${tagBorder[r.overall]};color:${tag[r.overall]}">${icon[r.overall]} ${tagLabel[r.overall]}</span>
-        ${isBest ? '<span class="pill" style="background:rgba(34,197,94,.15);border:1px solid rgba(34,197,94,.3);color:#4ade80">★ MELHOR</span>' : ''}
+    html += `<div style="border:1px solid ${isBest?'rgba(34,197,94,.3)':'#1f1f23'};border-radius:12px;padding:12px;background:${isBest?'rgba(34,197,94,.04)':'transparent'}">
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;flex-wrap:wrap">
+        <span style="font-size:20px;font-weight:900">${r.label}</span>
+        <span class="pill" style="background:${tagBg[r.overall]};border:1px solid ${tagBd[r.overall]};color:${tag[r.overall]}">${icon[r.overall]} ${tagLb[r.overall]}</span>
+        ${isBest?'<span class="pill" style="background:rgba(34,197,94,.15);border:1px solid rgba(34,197,94,.3);color:#4ade80">★ MELHOR</span>':''}
       </div>`;
 
     for (const d of r.details) {
-      if (d.status == null) continue;
+      if (!d.status) continue;
+      const textColor = d.status==='ok'?'#86efac':d.status==='warn'?'#fde047':'#f87171';
       html += `<div class="verdict-row verdict-${d.status}" style="margin-bottom:4px">
-        <span style="font-size:16px">${icon[d.status]}</span>
-        <div style="flex:1">
+        <span style="font-size:15px;flex-shrink:0">${icon[d.status]}</span>
+        <div style="flex:1;min-width:0">
           <span style="color:${d.color};font-weight:700;font-size:10px">${d.label}</span>
-          <span style="color:#a1a1aa;margin-left:6px">${d.val} cm</span>
-          <div style="font-size:10px;color:${d.status==='ok'?'#86efac':d.status==='warn'?'#fde047':'#f87171'};margin-top:1px">${d.why}</div>
+          <span style="color:#a1a1aa;margin-left:6px;font-size:11px">${d.val} cm</span>
+          <div style="font-size:10px;color:${textColor};margin-top:2px;line-height:1.4">${d.why}</div>
         </div>
       </div>`;
     }
@@ -316,12 +441,12 @@ function calcular() {
 
   const el = document.getElementById('resultado');
   el.style.display = '';
-  el.innerHTML = `<div class="space-y-3">${html}</div>`;
-  el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  el.innerHTML = `<div class="space-y-3">${el.innerHTML.slice(0,0)}${html}</div>`;
+  el.scrollIntoView({ behavior:'smooth', block:'start' });
 }
 
-// init
-rebuildForm();
+// ─── Init ──────────────────────────────────────────────────────────
+setCat('top');
 </script>
 </body>
 </html>
