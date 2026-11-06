@@ -876,7 +876,7 @@ export class AppController {
       const prevCount = countSets(prevEx, ex.sets);
 
       if (newCount !== prevCount) {
-        patchSetsContainer(wId, workout, ex.id, newLogs, lastSets, state.prs);
+        patchSetsContainer(wId, workout, ex.id, newLogs, lastSets, state.prs, state.restOverrides?.[ex.id] ?? null);
         patchProgressionBadge(wId, ex.id, newEx, lastSets[ex.id] ?? []);
         return;
       }
@@ -3955,6 +3955,13 @@ export class AppController {
           this.#timerCardKey = `${payload.wId}|${payload.exId}`;
           const rb = document.getElementById('timer-restart-btn');
           if (rb) rb.classList.add('hidden');
+          // Auto-start rest timer se opção habilitada
+          if (this.#store.getState().autoStartRestTimer) {
+            show(this.#timerBadge);
+            if (this.#timerText) this.#timerText.textContent = formatTime(tRest);
+            if (this.#timerRing) this.#timerRing.style.strokeDashoffset = '0';
+            this.#timer.start(tRest);
+          }
         } else {
           if (this.#timerCardKey === `${payload.wId}|${payload.exId}`) this.#timerCardKey = null;
         }
@@ -4172,6 +4179,9 @@ export class AppController {
         break;
       case "toggle-auto-fill-on-start":
         this.#store.setState({ autoFillOnStart: !(this.#store.getState().autoFillOnStart ?? false) });
+        break;
+      case "toggle-auto-start-rest":
+        this.#store.setState({ autoStartRestTimer: !(this.#store.getState().autoStartRestTimer ?? true) });
         break;
       case "set-weight-increment": {
         const inc = parseFloat(payload);

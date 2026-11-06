@@ -60,6 +60,7 @@ const defaults = {
   defaultRestTime:       60,
   vibrationEnabled:      true,
   timerSoundEnabled:     true,
+  autoStartRestTimer:    true,
   weightIncrement:       2.5,
   autoFillOnStart:       false,
   activeCardioSession:   null,

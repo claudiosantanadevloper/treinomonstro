@@ -105,7 +105,7 @@ function repsPresets(repsStr) {
 }
 
 
-function renderSetRow(wId, ex, idx, log = {}, lastSet = null) {
+function renderSetRow(wId, ex, idx, log = {}, lastSet = null, effectiveRest = null) {
   const done      = log.done || false;
   const warmup    = log.warmup || false;
   const w         = parseFloat(log.w);
@@ -182,7 +182,7 @@ function renderSetRow(wId, ex, idx, log = {}, lastSet = null) {
 
         <button
           data-action="toggle-set"
-          data-wid="${wId}" data-exid="${ex.id}" data-idx="${idx}" data-rest="${ex.rest ?? 60}"
+          data-wid="${wId}" data-exid="${ex.id}" data-idx="${idx}" data-rest="${effectiveRest ?? ex.rest ?? 60}"
           class="ripple-target shrink-0 w-12 h-12 rounded-xl flex items-center justify-center transition-all active:scale-90
                  ${done
                    ? 'bg-green-900/30 text-green-400 border-2 border-green-700/60 shadow-[0_0_12px_rgba(34,197,94,0.25)]'
@@ -191,6 +191,15 @@ function renderSetRow(wId, ex, idx, log = {}, lastSet = null) {
           <i data-lucide="${done ? 'check' : 'circle'}" class="w-5 h-5"></i>
         </button>
       </div>
+
+      <!-- Carga anterior (referência da última sessão, por série) -->
+      ${!isTimed && !done && (lastSet?.w || lastSet?.r) ? `
+      <div class="ml-9 mt-1.5 flex items-center gap-1.5">
+        <span class="text-[9px] font-bold text-zinc-600 font-mono flex items-center gap-1">
+          <i data-lucide="history" class="w-2.5 h-2.5"></i>
+          Ant: ${lastSet?.w ? `${lastSet.w}kg` : '—'}${lastSet?.r ? ` × ${lastSet.r}` : ''}
+        </span>
+      </div>` : ''}
 
       <!-- Dica de aquecimento (visível só quando marcado como W) -->
       ${warmup ? `
@@ -262,7 +271,7 @@ function renderExerciseCard(wId, ex, idx, wLogs, lastSets, prs, loadTarget = nul
 
   let rows = '';
   for (let i = 0; i < sets; i++) {
-    rows += renderSetRow(wId, ex, i, exLogs[i], (lastSets[ex.id] ?? [])[i]);
+    rows += renderSetRow(wId, ex, i, exLogs[i], (lastSets[ex.id] ?? [])[i], effectiveRest);
   }
 
   return `
@@ -972,20 +981,21 @@ export function patchProgressionBadge(wId, exId, exLogs, lastExSets = []) {
   el.textContent = badge.text;
 }
 
-export function patchSetsContainer(wId, workout, exId, wLogs, lastSets, prs) {
+export function patchSetsContainer(wId, workout, exId, wLogs, lastSets, prs, restOverride = null) {
   const ex = workout.exercises.find(e => e.id === exId);
   if (!ex) return;
 
   const container = $(`[data-sets-container="${wId}|${exId}"]`);
   if (!container) return;
 
-  const exLogs     = wLogs[exId] ?? {};
-  const sets       = countSets(exLogs, ex.sets);
-  const lastExSets = lastSets[exId] ?? [];
+  const exLogs      = wLogs[exId] ?? {};
+  const sets        = countSets(exLogs, ex.sets);
+  const lastExSets  = lastSets[exId] ?? [];
+  const effectiveRest = restOverride != null ? restOverride : (ex.rest ?? 60);
 
   let rows = '';
   for (let i = 0; i < sets; i++) {
-    rows += renderSetRow(wId, ex, i, exLogs[i], lastExSets[i]);
+    rows += renderSetRow(wId, ex, i, exLogs[i], lastExSets[i], effectiveRest);
   }
   container.innerHTML = rows;
   if (window.lucide) lucide.createIcons({ nodes: [container] });

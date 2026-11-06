@@ -9,7 +9,7 @@ export function renderSettings(state, workouts = [], protocols = []) {
     theme = 'default', appMode = 'ninja', cycleGoal = 6,
     userName = '', projectName = '', goal = null, lightMode = false, weekPlan = {},
     inactivityResetDays = 0, defaultRestTime = 60,
-    vibrationEnabled = true, timerSoundEnabled = true, weightIncrement = 2.5,
+    vibrationEnabled = true, timerSoundEnabled = true, autoStartRestTimer = true, weightIncrement = 2.5,
     autoFillOnStart = false,
     cardioCountsStreak = false, weeklyCardioKmGoal = null, weeklyCardioMinGoal = null,
     defaultCardioProtocol = 'zona2-30',
@@ -141,6 +141,15 @@ export function renderSettings(state, workouts = [], protocols = []) {
             <p class="text-[9px] text-zinc-600 mt-0.5">Beeps ao fim do descanso</p>
           </div>
           ${toggle('toggle-timer-sound', timerSoundEnabled)}
+        </div>
+
+        <!-- Descanso Automático -->
+        <div class="pt-3 border-t border-zinc-800/60 flex items-center justify-between gap-3">
+          <div class="min-w-0">
+            <p class="text-xs text-zinc-300 font-bold">Descanso Automático</p>
+            <p class="text-[9px] text-zinc-600 mt-0.5">Inicia o timer ao concluir cada série</p>
+          </div>
+          ${toggle('toggle-auto-start-rest', autoStartRestTimer)}
         </div>
       </div>
 
@@ -666,6 +675,11 @@ export function mountSettings(container, handler) {
   delegate(container, '[data-action="toggle-timer-sound"]', 'click', (e, el) => {
     createRipple(e, el);
     handler('toggle-timer-sound');
+  });
+
+  delegate(container, '[data-action="toggle-auto-start-rest"]', 'click', (e, el) => {
+    createRipple(e, el);
+    handler('toggle-auto-start-rest');
   });
 
   delegate(container, '[data-action="toggle-auto-fill-on-start"]', 'click', (e, el) => {

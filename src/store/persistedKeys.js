@@ -4,7 +4,7 @@ export const PERSISTED_KEYS = [
   'workoutExercises', 'workoutMeta', 'appMode', 'userName', 'projectName',
   'lightMode', 'activityLevel', 'hiddenSections', 'weekPlan', 'circumHistory',
   'cycleOrder', 'cyclePosition', 'inactivityResetDays', 'completedCycles', 'personalGoals', 'achievements', 'cardioHistory',
-  'defaultRestTime', 'vibrationEnabled', 'timerSoundEnabled', 'weightIncrement', 'autoFillOnStart',
+  'defaultRestTime', 'vibrationEnabled', 'timerSoundEnabled', 'autoStartRestTimer', 'weightIncrement', 'autoFillOnStart',
   'activeCardioSession', 'cardioCountsStreak',
   'weeklyCardioKmGoal', 'weeklyCardioMinGoal', 'defaultCardioProtocol',
   'analyticsTab', 'notificationsEnabled', 'notificationTime', 'notifLastDate',
