@@ -5673,16 +5673,27 @@ export class AppController {
     const segPreview   = ml.querySelector('#segments-dist-preview');
 
     const updateSegPreview = () => {
-      const rows = [...segContainer.querySelectorAll('.seg-row')];
-      let totalM = 0;
+      const rows       = [...segContainer.querySelectorAll('.seg-row')];
+      let totalM       = 0;
+      let totalSegSec  = 0;
       rows.forEach(row => {
         const spd = parseFloat(row.querySelector('.seg-speed')?.value?.replace(',', '.') || '0');
         const dur = parseFloat(row.querySelector('.seg-dur')?.value?.replace(',', '.') || '0');
-        if (spd > 0 && dur > 0) totalM += spd * (dur / 60) * 1000;
+        if (spd > 0 && dur > 0) {
+          totalM      += spd * (dur / 60) * 1000;
+          totalSegSec += dur * 60;
+        }
       });
       if (totalM > 0) {
-        segPreview.textContent = `Distância calculada: ${(totalM / 1000).toFixed(2)} km`;
+        const sessionSec = s.totalElapsed ?? 0;
+        const diffSec    = totalSegSec - sessionSec;
+        const tolerance  = 90;
+        const durInfo    = sessionSec > 0
+          ? ` · soma: ${(totalSegSec/60).toFixed(1)}min${Math.abs(diffSec) > tolerance ? ` ⚠ (sessão: ${(sessionSec/60).toFixed(1)}min)` : ''}`
+          : '';
+        segPreview.textContent = `Distância calculada: ${(totalM / 1000).toFixed(2)} km${durInfo}`;
         segPreview.classList.remove('hidden');
+        segPreview.className = `text-[10px] font-bold mt-1 ${Math.abs(diffSec) > tolerance && sessionSec > 0 ? 'text-yellow-400' : 'text-cyan-400'}`;
       } else {
         segPreview.classList.add('hidden');
       }
@@ -5713,25 +5724,51 @@ export class AppController {
     ml.querySelector('#add-segment-btn')?.addEventListener('click', () => addSegmentRow());
 
     // ── Salvar ──────────────────────────────────────────────────────
+    const segWarning = document.createElement('div');
+    segWarning.className = 'text-[10px] font-bold text-yellow-400 hidden mt-1';
+    segContainer.after(segWarning);
+
     ml.querySelector('#save-cardio-finish')?.addEventListener('click', () => {
       const notes   = ml.querySelector('#cardio-finish-notes')?.value?.trim() || '';
       const distRaw = ml.querySelector('#cardio-finish-distance')?.value?.trim().replace(',', '.') || '';
       const distKmInput = parseFloat(distRaw);
       const distanceOverrideM = (!isNaN(distKmInput) && distKmInput > 0) ? distKmInput * 1000 : null;
 
-      // Coletar segmentos válidos
+      // Coletar segmentos com startSec/endSec calculados sequencialmente
       const segRows = [...segContainer.querySelectorAll('.seg-row')];
+      let cursor = 0;
       const segments = segRows.map(row => {
         const spd  = parseFloat(row.querySelector('.seg-speed')?.value?.replace(',', '.') || '0');
         const incl = row.querySelector('.seg-incl')?.value?.replace(',', '.').trim();
         const dur  = parseFloat(row.querySelector('.seg-dur')?.value?.replace(',', '.') || '0');
-        if (spd <= 0 || dur <= 0) return null;
-        return {
+        if (spd <= 0 || isNaN(spd) || dur <= 0 || isNaN(dur)) return null;
+        const durationSec = Math.round(dur * 60);
+        const seg = {
+          startSec:   cursor,
+          endSec:     cursor + durationSec,
           speedKmh:   Math.round(spd * 10) / 10,
           inclinePct: incl && !isNaN(parseFloat(incl)) ? parseFloat(incl) : null,
-          durationSec: Math.round(dur * 60),
+          durationSec,
         };
+        cursor += durationSec;
+        return seg;
       }).filter(Boolean);
+
+      // Validar soma de duração vs duração real da sessão
+      if (segments.length > 0) {
+        const sessionSec   = this.#store.getState().activeCardioSession?.totalElapsed ?? 0;
+        const totalSegSec  = segments.reduce((acc, seg) => acc + seg.durationSec, 0);
+        const diffSec      = totalSegSec - sessionSec;
+        const tolerance    = 90; // 90s de tolerância para ajustes de esteira
+        if (Math.abs(diffSec) > tolerance) {
+          const diffMin = (Math.abs(diffSec) / 60).toFixed(1);
+          const over    = diffSec > 0;
+          segWarning.textContent = `⚠ Segmentos somam ${(totalSegSec/60).toFixed(1)} min — ${over ? `${diffMin} min a mais` : `${diffMin} min a menos`} que a sessão (${(sessionSec/60).toFixed(1)} min). Verifique as durações.`;
+          segWarning.classList.remove('hidden');
+          return; // bloqueia save
+        }
+      }
+      segWarning.classList.add('hidden');
 
       this.#stopCardioInterval();
       this.#stopCardioGPS();
