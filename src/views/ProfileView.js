@@ -1816,18 +1816,18 @@ export function renderProfile(state) {
             : `<div class="grid grid-cols-3 gap-2">
                 ${ACHIEVEMENTS.map(a => {
                   const earned = achievements.some(x => (typeof x === 'string' ? x : x?.id) === a.id);
-                  return \`
+                  return `
                     <div class="flex flex-col items-center gap-1 p-2 rounded-xl border transition-all
-                                \${earned
+                                ${earned
                                   ? 'border-yellow-800/40 bg-yellow-900/10'
                                   : 'border-zinc-800/50 bg-zinc-900/20 opacity-40 grayscale'}">
-                      <div class="w-8 h-8 rounded-full \${earned ? 'bg-yellow-900/30 border border-yellow-800/40' : 'bg-zinc-800 border border-zinc-700'} flex items-center justify-center">
-                        <i data-lucide="\${a.icon}" class="w-4 h-4 \${earned ? a.color : 'text-zinc-600'}"></i>
+                      <div class="w-8 h-8 rounded-full ${earned ? 'bg-yellow-900/30 border border-yellow-800/40' : 'bg-zinc-800 border border-zinc-700'} flex items-center justify-center">
+                        <i data-lucide="${a.icon}" class="w-4 h-4 ${earned ? a.color : 'text-zinc-600'}"></i>
                       </div>
-                      <span class="text-[8px] font-bold text-center leading-tight \${earned ? 'text-white' : 'text-zinc-600'}">\${a.name}</span>
-                      <span class="text-[7px] font-mono text-center leading-tight \${earned ? 'text-zinc-500' : 'text-zinc-700'}">\${a.desc}</span>
+                      <span class="text-[8px] font-bold text-center leading-tight ${earned ? 'text-white' : 'text-zinc-600'}">${a.name}</span>
+                      <span class="text-[7px] font-mono text-center leading-tight ${earned ? 'text-zinc-500' : 'text-zinc-700'}">${a.desc}</span>
                     </div>
-                  \`;
+                  `;
                 }).join('')}
               </div>`
           }
