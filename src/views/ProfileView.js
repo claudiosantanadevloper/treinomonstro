@@ -86,6 +86,7 @@ function renderBiometricsSection(bio, bioHistory = [], hiddenSections = []) {
           <p class="text-[9px] text-zinc-600 uppercase font-bold tracking-wider mb-2">Circunferências (cm)</p>
           <div class="grid grid-cols-2 gap-2">
             ${bioField('torax',               'Tórax',           bio?.torax)}
+            ${bioField('ombros',              'Ombros ★',        bio?.ombros)}
             ${bioField('cintura',             'Cintura',         bio?.cintura)}
             ${bioField('abdome',              'Abdome',          bio?.abdome)}
             ${bioField('quadril',             'Quadril',         bio?.quadril)}
@@ -388,6 +389,7 @@ function renderBiometricsSection(bio, bioHistory = [], hiddenSections = []) {
           circumferenceRow('Coxa',          bio.coxaDireita,       bio.coxaEsquerda,      prev, 'coxaDireita', 'coxaEsquerda'),
           circumferenceRow('Panturrilha',   bio.panturrilhaDireita,bio.panturrilhaEsquerda,prev,'panturrilhaDireita','panturrilhaEsquerda'),
           singleRow('Tórax',   bio.torax,   prev?.torax),
+          singleRow('Ombros',  bio.ombros,  prev?.ombros),
           singleRow('Cintura', bio.cintura, prev?.cintura),
           singleRow('Abdome',  bio.abdome,  prev?.abdome),
           singleRow('Quadril', bio.quadril, prev?.quadril),

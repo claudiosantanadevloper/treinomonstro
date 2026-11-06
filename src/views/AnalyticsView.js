@@ -1548,6 +1548,281 @@ function renderUnifiedHistory(history, cardioHistory, historyPage, hiddenSection
     </div>`;
 }
 
+/* ─── V-Taper Tab ──────────────────────────────────────────────────── */
+
+function renderVTaperTab(state, workouts) {
+  const { history = [], biometrics, bioHistory = [], prs = {} } = state;
+
+  // ── Mapa exercício → categoria V-Taper ──────────────────────────
+  const exCat = {};   // exId → 'pull' | 'push' | null
+  const exName = {};
+  workouts.forEach(w => {
+    const focus = w.muscleFocus?.[0] ?? '';
+    const cat = focus === 'Costas' ? 'pull'
+              : (focus === 'Peito' || focus === 'Ombros') ? 'push'
+              : null;
+    w.exercises.forEach(ex => {
+      exCat[ex.id]  = cat;
+      exName[ex.id] = ex.name;
+    });
+  });
+
+  // ── Progressão de carga por categoria ───────────────────────────
+  // Para cada exercício, pegar max load por sessão ordenada no tempo
+  const catSeries = { pull: {}, push: {} };
+  history.forEach(h => {
+    if (!h.sets) return;
+    Object.keys(h.sets).forEach(exId => {
+      const cat = exCat[exId];
+      if (!cat) return;
+      const ws = (h.sets[exId] || []).filter(s => s?.done && s?.w).map(s => parseFloat(s.w)).filter(Boolean);
+      if (!ws.length) return;
+      if (!catSeries[cat][exId]) catSeries[cat][exId] = [];
+      catSeries[cat][exId].push(Math.max(...ws));
+    });
+  });
+
+  // % de ganho médio: (últimas 3 sessões) vs (primeiras 3 sessões)
+  function momentum(series) {
+    const values = Object.values(series).filter(pts => pts.length >= 4);
+    if (!values.length) return null;
+    const gains = values.map(pts => {
+      const ini = pts.slice(0, 3).reduce((a, b) => a + b, 0) / 3;
+      const fim = pts.slice(-3).reduce((a, b) => a + b, 0) / 3;
+      return ini > 0 ? ((fim - ini) / ini) * 100 : 0;
+    });
+    return parseFloat((gains.reduce((a, b) => a + b, 0) / gains.length).toFixed(1));
+  }
+
+  const pullMom = momentum(catSeries.pull);
+  const pushMom = momentum(catSeries.push);
+
+  // ── Índice V-Taper das biometrias ───────────────────────────────
+  const bioPoints = [...bioHistory, biometrics].filter(Boolean).filter(b => b.torax && b.cintura)
+    .sort((a, b) => new Date(a.date) - new Date(b.date));
+
+  const vIndexes = bioPoints.map(b => ({ date: b.date, v: parseFloat((b.torax - b.cintura).toFixed(1)) }));
+  const curV  = vIndexes.length ? vIndexes[vIndexes.length - 1].v : null;
+  const prevV = vIndexes.length >= 2 ? vIndexes[vIndexes.length - 2].v : null;
+  const vDelta = (curV != null && prevV != null) ? parseFloat((curV - prevV).toFixed(1)) : null;
+
+  // ── Alertas ──────────────────────────────────────────────────────
+  const alerts = [];
+  if (vDelta != null && vDelta < 0)
+    alerts.push({ icon: 'alert-triangle', color: 'text-red-400', msg: `Diferença tórax−cintura encolheu ${Math.abs(vDelta)} cm desde a última avaliação` });
+  if (biometrics?.cintura && bioHistory[0]?.cintura && (biometrics.cintura - bioHistory[0].cintura) > 2)
+    alerts.push({ icon: 'alert-triangle', color: 'text-yellow-400', msg: `Cintura subiu ${(biometrics.cintura - bioHistory[0].cintura).toFixed(1)} cm desde a avaliação anterior — monitore bulk` });
+  if (pullMom != null && pushMom != null && pullMom < pushMom - 5)
+    alerts.push({ icon: 'alert-triangle', color: 'text-yellow-400', msg: `Desempenho Push avançando mais que Pull nas últimas sessões — verifique se exercícios de costas estão sendo priorizados` });
+  if (pullMom != null && pullMom <= 0)
+    alerts.push({ icon: 'alert-triangle', color: 'text-orange-400', msg: `Desempenho nos exercícios Pull sem progressão recente — verifique recuperação, execução e histórico de carga` });
+
+  // ── Renderização ─────────────────────────────────────────────────
+  let html = '';
+
+  // 1 — Índice V-Taper
+  if (curV != null) {
+    const vStatus = vDelta == null ? '—'
+      : vDelta > 0 ? `<span class="text-green-400">▲ +${vDelta} cm</span>`
+      : vDelta < 0 ? `<span class="text-red-400">▼ ${vDelta} cm</span>`
+      : `<span class="text-zinc-500">= sem mudança</span>`;
+
+    const vColor = vDelta == null ? '#a1a1aa' : vDelta > 0 ? '#4ade80' : vDelta < 0 ? '#f87171' : '#a1a1aa';
+
+    // mini sparkline do índice V
+    let vSparkHtml = '';
+    if (vIndexes.length >= 2) {
+      const vals = vIndexes.map(p => p.v);
+      const mn = Math.min(...vals), mx = Math.max(...vals), rng = mx - mn || 1;
+      const W = 80, H = 28;
+      const px = (i) => ((i / (vals.length - 1)) * W).toFixed(1);
+      const py = (v) => (H - 4 - ((v - mn) / rng) * (H - 8)).toFixed(1);
+      const pts = vals.map((v, i) => `${px(i)},${py(v)}`).join(' ');
+      vSparkHtml = `<svg width="${W}" height="${H}" viewBox="0 0 ${W} ${H}" style="overflow:visible">
+        <polyline points="${pts}" fill="none" stroke="${vColor}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+        <circle cx="${px(vals.length-1)}" cy="${py(vals[vals.length-1])}" r="3" fill="${vColor}"/>
+      </svg>`;
+    }
+
+    html += `<div class="glass-card p-4 rounded-2xl border border-zinc-800/60" style="background:linear-gradient(135deg,rgba(var(--theme-rgb),.06),transparent)">
+      <div class="text-[9px] font-black text-zinc-500 uppercase tracking-widest mb-3 flex items-center gap-2">
+        <i data-lucide="target" class="w-3.5 h-3.5"></i>Índice V-Taper
+      </div>
+      <div class="flex items-end justify-between">
+        <div>
+          <div class="text-4xl font-black" style="color:${vColor};line-height:1">${curV} cm</div>
+          <div class="text-[10px] text-zinc-500 mt-1">tórax − cintura · ${biometrics?.torax ?? '?'} − ${biometrics?.cintura ?? '?'}</div>
+          <div class="text-[11px] font-bold mt-2">${vStatus}</div>
+        </div>
+        <div class="flex flex-col items-end gap-1">
+          ${vSparkHtml}
+          ${vIndexes.length >= 2 ? `<div class="text-[9px] text-zinc-600 font-mono">${vIndexes.length} avaliações</div>` : ''}
+        </div>
+      </div>
+      ${(() => {
+        // Relação ombros/cintura — apenas se ambas medidas existem no mesmo registro
+        if (!biometrics?.ombros || !biometrics?.cintura) {
+          return `<div class="mt-2 p-2 rounded-xl bg-zinc-900/50 border border-zinc-800/40 flex items-center gap-2">
+            <i data-lucide="minus" class="w-3 h-3 text-zinc-600 shrink-0"></i>
+            <span class="text-[9px] text-zinc-600">Ombros/cintura: aguardando medição de ombros na mesma avaliação</span>
+          </div>`;
+        }
+        const omRatio = (biometrics.ombros / biometrics.cintura).toFixed(2);
+        const omColor = omRatio >= 1.4 ? '#4ade80' : omRatio >= 1.25 ? '#a3e635' : '#fb923c';
+        return `<div class="mt-2 p-2 rounded-xl bg-zinc-900/50 border border-zinc-800/40 flex items-center justify-between">
+          <span class="text-[9px] text-zinc-500">Ombros/cintura · ${biometrics.ombros} / ${biometrics.cintura} cm</span>
+          <span class="text-[12px] font-black font-mono" style="color:${omColor}">${omRatio}</span>
+        </div>`;
+      })()}
+      <div class="mt-2 p-2.5 rounded-xl bg-zinc-900/50 border border-zinc-800/50">
+        <div class="text-[9px] text-zinc-500">META: tórax−cintura ≥ 20 cm · ombros/cintura ≥ 1.40 · medir ombros ao redor dos deltoides</div>
+      </div>
+    </div>`;
+  } else {
+    html += `<div class="glass-card p-4 rounded-2xl border border-zinc-800/40 text-center">
+      <div class="text-[10px] text-zinc-600 font-bold">Índice V-Taper</div>
+      <div class="text-[11px] text-zinc-600 mt-1">Adicione biometrias na aba Corpo para ver o índice</div>
+    </div>`;
+  }
+
+  // 2 — Pull vs Push momentum
+  if (pullMom != null || pushMom != null) {
+    const maxMom = Math.max(Math.abs(pullMom ?? 0), Math.abs(pushMom ?? 0), 1);
+    const bar = (val, color) => {
+      if (val == null) return `<div class="text-[9px] text-zinc-600">dados insuficientes</div>`;
+      const pct = Math.min(Math.abs(val) / maxMom * 100, 100).toFixed(0);
+      const sign = val > 0 ? '+' : '';
+      return `<div class="flex items-center gap-2">
+        <div class="flex-1 h-2 bg-zinc-800 rounded-full overflow-hidden">
+          <div class="h-full rounded-full transition-all" style="width:${pct}%;background:${color}"></div>
+        </div>
+        <span class="text-[11px] font-black font-mono" style="color:${color};min-width:48px;text-align:right">${sign}${val}%</span>
+      </div>`;
+    };
+
+    const verdict = pullMom != null && pushMom != null
+      ? pullMom > pushMom + 2  ? { txt: 'Desempenho Pull avançando mais — sinal positivo para dorsais', color: 'text-green-400', icon: 'trending-up' }
+      : pullMom < pushMom - 5  ? { txt: 'Desempenho Push dominando — monitore foco nos exercícios de costas', color: 'text-yellow-400', icon: 'alert-triangle' }
+      :                          { txt: 'Desempenho equilibrado pull/push', color: 'text-zinc-400', icon: 'check' }
+      : null;
+
+    html += `<div class="glass-card p-4 rounded-2xl border border-zinc-800/60">
+      <div class="text-[9px] font-black text-zinc-500 uppercase tracking-widest mb-3 flex items-center gap-2">
+        <i data-lucide="bar-chart-2" class="w-3.5 h-3.5"></i>Tendência de Desempenho Pull vs Push
+        <span class="text-[8px] text-zinc-600 normal-case font-normal">% ganho médio de carga — não indica crescimento muscular diretamente</span>
+      </div>
+      <div class="space-y-3">
+        <div>
+          <div class="flex items-center justify-between mb-1">
+            <span class="text-[10px] font-bold text-cyan-400 flex items-center gap-1">
+              <i data-lucide="trending-up" class="w-3 h-3"></i>PULL — Costas / Dorsais
+            </span>
+          </div>
+          ${bar(pullMom, '#22d3ee')}
+        </div>
+        <div>
+          <div class="flex items-center justify-between mb-1">
+            <span class="text-[10px] font-bold text-orange-400 flex items-center gap-1">
+              <i data-lucide="dumbbell" class="w-3 h-3"></i>PUSH — Peito / Ombros
+            </span>
+          </div>
+          ${bar(pushMom, '#fb923c')}
+        </div>
+      </div>
+      ${verdict ? `
+        <div class="mt-3 flex items-center gap-2 p-2.5 rounded-xl bg-zinc-900/50 border border-zinc-800/50">
+          <i data-lucide="${verdict.icon}" class="w-3.5 h-3.5 shrink-0 ${verdict.color}"></i>
+          <span class="text-[10px] font-bold ${verdict.color}">${verdict.txt}</span>
+        </div>` : ''}
+    </div>`;
+  } else {
+    html += `<div class="glass-card p-4 rounded-2xl border border-zinc-800/40 text-center">
+      <div class="text-[10px] text-zinc-600 font-bold">Pull vs Push momentum</div>
+      <div class="text-[11px] text-zinc-600 mt-1">Necessário ≥ 4 sessões de Pull e Push para calcular</div>
+    </div>`;
+  }
+
+  // 3 — Medidas chave (sparklines de bio)
+  if (bioPoints.length >= 2) {
+    const bioMetrics = [
+      { key: 'torax',  label: 'Tórax',   color: '#a78bfa' },
+      { key: 'cintura', label: 'Cintura', color: '#fb923c' },
+      { key: 'braco',   label: 'Braço',   color: '#4ade80' },
+      { key: 'coxa',    label: 'Coxa D',  color: '#60a5fa' },
+    ];
+
+    const sparkBio = (key, color) => {
+      const pts = bioPoints.map(b => b[key] ?? b[key + 'Direito'] ?? null).filter(v => v != null);
+      if (pts.length < 2) return null;
+      const mn = Math.min(...pts), mx = Math.max(...pts), rng = mx - mn || 1;
+      const W = 50, H = 22;
+      const px = i => ((i / (pts.length - 1)) * W).toFixed(1);
+      const py = v => (H - 2 - ((v - mn) / rng) * (H - 6)).toFixed(1);
+      const ptsStr = pts.map((v, i) => `${px(i)},${py(v)}`).join(' ');
+      const trend = pts[pts.length - 1] - pts[0];
+      const sc = trend > 0 ? color : trend < 0 ? '#f87171' : '#52525b';
+      const delta = parseFloat((pts[pts.length - 1] - pts[pts.length - 2]).toFixed(1));
+      const dSign = delta > 0 ? '+' : '';
+      return { svg: `<svg width="${W}" height="${H}" viewBox="0 0 ${W} ${H}">
+        <polyline points="${ptsStr}" fill="none" stroke="${sc}" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" opacity=".9"/>
+        <circle cx="${px(pts.length-1)}" cy="${py(pts[pts.length-1])}" r="2" fill="${sc}"/>
+      </svg>`, cur: pts[pts.length - 1], delta, dSign, color: sc };
+    };
+
+    const cards = bioMetrics.map(({ key, label, color }) => {
+      const s = sparkBio(key === 'coxa' ? 'coxaDireita' : key, color);
+      if (!s) return null;
+      return `<div class="bg-zinc-900/40 border border-zinc-800/60 rounded-xl p-3">
+        <div class="text-[8px] text-zinc-600 font-bold uppercase tracking-wider mb-1">${label}</div>
+        <div class="flex items-end justify-between">
+          <div>
+            <div class="text-sm font-black" style="color:${s.color}">${s.cur} cm</div>
+            ${s.delta !== 0 ? `<div class="text-[9px] font-bold" style="color:${s.color}">${s.dSign}${s.delta}</div>` : ''}
+          </div>
+          ${s.svg}
+        </div>
+      </div>`;
+    }).filter(Boolean);
+
+    if (cards.length) {
+      html += `<div class="glass-card p-4 rounded-2xl border border-zinc-800/60">
+        <div class="text-[9px] font-black text-zinc-500 uppercase tracking-widest mb-3 flex items-center gap-2">
+          <i data-lucide="ruler" class="w-3.5 h-3.5"></i>Medidas chave
+        </div>
+        <div class="grid grid-cols-2 gap-2">${cards.join('')}</div>
+      </div>`;
+    }
+  }
+
+  // 4 — Alertas
+  if (alerts.length) {
+    html += `<div class="glass-card p-4 rounded-2xl border border-zinc-800/60">
+      <div class="text-[9px] font-black text-zinc-500 uppercase tracking-widest mb-3 flex items-center gap-2">
+        <i data-lucide="alert-triangle" class="w-3.5 h-3.5 text-yellow-400"></i>Alertas V-Taper
+      </div>
+      <div class="space-y-2">
+        ${alerts.map(a => `
+          <div class="flex items-start gap-2 p-2.5 rounded-xl bg-zinc-900/40 border border-zinc-800/50">
+            <i data-lucide="${a.icon}" class="w-3.5 h-3.5 mt-0.5 shrink-0 ${a.color}"></i>
+            <span class="text-[11px] text-zinc-300">${a.msg}</span>
+          </div>`).join('')}
+      </div>
+    </div>`;
+  } else if (curV != null || pullMom != null) {
+    html += `<div class="p-3 rounded-xl border border-zinc-800/40 text-center">
+      <span class="text-[10px] text-green-400 font-bold">✓ Nenhum alerta — evolução V-taper dentro do esperado</span>
+    </div>`;
+  }
+
+  if (!html) {
+    html = `<div class="text-center py-8">
+      <div class="text-[11px] text-zinc-600">Complete alguns treinos e adicione biometrias na aba Corpo para ver a análise V-Taper</div>
+    </div>`;
+  }
+
+  return `<div class="space-y-4">${html}</div>`;
+}
+
 export function renderAnalytics(state, workouts) {
   const { analyticsTab = 'musculacao', cardioHistory = [], achievements = [] } = state;
 
@@ -1555,6 +1830,7 @@ export function renderAnalytics(state, workouts) {
     { id: 'musculacao', label: 'Musculação', icon: 'dumbbell' },
     { id: 'cardio',     label: 'Cardio',     icon: 'activity'  },
     { id: 'conquistas', label: 'Conquistas', icon: 'trophy'    },
+    { id: 'vtaper',     label: 'V-Taper',    icon: 'target'    },
   ];
 
   const tabBar = `
@@ -1576,6 +1852,7 @@ export function renderAnalytics(state, workouts) {
   if (analyticsTab === 'musculacao') content = renderMusculacaoTab(state, workouts);
   else if (analyticsTab === 'cardio') content = renderCardioSection(cardioHistory);
   else if (analyticsTab === 'conquistas') content = renderAchievementsTab(achievements, state);
+  else if (analyticsTab === 'vtaper')    content = renderVTaperTab(state, workouts);
 
   return `
     <div class="stagger-enter space-y-4 pb-4">
@@ -1608,6 +1885,7 @@ export function patchAnalyticsTab(container, state, workouts) {
   if (analyticsTab === 'musculacao')   content = renderMusculacaoTab(state, workouts);
   else if (analyticsTab === 'cardio')  content = renderCardioSection(cardioHistory);
   else if (analyticsTab === 'conquistas') content = renderAchievementsTab(achievements, state);
+  else if (analyticsTab === 'vtaper')    content = renderVTaperTab(state, workouts);
 
   contentEl.innerHTML = content;
 }
