@@ -972,14 +972,14 @@ function generateInsight(state, workouts, streak) {
     const withCommute = h => (h.mission?.commute?.distance ?? 0) > 0;
     const cycleEntries = history.filter(h => new Date(h.date).getTime() >= cycleTs && withCommute(h));
     if (cycleEntries.length >= 2) {
-      const commuteKm  = +cycleEntries.reduce((s, h) => s + h.mission.commute.distance, 0).toFixed(1);
-      const commuteCal = cycleEntries.reduce((s, h) => s + h.mission.commute.calories, 0);
+      const commuteKm  = +cycleEntries.reduce((s, h) => s + (h.mission?.commute?.distance ?? 0), 0).toFixed(1);
+      const commuteCal = cycleEntries.reduce((s, h) => s + (h.mission?.commute?.calories ?? 0), 0);
       const cardioKmCycle = cardioHistory
         .filter(c => new Date(c.date).getTime() >= cycleTs)
         .reduce((s, c) => s + (c.distance || 0), 0);
       const commuteMoreThanCardio = commuteKm > 0 && commuteKm > cardioKmCycle;
       return {
-        icon: 'move', iconClass: 'text-cyan-400', priority: 'informative',
+        icon: 'wind', iconClass: 'text-cyan-400', priority: 'informative',
         label: commuteMoreThanCardio
           ? `Você caminhou mais até a academia (${commuteKm}km) do que correu (${cardioKmCycle.toFixed(1)}km) neste ciclo.`
           : `${commuteKm}km de deslocamento ativo neste ciclo — ~${commuteCal}kcal no caminho.`,

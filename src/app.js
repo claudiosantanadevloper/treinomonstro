@@ -182,7 +182,13 @@ const app = new AppController({
 
 document.addEventListener('DOMContentLoaded', () => {
   app.attachGlobalRipple();
-  app.init();
+  try {
+    app.init();
+  } catch (e) {
+    console.error('[App] init() falhou:', e);
+    const main = document.getElementById('main-content');
+    if (main) main.innerHTML = `<div style="color:#f87171;padding:1rem;font-family:monospace;font-size:12px;white-space:pre-wrap">[ERRO] ${e?.message ?? e}\n\n${e?.stack ?? ''}</div>`;
+  }
 
   // Vincular botões de navegação (estão no HTML estático)
   document.querySelectorAll('[data-navigate]').forEach(btn => {

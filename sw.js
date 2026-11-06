@@ -1,4 +1,4 @@
-const CACHE       = 'monstro-v46';
+const CACHE       = 'monstro-v47';
 const MEDIA_CACHE = 'monstro-media-v1';
 const MEDIA_MAX   = 20;
 

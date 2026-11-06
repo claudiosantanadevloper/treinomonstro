@@ -1119,6 +1119,7 @@ export class AppController {
     this.#main.parentNode.replaceChild(fresh, this.#main);
     this.#main = fresh;
 
+    try {
     switch (state.tab) {
       case "home": {
         setHTML(this.#main, renderHome(state, this.#allWorkouts().filter(w => !w.isCardio), this.#cardioProtocols));
@@ -1192,6 +1193,10 @@ export class AppController {
         );
         break;
       }
+    }
+    } catch (e) {
+      console.error('[AppController] #renderMain erro:', e);
+      this.#main.innerHTML = `<div style="color:#f87171;padding:1rem;font-family:monospace;font-size:11px;white-space:pre-wrap">[ERRO] ${e?.message ?? e}\n\n${e?.stack ?? ''}</div>`;
     }
 
     this.#renderModal(state);
