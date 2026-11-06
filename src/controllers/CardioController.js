@@ -163,17 +163,31 @@ export class CardioController {
 
   // ─── Finalizar e salvar ─────────────────────────────────────────────
 
-  finish({ effort, notes = '', distanceOverrideM = null } = {}) {
+  finish({ effort, notes = '', distanceOverrideM = null, segments = null, effortScore = null } = {}) {
     const s = this.#state.activeCardioSession;
     if (!s) return null;
 
     const protocol    = this.getProtocol(s.protocolId);
     const durationMin = s.totalElapsed / 60;
     const local       = s.local;
-    // Se distância manual foi informada, ela prevalece sobre GPS
-    const hasOverride = distanceOverrideM != null && distanceOverrideM > 0;
-    const distanceKm  = hasOverride ? distanceOverrideM / 1000 : (s.distanceM || 0) / 1000;
-    const distSource  = hasOverride ? 'manual' : ((s.gpsPoints || []).length > 0 ? 'gps' : 'none');
+
+    // Prioridade: segmentos > distância manual > GPS
+    const validSegments = Array.isArray(segments) && segments.length > 0
+      ? segments.filter(seg => seg.speedKmh > 0 && seg.durationSec > 0)
+      : null;
+
+    let distanceKm, distSource;
+    if (validSegments?.length) {
+      // Calcular distância a partir dos segmentos: sum(km/h * h)
+      distanceKm = validSegments.reduce((acc, seg) => acc + seg.speedKmh * (seg.durationSec / 3600), 0);
+      distSource = 'segments';
+    } else if (distanceOverrideM != null && distanceOverrideM > 0) {
+      distanceKm = distanceOverrideM / 1000;
+      distSource = 'manual';
+    } else {
+      distanceKm = (s.distanceM || 0) / 1000;
+      distSource = (s.gpsPoints || []).length > 0 ? 'gps' : 'none';
+    }
 
     let pace = '';
     if (s.type !== 'bike' && distanceKm >= 0.1 && durationMin > 0) {
@@ -192,6 +206,8 @@ export class CardioController {
       duration:       Math.round(durationMin * 100) / 100,
       pace,
       effort:         effort || (s.protocolId === 'zona2-30' || s.protocolId === 'zona2-45' ? 'moderado' : 'forte'),
+      effortScore:    effortScore != null ? Math.min(10, Math.max(1, Math.round(effortScore))) : null,
+      segments:       validSegments ?? null,
       notes,
       protocolId:     s.protocolId,
       protocolName:   protocol?.name ?? 'Livre',

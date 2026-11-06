@@ -5584,14 +5584,43 @@ export class AppController {
             </div>
           </div>
 
+          <!-- Esforço percebido 1–10 -->
           <div>
             <div class="text-[9px] text-zinc-500 font-bold uppercase tracking-wider mb-2 flex items-center gap-1.5">
-              <i data-lucide="ruler" class="w-3 h-3"></i>Distância real (km)
-              ${distKm >= 0.1 ? `<span class="normal-case font-normal text-zinc-600">GPS: ${distKm.toFixed(2)} km — altere se for esteira</span>` : `<span class="normal-case font-normal text-zinc-600">informe se tiver distância</span>`}
+              <i data-lucide="activity" class="w-3 h-3"></i>Esforço percebido
+              <span class="normal-case font-normal text-zinc-600">1 = muito fácil · 10 = exaustão</span>
             </div>
-            <input type="tel" inputmode="decimal" id="cardio-finish-distance"
-                   placeholder="${distKm >= 0.1 ? distKm.toFixed(2) : '0.00'}"
-                   class="input-ninja w-full py-2.5 rounded-lg text-xs font-mono" />
+            <div id="effort-score-row" class="flex gap-1 justify-between">
+              ${[1,2,3,4,5,6,7,8,9,10].map(n => `
+                <button data-effort-score="${n}"
+                  class="effort-score-btn flex-1 py-2 rounded-lg border text-[10px] font-black transition-all active:scale-95
+                         ${n <= 3 ? 'border-zinc-800 text-zinc-500' : n <= 6 ? 'border-zinc-800 text-zinc-500' : 'border-zinc-800 text-zinc-500'}">${n}</button>
+              `).join('')}
+            </div>
+          </div>
+
+          <!-- Segmentos de velocidade -->
+          <div>
+            <div class="flex items-center justify-between mb-2">
+              <div class="text-[9px] text-zinc-500 font-bold uppercase tracking-wider flex items-center gap-1.5">
+                <i data-lucide="trending-up" class="w-3 h-3"></i>Segmentos de velocidade
+                <span class="normal-case font-normal text-zinc-600">opcional · calcula distância automaticamente</span>
+              </div>
+              <button id="add-segment-btn"
+                class="text-[9px] font-bold text-theme-primary border border-theme-dim px-2.5 py-1 rounded-lg active:scale-95 transition-all">
+                + Segmento
+              </button>
+            </div>
+            <div id="segments-container" class="space-y-2"></div>
+            <div id="segments-dist-preview" class="text-[10px] font-bold text-cyan-400 mt-1 hidden"></div>
+            ${distKm < 0.1 ? `
+            <div class="text-[9px] text-zinc-600 mt-1">
+              Ou informe a distância total:
+              <input type="tel" inputmode="decimal" id="cardio-finish-distance" placeholder="0.00 km"
+                     class="input-ninja w-24 py-1.5 rounded-lg text-xs font-mono ml-1" />
+            </div>` : `
+            <div class="text-[9px] text-zinc-600 mt-1">GPS: ${distKm.toFixed(2)} km · informe segmentos se for esteira</div>
+            <input type="tel" inputmode="decimal" id="cardio-finish-distance" class="hidden" />`}
           </div>
 
           <input type="text" id="cardio-finish-notes" placeholder="Notas (opcional)..."
@@ -5621,14 +5650,98 @@ export class AppController {
     ml.querySelectorAll('.finish-effort-btn').forEach(b =>
       b.addEventListener('click', () => { finishEffort = b.dataset.finishEffort; syncEffort(); }));
 
+    // ── Esforço percebido 1–10 ──────────────────────────────────────
+    let effortScore = null;
+    const ESCORE_COLORS = {
+      low:  'bg-emerald-900/40 border-emerald-700/50 text-emerald-300',
+      mid:  'bg-amber-900/40  border-amber-700/50  text-amber-300',
+      high: 'bg-rose-900/40   border-rose-700/50   text-rose-300',
+    };
+    const syncEffortScore = () => {
+      ml.querySelectorAll('.effort-score-btn').forEach(b => {
+        const n = parseInt(b.dataset.effortScore);
+        const on = n === effortScore;
+        const col = n <= 4 ? ESCORE_COLORS.low : n <= 7 ? ESCORE_COLORS.mid : ESCORE_COLORS.high;
+        b.className = `effort-score-btn flex-1 py-2 rounded-lg border text-[10px] font-black transition-all active:scale-95 ${on ? col : 'border-zinc-800 text-zinc-500 bg-transparent'}`;
+      });
+    };
+    ml.querySelectorAll('.effort-score-btn').forEach(b =>
+      b.addEventListener('click', () => { effortScore = parseInt(b.dataset.effortScore); syncEffortScore(); }));
+
+    // ── Segmentos de velocidade ─────────────────────────────────────
+    const segContainer = ml.querySelector('#segments-container');
+    const segPreview   = ml.querySelector('#segments-dist-preview');
+
+    const updateSegPreview = () => {
+      const rows = [...segContainer.querySelectorAll('.seg-row')];
+      let totalM = 0;
+      rows.forEach(row => {
+        const spd = parseFloat(row.querySelector('.seg-speed')?.value?.replace(',', '.') || '0');
+        const dur = parseFloat(row.querySelector('.seg-dur')?.value?.replace(',', '.') || '0');
+        if (spd > 0 && dur > 0) totalM += spd * (dur / 60) * 1000;
+      });
+      if (totalM > 0) {
+        segPreview.textContent = `Distância calculada: ${(totalM / 1000).toFixed(2)} km`;
+        segPreview.classList.remove('hidden');
+      } else {
+        segPreview.classList.add('hidden');
+      }
+    };
+
+    const addSegmentRow = (spd = '', incl = '', dur = '') => {
+      const row = document.createElement('div');
+      row.className = 'seg-row flex items-center gap-1.5';
+      row.innerHTML = `
+        <div class="flex-1 relative">
+          <input type="tel" inputmode="decimal" value="${spd}" placeholder="km/h"
+                 class="seg-speed input-ninja w-full py-2 rounded-lg text-xs font-mono text-center" />
+        </div>
+        <div class="w-16">
+          <input type="tel" inputmode="decimal" value="${incl}" placeholder="incl%"
+                 class="seg-incl input-ninja w-full py-2 rounded-lg text-xs font-mono text-center" />
+        </div>
+        <div class="flex-1">
+          <input type="tel" inputmode="decimal" value="${dur}" placeholder="min"
+                 class="seg-dur input-ninja w-full py-2 rounded-lg text-xs font-mono text-center" />
+        </div>
+        <button class="seg-remove w-7 h-7 flex items-center justify-center rounded-lg bg-zinc-800 text-zinc-400 text-xs active:scale-95">×</button>`;
+      row.querySelector('.seg-remove').addEventListener('click', () => { row.remove(); updateSegPreview(); });
+      row.querySelectorAll('input').forEach(inp => inp.addEventListener('input', updateSegPreview));
+      segContainer.appendChild(row);
+    };
+
+    ml.querySelector('#add-segment-btn')?.addEventListener('click', () => addSegmentRow());
+
+    // ── Salvar ──────────────────────────────────────────────────────
     ml.querySelector('#save-cardio-finish')?.addEventListener('click', () => {
-      const notes       = ml.querySelector('#cardio-finish-notes')?.value?.trim() || '';
-      const distRaw     = ml.querySelector('#cardio-finish-distance')?.value?.trim().replace(',', '.') || '';
+      const notes   = ml.querySelector('#cardio-finish-notes')?.value?.trim() || '';
+      const distRaw = ml.querySelector('#cardio-finish-distance')?.value?.trim().replace(',', '.') || '';
       const distKmInput = parseFloat(distRaw);
       const distanceOverrideM = (!isNaN(distKmInput) && distKmInput > 0) ? distKmInput * 1000 : null;
+
+      // Coletar segmentos válidos
+      const segRows = [...segContainer.querySelectorAll('.seg-row')];
+      const segments = segRows.map(row => {
+        const spd  = parseFloat(row.querySelector('.seg-speed')?.value?.replace(',', '.') || '0');
+        const incl = row.querySelector('.seg-incl')?.value?.replace(',', '.').trim();
+        const dur  = parseFloat(row.querySelector('.seg-dur')?.value?.replace(',', '.') || '0');
+        if (spd <= 0 || dur <= 0) return null;
+        return {
+          speedKmh:   Math.round(spd * 10) / 10,
+          inclinePct: incl && !isNaN(parseFloat(incl)) ? parseFloat(incl) : null,
+          durationSec: Math.round(dur * 60),
+        };
+      }).filter(Boolean);
+
       this.#stopCardioInterval();
       this.#stopCardioGPS();
-      const result = this.#cardioCtrl.finish({ effort: finishEffort, notes, distanceOverrideM });
+      const result = this.#cardioCtrl.finish({
+        effort: finishEffort,
+        notes,
+        distanceOverrideM,
+        segments: segments.length ? segments : null,
+        effortScore,
+      });
       this.#closeModal();
       if (result) this.#showCardioBattleReport(result);
       else this.#navigate('cardio');

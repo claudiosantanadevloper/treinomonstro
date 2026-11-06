@@ -6,28 +6,41 @@
 export const CARDIO_PROTOCOLS = [
   {
     id: 'zona2-30',
-    name: 'Zona 2 · 30min',
-    description: 'Ritmo conversacional · FC 65-70%',
+    name: 'Base Aeróbica · 30min',
+    description: 'Intensidade conversacional — você consegue falar frases completas',
     icon: 'heart',
     effort: 'fácil',
     totalDuration: 1800,
     blocks: [
       { name: 'Aquecimento',    duration: 300,  effort: 'fácil',    instruction: 'Ritmo bem leve, respire fundo e solte o corpo' },
-      { name: 'Zona 2',        duration: 1200, effort: 'moderado', instruction: 'Ritmo conversacional — você consegue falar frases completas' },
+      { name: 'Base aeróbica',  duration: 1200, effort: 'moderado', instruction: 'Ritmo conversacional — você deve conseguir falar frases completas sem dificuldade' },
       { name: 'Desaquecimento', duration: 300,  effort: 'fácil',    instruction: 'Reduza gradualmente, caminhada leve' },
     ],
   },
   {
     id: 'zona2-45',
-    name: 'Zona 2 · 45min',
-    description: 'Base aeróbica estendida · FC 65-70%',
+    name: 'Base Aeróbica · 45min',
+    description: 'Intensidade conversacional estendida — base aeróbica longa',
     icon: 'heart',
     effort: 'fácil',
     totalDuration: 2700,
     blocks: [
       { name: 'Aquecimento',    duration: 300,  effort: 'fácil',    instruction: 'Ritmo bem leve, ative as pernas' },
-      { name: 'Zona 2',        duration: 2100, effort: 'moderado', instruction: 'Ritmo conversacional — foco na respiração nasal' },
+      { name: 'Base aeróbica',  duration: 2100, effort: 'moderado', instruction: 'Ritmo conversacional — foco na respiração nasal, fale frases completas com facilidade' },
       { name: 'Desaquecimento', duration: 300,  effort: 'fácil',    instruction: 'Reduza gradualmente, caminhada leve' },
+    ],
+  },
+  {
+    id: 'base-aerobica-teste',
+    name: 'Teste Aeróbico · 25min',
+    description: 'Teste padronizado — velocidade fixa e constante, registra esforço e fala',
+    icon: 'target',
+    effort: 'moderado',
+    totalDuration: 1500,
+    blocks: [
+      { name: 'Aquecimento',       duration: 300,  effort: 'fácil',    instruction: 'Trote leve, entre em ritmo gradualmente' },
+      { name: 'Bloco de referência', duration: 900, effort: 'moderado', instruction: 'Velocidade fixa e constante — mantenha o mesmo ritmo do início ao fim. Registre se consegue falar frases completas.' },
+      { name: 'Desaquecimento',    duration: 300,  effort: 'fácil',    instruction: 'Caminhada leve, deixe a FC cair. Anote o esforço percebido (1–10).' },
     ],
   },
   {
