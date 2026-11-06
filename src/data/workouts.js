@@ -12,6 +12,7 @@ export const WORKOUTS = [
     label: 'Push A',
     title: 'PUSH A',
     subtitle: 'Peitoral Superior + Deltoide Lateral',
+    muscleGroupType: 'push',
     muscleFocus: ['Peito', 'Ombros', 'Braços'],
     exercises: [
       { id: 't1_0',  icon: 'activity', name: 'Rotação Externa com Elástico',
@@ -68,6 +69,7 @@ export const WORKOUTS = [
     label: 'Legs A',
     title: 'LEGS A',
     subtitle: 'Quadríceps + Posterior',
+    muscleGroupType: 'legs',
     muscleFocus: ['Pernas'],
     exercises: [
       { id: 't2_mob', icon: 'activity', name: 'Mobilidade de Tornozelo',
@@ -129,6 +131,7 @@ export const WORKOUTS = [
     label: 'Pull A',
     title: 'PULL A',
     subtitle: 'Largura de Costas · V-Taper',
+    muscleGroupType: 'pull',
     muscleFocus: ['Costas', 'Braços'],
     exercises: [
       { id: 't3_1',  icon: 'layers',    name: 'Puxada Frente Pronada — Pegada Larga',
@@ -188,6 +191,7 @@ export const WORKOUTS = [
     label: 'Push B',
     title: 'PUSH B',
     subtitle: 'Deltoide Lateral + Peitoral Alongamento',
+    muscleGroupType: 'push',
     muscleFocus: ['Ombros', 'Peito', 'Braços'],
     exercises: [
       { id: 't4_0',  icon: 'activity', name: 'Rotação Externa com Elástico',
@@ -245,6 +249,7 @@ export const WORKOUTS = [
     label: 'Legs B',
     title: 'LEGS B',
     subtitle: 'Posterior + Glúteo',
+    muscleGroupType: 'legs',
     muscleFocus: ['Pernas', 'Glúteo', 'Costas'],
     exercises: [
       { id: 't5_mob', icon: 'activity', name: 'Mobilidade de Tornozelo + Quadril',
@@ -309,6 +314,7 @@ export const WORKOUTS = [
     label: 'Pull B',
     title: 'PULL B',
     subtitle: 'Espessura de Costas + Trapézio',
+    muscleGroupType: 'pull',
     muscleFocus: ['Costas', 'Braços'],
     exercises: [
       { id: 't6_1',  icon: 'layers',   name: 'Remada Articulada Pronada (Máquina)',

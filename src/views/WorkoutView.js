@@ -652,6 +652,13 @@ export function renderWorkout(state, workout) {
               <span class="text-[8px] text-zinc-700 ml-1">estimado</span>
               ${returnMode !== ac.mode ? `<span class="text-[8px] text-cyan-700/70 ml-auto font-bold">volta: ${labels[returnMode]}</span>` : ''}
             </div>
+            ${returnMode === 'run' ? `
+            <button data-action="log-commute-run"
+                    class="ripple-target mt-2 w-full py-1.5 rounded-lg border border-cyan-800/40
+                           bg-cyan-950/30 text-cyan-400 text-[9px] font-black flex items-center justify-center gap-1.5
+                           active:scale-95 transition-all hover:border-cyan-700/60">
+              <i data-lucide="zap" class="w-3 h-3"></i> Registrar corrida de volta
+            </button>` : ''}
           </div>`;
         })() : ''}
       </div>
@@ -1189,6 +1196,11 @@ export function mountWorkout(container, handler) {
 
   delegate(container, '[data-action="set-commute-return"]', 'click', (e, el) => {
     handler('set-commute-return', el.dataset.payload);
+  });
+
+  delegate(container, '[data-action="log-commute-run"]', 'click', (e, el) => {
+    createRipple(e, el);
+    handler('log-commute-run');
   });
 
   // Expandir/colapsar exercício concluído ao tocar

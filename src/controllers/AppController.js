@@ -1242,10 +1242,136 @@ export class AppController {
       case "workout-picker":
         this.#showWorkoutPickerModal();
         break;
+      case "commute-run-log":
+        this.#showCommuteRunModal(state.modalData);
+        break;
     }
   }
 
 
+
+  #showCommuteRunModal() {
+    const ac = this.#store.getState().activeCommute ?? {};
+    const distKm = ac.oneWayDistanceKm ?? 1.1;
+
+    this.#modalLayer.innerHTML = `
+      <div id="commute-backdrop" class="fixed inset-0 z-[90] flex items-end justify-center bg-black/80 backdrop-blur-sm">
+        <div class="glass-card w-full max-w-md p-5 rounded-t-3xl border border-zinc-800/70 animate-slide-up pb-safe">
+          <div class="flex items-center justify-between mb-4">
+            <div class="flex items-center gap-2">
+              <i data-lucide="zap" class="w-4 h-4 text-cyan-400"></i>
+              <h3 class="text-sm font-black text-white uppercase tracking-wide">Corrida de Volta</h3>
+            </div>
+            <button id="close-commute-modal" class="text-zinc-600 hover:text-zinc-400 active:scale-90 transition-all">
+              <i data-lucide="x" class="w-5 h-5"></i>
+            </button>
+          </div>
+
+          <!-- Duração (obrigatório) -->
+          <div class="mb-4">
+            <label class="text-[9px] text-zinc-500 uppercase font-bold tracking-wider block mb-1.5">
+              Duração <span class="text-cyan-600">(obrigatório)</span>
+            </label>
+            <div class="flex items-center gap-2">
+              <input id="commute-duration" type="number" inputmode="numeric" min="1" max="120"
+                     placeholder="12"
+                     class="input-ninja w-20 py-3 rounded-xl text-center text-base font-black text-white" />
+              <span class="text-sm text-zinc-500 font-bold">minutos</span>
+            </div>
+          </div>
+
+          <!-- Distância (opcional) -->
+          <div class="mb-4">
+            <label class="text-[9px] text-zinc-500 uppercase font-bold tracking-wider block mb-1.5">
+              Distância <span class="text-zinc-700">(opcional)</span>
+            </label>
+            <div class="flex items-center gap-2">
+              <input id="commute-distance" type="number" inputmode="decimal" min="0.1" max="20" step="0.1"
+                     placeholder="${distKm}"
+                     class="input-ninja w-20 py-3 rounded-xl text-center text-base font-black text-white" />
+              <span class="text-sm text-zinc-500 font-bold">km</span>
+              <span class="text-[8px] text-zinc-700 italic ml-1">se vazio → estimado do perfil</span>
+            </div>
+          </div>
+
+          <!-- Esforço percebido -->
+          <div class="mb-5">
+            <label class="text-[9px] text-zinc-500 uppercase font-bold tracking-wider block mb-1.5">Esforço percebido</label>
+            <div class="flex gap-1.5 flex-wrap" id="commute-effort-row">
+              ${[1,2,3,4,5,6,7,8,9,10].map(n => `
+                <button data-score="${n}"
+                        class="effort-chip ripple-target w-8 h-8 rounded-lg border text-xs font-black
+                               bg-zinc-800/60 border-zinc-700 text-zinc-500
+                               active:scale-90 transition-all">
+                  ${n}
+                </button>`).join('')}
+            </div>
+          </div>
+
+          <button id="confirm-commute-log"
+                  class="ripple-target w-full py-3 rounded-2xl bg-cyan-700 text-white font-black text-sm
+                         uppercase active:scale-95 transition-all shadow-[0_0_16px_rgba(8,145,178,0.4)]">
+            Registrar Corrida
+          </button>
+        </div>
+      </div>`;
+
+    lucide.createIcons({ nodes: [this.#modalLayer] });
+
+    let selectedScore = null;
+    const close = () => this.#store.setState({ activeModal: null, modalData: null });
+
+    document.getElementById('close-commute-modal')?.addEventListener('click', close);
+    document.getElementById('commute-backdrop')?.addEventListener('click', e => {
+      if (e.target.id === 'commute-backdrop') close();
+    });
+
+    this.#modalLayer.querySelectorAll('.effort-chip').forEach(btn => {
+      btn.addEventListener('click', () => {
+        selectedScore = parseInt(btn.dataset.score);
+        this.#modalLayer.querySelectorAll('.effort-chip').forEach(b => {
+          const s = parseInt(b.dataset.score);
+          b.className = `effort-chip ripple-target w-8 h-8 rounded-lg border text-xs font-black active:scale-90 transition-all ${
+            s <= selectedScore
+              ? 'bg-cyan-700/60 border-cyan-600 text-cyan-200'
+              : 'bg-zinc-800/60 border-zinc-700 text-zinc-500'}`;
+        });
+      });
+    });
+
+    document.getElementById('confirm-commute-log')?.addEventListener('click', () => {
+      const durationMin = parseFloat(document.getElementById('commute-duration')?.value);
+      if (!durationMin || durationMin <= 0) return;
+
+      const distanceInput = parseFloat(document.getElementById('commute-distance')?.value);
+      let distanceKm, distanceSource;
+      if (!isNaN(distanceInput) && distanceInput > 0) {
+        distanceKm    = distanceInput;
+        distanceSource = 'manual';
+      } else {
+        // Estimativa: distKm do perfil, proporcionalmente à duração
+        const profileSpeed = ac.estimatedSpeed ?? 8.0;
+        distanceKm    = Math.round((profileSpeed * (durationMin / 60)) * 100) / 100;
+        distanceSource = 'estimated';
+      }
+
+      const result = this.#cardioCtrl.logDirectSession({
+        type:          'corrida',
+        sessionSource: 'commute',
+        durationMin,
+        distanceKm,
+        distanceSource,
+        effortScore:   selectedScore,
+        effort:        (selectedScore ?? 5) >= 7 ? 'forte' : (selectedScore ?? 5) <= 3 ? 'fácil' : 'moderado',
+      });
+
+      close();
+
+      if (result?.newAchievements?.length) {
+        this.#store.setState({ activeModal: 'battle-report', modalData: { newAchievements: result.newAchievements, commuteEntry: result.entry } });
+      }
+    });
+  }
 
   #showConfirmModal(data = {}) {
     this.#modalLayer.innerHTML = `
@@ -4188,6 +4314,9 @@ export class AppController {
         if (!isNaN(inc) && inc > 0) this.#store.setState({ weightIncrement: inc });
         break;
       }
+      case "log-commute-run":
+        this.#store.setState({ activeModal: 'commute-run-log', modalData: null });
+        break;
       case "set-commute-return": {
         const mode = payload;
         if (['walk', 'run', 'bike'].includes(mode)) {

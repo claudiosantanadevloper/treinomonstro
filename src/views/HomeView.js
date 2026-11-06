@@ -270,11 +270,40 @@ function renderResumeBanner(workoutId, startTime, workouts) {
 
 /* ─── Missão de Hoje ───────────────────────────────────────────────── */
 
-function renderMissionBlock(nextWorkout, cycleDone, history, defaultProtocol, cardioHistory, workoutStartTime, L, nextIsOff = false) {
+function renderMissionBlock(nextWorkout, cycleDone, history, defaultProtocol, cardioHistory, workoutStartTime, L, nextIsOff = false, cycleContext = {}) {
   if (workoutStartTime) return ''; // resume banner já aparece acima
+
+  const { cycleStart = null, activeCommute = null, commuteReturnOverride = null } = cycleContext;
 
   const workoutDoneToday = nextWorkout && history.some(h => isToday(h.date) && h.workoutId === nextWorkout.id);
   const cardioDoneToday  = cardioHistory.some(c => isToday(c.date));
+
+  // Contagem de cardios neste ciclo PPL
+  const cycleCardioCount = cycleStart
+    ? cardioHistory.filter(c => new Date(c.date) >= new Date(cycleStart)).length
+    : 0;
+
+  // Corrida de deslocamento já registrada hoje
+  const commuteLoggedToday = cardioHistory.some(c => isToday(c.date) && c.sessionSource === 'commute');
+
+  // Tipo muscular do próximo treino
+  const wType = nextWorkout?.muscleGroupType ?? null;
+
+  // Treino de pernas feito nos últimos 2 dias (indica recuperação necessária)
+  const legsDoneRecently = history.some(h => {
+    const daysAgo = (Date.now() - new Date(h.date)) / 86400000;
+    return daysAgo < 2 && ['2', '5'].includes(h.workoutId);
+  });
+
+  // Última recuperação reportada (fadiga ≥ 4 = atenção)
+  const lastFatigue = cardioHistory[0]?.recovery?.fatigueScore ?? 0;
+  const fatigueHigh = lastFatigue >= 4;
+
+  // Botão de registro de corrida de volta (commute run)
+  const showCommuteLogBtn = !!(activeCommute?.enabled &&
+    (commuteReturnOverride?.mode === 'run' || activeCommute?.mode === 'run') &&
+    !commuteLoggedToday &&
+    !workoutStartTime);
 
   // Bloco musculação
   let workoutRow;
@@ -351,14 +380,14 @@ function renderMissionBlock(nextWorkout, cycleDone, history, defaultProtocol, ca
       </div>`;
   }
 
-  // Bloco cardio
+  // Bloco cardio — PPL-aware
   let cardioRow;
   if (!defaultProtocol) {
     cardioRow = '';
   } else if (cardioDoneToday) {
     const lastC = cardioHistory.find(c => isToday(c.date));
     const TYPE_LBL = { corrida: 'Corrida', bike: 'Bike', outro: 'Outro' };
-    const typeLbl = TYPE_LBL[(lastC?.type || '').toLowerCase()] || 'Cardio';
+    const typeLbl = lastC?.sessionSource === 'commute' ? 'Corrida de deslocamento' : (TYPE_LBL[(lastC?.type || '').toLowerCase()] || 'Cardio');
     cardioRow = `
       <div class="flex items-center justify-between gap-3 bg-green-950/30 rounded-xl px-3 py-3 border border-green-900/30">
         <div class="min-w-0 flex-1">
@@ -369,11 +398,59 @@ function renderMissionBlock(nextWorkout, cycleDone, history, defaultProtocol, ca
           <div class="text-[10px] text-zinc-500 flex items-center gap-1 flex-wrap">
             ${lastC?.distance ? `<span>${lastC.distance}km</span>` : ''}
             ${lastC?.pace ? `<span class="text-theme-primary/80">${lastC.pace}/km</span>` : ''}
+            ${lastC?.duration ? `<span>${Math.round(lastC.duration)}min</span>` : ''}
           </div>
         </div>
         <div class="flex items-center gap-1.5 shrink-0 text-green-500">
           <i data-lucide="check-circle" class="w-5 h-5"></i>
           <span class="text-[10px] font-black uppercase">Feito</span>
+        </div>
+      </div>`;
+  } else if (wType === 'legs' || (legsDoneRecently && wType !== 'pull')) {
+    // Legs: só caminhada leve
+    cardioRow = `
+      <div class="flex items-center justify-between gap-3 bg-amber-950/30 rounded-xl px-3 py-3 border border-amber-900/30">
+        <div class="min-w-0 flex-1">
+          <div class="text-[9px] text-amber-700 uppercase tracking-wider flex items-center gap-1 mb-0.5">
+            <i data-lucide="activity" class="w-2.5 h-2.5"></i> CARDIO
+          </div>
+          <div class="text-sm font-black text-white">Priorize a recuperação</div>
+          <div class="text-[10px] text-amber-600/80">Dia de pernas — só caminhada leve</div>
+        </div>
+        <div class="shrink-0">
+          <i data-lucide="alert-triangle" class="w-5 h-5 text-amber-600"></i>
+        </div>
+      </div>`;
+  } else if (wType === 'pull' && cycleCardioCount < 2) {
+    // Pull: cardio recomendado
+    const alertMsg = fatigueHigh ? '⚠ Fadiga alta — considere reduzir' : legsDoneRecently ? '⚠ Pernas recentes — avalie recuperação' : null;
+    cardioRow = `
+      <div class="rounded-xl border border-cyan-900/40 bg-cyan-950/20 px-3 py-3">
+        <div class="flex items-center justify-between gap-3">
+          <div class="min-w-0 flex-1">
+            <div class="text-[9px] text-cyan-700 uppercase tracking-wider flex items-center gap-1 mb-0.5">
+              <i data-lucide="activity" class="w-2.5 h-2.5"></i> CARDIO · RECOMENDADO
+            </div>
+            <div class="text-sm font-black text-white">Base Aeróbica · 30min</div>
+            <div class="text-[10px] text-cyan-600/80">Após o Pull — intensidade conversacional</div>
+            ${alertMsg ? `<div class="text-[9px] text-amber-500 mt-0.5 font-bold">${alertMsg}</div>` : ''}
+          </div>
+          <button data-action="start-cardio-protocol" data-protocol-id="zona2-30"
+                  class="ripple-target shrink-0 px-3 py-2 bg-cyan-900/40 border border-cyan-800/50
+                         text-cyan-300 text-[9px] font-black rounded-xl active:scale-95 transition-all uppercase">
+            Iniciar
+          </button>
+        </div>
+        ${cycleCardioCount > 0 ? `<div class="mt-1.5 text-[8px] text-zinc-700 font-mono">${cycleCardioCount}/2 cardios neste ciclo</div>` : ''}
+      </div>`;
+  } else if (wType === 'pull' && cycleCardioCount >= 2) {
+    // Pull mas meta do ciclo já atingida
+    cardioRow = `
+      <div class="flex items-center gap-2 bg-green-950/20 rounded-xl px-3 py-2.5 border border-green-900/20">
+        <i data-lucide="check-circle" class="w-4 h-4 text-green-600 shrink-0"></i>
+        <div class="min-w-0">
+          <div class="text-[9px] text-green-700 font-bold uppercase tracking-wider">Cardio do ciclo concluído</div>
+          <div class="text-[9px] text-zinc-700 font-mono">${cycleCardioCount} sessões neste ciclo</div>
         </div>
       </div>`;
   } else {
@@ -396,6 +473,15 @@ function renderMissionBlock(nextWorkout, cycleDone, history, defaultProtocol, ca
       </div>`;
   }
 
+  // Botão de log de deslocamento (corrida de volta)
+  const commuteLogBtn = showCommuteLogBtn ? `
+    <button data-action="log-commute-run"
+            class="ripple-target w-full py-2 rounded-xl border border-cyan-800/40 bg-cyan-950/20
+                   text-cyan-400 text-[9px] font-black flex items-center justify-center gap-1.5
+                   active:scale-95 transition-all">
+      <i data-lucide="zap" class="w-3 h-3"></i> Registrar corrida de volta
+    </button>` : '';
+
   return `
     <div class="glass-card p-4 rounded-2xl border border-zinc-800/70 space-y-2">
       <div class="text-[10px] font-bold text-zinc-500 uppercase tracking-widest flex items-center gap-1.5 mb-1">
@@ -404,6 +490,7 @@ function renderMissionBlock(nextWorkout, cycleDone, history, defaultProtocol, ca
       </div>
       ${workoutRow}
       ${cardioRow}
+      ${commuteLogBtn}
     </div>
   `;
 }
@@ -1352,7 +1439,7 @@ export function renderHome(state, workouts, protocols = []) {
       ${staleBanner}
       ${bioOverdueBannerHtml}
       ${onboardBanner}
-      ${renderMissionBlock(nextWorkout, cycleDone, history, defaultProtocol, cardioHistory, workoutStartTime, L, nextIsOff)}
+      ${renderMissionBlock(nextWorkout, cycleDone, history, defaultProtocol, cardioHistory, workoutStartTime, L, nextIsOff, { cycleStart: state.cycleStart ?? null, activeCommute: state.activeCommute ?? null, commuteReturnOverride: state.commuteReturnOverride ?? null })}
       ${insightHtml}
       ${renderGoalProgressCard(history, cardioHistory, goal)}
 
@@ -1474,6 +1561,11 @@ export function mountHome(container, handler) {
   delegate(container, '[data-action="open-cardio-log"]', 'click', (e, el) => {
     createRipple(e, el);
     handler('open-cardio-log');
+  });
+
+  delegate(container, '[data-action="log-commute-run"]', 'click', (e, el) => {
+    createRipple(e, el);
+    handler('log-commute-run');
   });
 
   delegate(container, '[data-action="open-calendar"]', 'click', (e, el) => {

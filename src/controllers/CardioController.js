@@ -315,6 +315,58 @@ export class CardioController {
     return { entry, newAchievements, quote: quoteObj.text, quoteAuthor: quoteObj.author ?? null };
   }
 
+  // ─── Log direto sem sessão ativa (deslocamento / entrada manual) ────
+
+  logDirectSession({ type = 'corrida', sessionSource = null, durationMin, distanceKm = null, distanceSource = 'none', effortScore = null, effort = 'moderado', notes = '' } = {}) {
+    if (!durationMin || durationMin <= 0) return null;
+
+    const scoreNorm = effortScore != null ? Math.min(10, Math.max(1, Math.round(effortScore))) : null;
+
+    let pace = '';
+    if (type !== 'bike' && distanceKm >= 0.1 && durationMin > 0) {
+      const paceDecimal = durationMin / distanceKm;
+      const mins = Math.floor(paceDecimal);
+      const secs = Math.round((paceDecimal - mins) * 60);
+      pace = `${mins}:${String(secs).padStart(2, '0')}`;
+    }
+
+    const entry = {
+      date:           new Date().toISOString(),
+      type,
+      sessionSource:  sessionSource ?? null,
+      local:          'trajeto',
+      distance:       distanceKm != null ? Math.round(distanceKm * 100) / 100 : 0,
+      distanceSource,
+      duration:       Math.round(durationMin * 100) / 100,
+      pace,
+      effort,
+      effortScore:    scoreNorm,
+      notes,
+      protocolId:     null,
+      protocolName:   'Livre',
+      gpsTracked:     false,
+    };
+
+    const prev = this.#state.cardioHistory || [];
+    const cardioHistory = [entry, ...prev].slice(0, 100);
+
+    const prevAchievements = this.#state.achievements || [];
+    let achievements = this.#checkAchievements(cardioHistory, prevAchievements);
+    const streakNew = checkStreakAchievements(
+      this.#state.history ?? [],
+      cardioHistory,
+      this.#state.cardioCountsStreak ?? false,
+      achievements,
+    );
+    if (streakNew.length) achievements = [...achievements, ...streakNew];
+
+    this.#store.setState({ cardioHistory, achievements });
+
+    const prevIds = new Set(prevAchievements.map(x => typeof x === 'string' ? x : x?.id));
+    const newAchievements = achievements.filter(id => !prevIds.has(id));
+    return { entry, newAchievements };
+  }
+
   // ─── Abandonar ──────────────────────────────────────────────────────
 
   abandon() {
