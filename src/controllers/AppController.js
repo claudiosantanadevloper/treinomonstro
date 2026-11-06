@@ -473,7 +473,7 @@ export class AppController {
       // Qualquer setting mudou enquanto a aba settings está aberta → re-render
       if (state.tab === "settings") {
         const settingsKeys = [
-          'vibrationEnabled', 'timerSoundEnabled', 'weightIncrement', 'autoFillOnStart',
+          'vibrationEnabled', 'timerSoundEnabled', 'autoStartRestTimer', 'weightIncrement', 'autoFillOnStart',
           'defaultRestTime', 'inactivityResetDays', 'cardioCountsStreak',
           'weeklyCardioKmGoal', 'weeklyCardioMinGoal', 'defaultCardioProtocol',
           'notificationsEnabled', 'notificationTime', 'activeCommute', 'goal',
@@ -876,7 +876,7 @@ export class AppController {
       const prevCount = countSets(prevEx, ex.sets);
 
       if (newCount !== prevCount) {
-        patchSetsContainer(wId, workout, ex.id, newLogs, lastSets, state.prs, state.restOverrides?.[ex.id] ?? null);
+        patchSetsContainer(wId, workout, ex.id, newLogs, lastSets, state.prs, state.restOverrides?.[wId]?.[ex.id] ?? null);
         patchProgressionBadge(wId, ex.id, newEx, lastSets[ex.id] ?? []);
         return;
       }

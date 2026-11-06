@@ -289,10 +289,13 @@ function renderMissionBlock(nextWorkout, cycleDone, history, defaultProtocol, ca
   // Tipo muscular do próximo treino
   const wType = nextWorkout?.muscleGroupType ?? null;
 
-  // Treino de pernas feito nos últimos 2 dias (indica recuperação necessária)
+  // Treino de pernas feito nos últimos 2 dias (usa muscleGroupType quando disponível)
+  const { allWorkouts = [] } = cycleContext;
   const legsDoneRecently = history.some(h => {
     const daysAgo = (Date.now() - new Date(h.date)) / 86400000;
-    return daysAgo < 2 && ['2', '5'].includes(h.workoutId);
+    if (daysAgo >= 2) return false;
+    const w = allWorkouts.find(x => x.id === h.workoutId);
+    return w ? w.muscleGroupType === 'legs' : ['2', '5'].includes(h.workoutId);
   });
 
   // Última recuperação reportada (fadiga ≥ 4 = atenção)
@@ -1439,7 +1442,7 @@ export function renderHome(state, workouts, protocols = []) {
       ${staleBanner}
       ${bioOverdueBannerHtml}
       ${onboardBanner}
-      ${renderMissionBlock(nextWorkout, cycleDone, history, defaultProtocol, cardioHistory, workoutStartTime, L, nextIsOff, { cycleStart: state.cycleStart ?? null, activeCommute: state.activeCommute ?? null, commuteReturnOverride: state.commuteReturnOverride ?? null })}
+      ${renderMissionBlock(nextWorkout, cycleDone, history, defaultProtocol, cardioHistory, workoutStartTime, L, nextIsOff, { cycleStart: state.cycleStart ?? null, activeCommute: state.activeCommute ?? null, commuteReturnOverride: state.commuteReturnOverride ?? null, allWorkouts: workouts })}
       ${insightHtml}
       ${renderGoalProgressCard(history, cardioHistory, goal)}
 
