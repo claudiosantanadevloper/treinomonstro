@@ -29,18 +29,22 @@ export class CardioController {
     const protocol = this.getProtocol(protocolId);
     if (!protocol) return;
 
+    const now = Date.now();
     const session = {
       protocolId,
       type,
       local,
-      startTime:    Date.now(),
-      blockIndex:   0,
-      blockElapsed: 0,
-      totalElapsed: 0,
-      paused:       false,
-      pausedAt:     null,
-      gpsPoints:    [],
-      distanceM:    0,
+      startTime:      now,
+      blockStartTime: now,
+      blockIndex:     0,
+      blockElapsed:   0,
+      totalElapsed:   0,
+      totalPausedMs:  0,
+      blockPausedMs:  0,
+      paused:         false,
+      pausedAt:       null,
+      gpsPoints:      [],
+      distanceM:      0,
     };
 
     this.#store.setState({ activeCardioSession: session, defaultCardioProtocol: protocolId });
@@ -52,52 +56,53 @@ export class CardioController {
     const s = this.#state.activeCardioSession;
     if (!s || s.paused) return;
 
-    const protocol   = this.getProtocol(s.protocolId);
+    const protocol = this.getProtocol(s.protocolId);
     if (!protocol) return;
 
-    const block      = protocol.blocks[s.blockIndex];
-    const newBlock   = s.blockElapsed + 1;
-    const newTotal   = s.totalElapsed + 1;
+    const now = Date.now();
+    // Reconstituir blockStartTime de sessões antigas sem o campo
+    const blockStartTime = s.blockStartTime ?? (now - s.blockElapsed * 1000);
+    const totalElapsed   = Math.floor((now - s.startTime - (s.totalPausedMs || 0)) / 1000);
+    const blockElapsed   = Math.floor((now - blockStartTime - (s.blockPausedMs || 0)) / 1000);
 
     // Protocolo livre: nunca avança bloco automaticamente
     if (protocol.id === 'livre') {
       this.#store.setState({
-        activeCardioSession: { ...s, blockElapsed: newBlock, totalElapsed: newTotal },
+        activeCardioSession: { ...s, blockStartTime, blockElapsed, totalElapsed },
       });
       return;
     }
 
+    const block = protocol.blocks[s.blockIndex];
+
     // Bloco concluído?
-    if (block.duration > 0 && newBlock >= block.duration) {
+    if (block.duration > 0 && blockElapsed >= block.duration) {
       const nextIndex = s.blockIndex + 1;
 
       // Protocolo completo
       if (nextIndex >= protocol.blocks.length) {
         this.#store.setState({
-          activeCardioSession: {
-            ...s,
-            blockElapsed: newBlock,
-            totalElapsed: newTotal,
-            completed:    true,
-          },
+          activeCardioSession: { ...s, blockStartTime, blockElapsed, totalElapsed, completed: true },
         });
         return;
       }
 
-      // Avança bloco
+      // Avança bloco — novo blockStartTime e zera blockPausedMs
       this.#store.setState({
         activeCardioSession: {
           ...s,
-          blockIndex:   nextIndex,
-          blockElapsed: 0,
-          totalElapsed: newTotal,
+          blockIndex:     nextIndex,
+          blockStartTime: now,
+          blockPausedMs:  0,
+          blockElapsed:   0,
+          totalElapsed,
         },
       });
       return;
     }
 
     this.#store.setState({
-      activeCardioSession: { ...s, blockElapsed: newBlock, totalElapsed: newTotal },
+      activeCardioSession: { ...s, blockStartTime, blockElapsed, totalElapsed },
     });
   }
 
@@ -114,8 +119,15 @@ export class CardioController {
   resume() {
     const s = this.#state.activeCardioSession;
     if (!s || !s.paused) return;
+    const pausedDuration = Date.now() - (s.pausedAt ?? Date.now());
     this.#store.setState({
-      activeCardioSession: { ...s, paused: false, pausedAt: null },
+      activeCardioSession: {
+        ...s,
+        paused:        false,
+        pausedAt:      null,
+        totalPausedMs: (s.totalPausedMs || 0) + pausedDuration,
+        blockPausedMs: (s.blockPausedMs || 0) + pausedDuration,
+      },
     });
   }
 
@@ -127,7 +139,13 @@ export class CardioController {
     const nextIndex = s.blockIndex + 1;
     if (nextIndex >= protocol.blocks.length) return;
     this.#store.setState({
-      activeCardioSession: { ...s, blockIndex: nextIndex, blockElapsed: 0 },
+      activeCardioSession: {
+        ...s,
+        blockIndex:     nextIndex,
+        blockStartTime: Date.now(),
+        blockPausedMs:  0,
+        blockElapsed:   0,
+      },
     });
   }
 
@@ -145,14 +163,17 @@ export class CardioController {
 
   // ─── Finalizar e salvar ─────────────────────────────────────────────
 
-  finish({ effort, notes = '' } = {}) {
+  finish({ effort, notes = '', distanceOverrideM = null } = {}) {
     const s = this.#state.activeCardioSession;
     if (!s) return null;
 
     const protocol    = this.getProtocol(s.protocolId);
     const durationMin = s.totalElapsed / 60;
     const local       = s.local;
-    const distanceKm  = (s.distanceM || 0) / 1000;
+    // Se distância manual foi informada, ela prevalece sobre GPS
+    const hasOverride = distanceOverrideM != null && distanceOverrideM > 0;
+    const distanceKm  = hasOverride ? distanceOverrideM / 1000 : (s.distanceM || 0) / 1000;
+    const distSource  = hasOverride ? 'manual' : ((s.gpsPoints || []).length > 0 ? 'gps' : 'none');
 
     let pace = '';
     if (s.type !== 'bike' && distanceKm >= 0.1 && durationMin > 0) {
@@ -163,17 +184,18 @@ export class CardioController {
     }
 
     const entry = {
-      date:       new Date().toISOString(),
-      type:       s.type || 'corrida',
-      local:      local ?? null,
-      distance:   Math.round(distanceKm * 100) / 100,
-      duration:   Math.round(durationMin * 100) / 100,
+      date:           new Date().toISOString(),
+      type:           s.type || 'corrida',
+      local:          local ?? null,
+      distance:       Math.round(distanceKm * 100) / 100,
+      distanceSource: distSource,
+      duration:       Math.round(durationMin * 100) / 100,
       pace,
-      effort:     effort || (s.protocolId === 'zona2-30' || s.protocolId === 'zona2-45' ? 'moderado' : 'forte'),
+      effort:         effort || (s.protocolId === 'zona2-30' || s.protocolId === 'zona2-45' ? 'moderado' : 'forte'),
       notes,
-      protocolId: s.protocolId,
-      protocolName: protocol?.name ?? 'Livre',
-      gpsTracked: (s.gpsPoints || []).length > 0,
+      protocolId:     s.protocolId,
+      protocolName:   protocol?.name ?? 'Livre',
+      gpsTracked:     (s.gpsPoints || []).length > 0,
     };
 
     const prev = this.#state.cardioHistory || [];

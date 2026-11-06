@@ -5584,6 +5584,16 @@ export class AppController {
             </div>
           </div>
 
+          <div>
+            <div class="text-[9px] text-zinc-500 font-bold uppercase tracking-wider mb-2 flex items-center gap-1.5">
+              <i data-lucide="ruler" class="w-3 h-3"></i>Distância real (km)
+              ${distKm >= 0.1 ? `<span class="normal-case font-normal text-zinc-600">GPS: ${distKm.toFixed(2)} km — altere se for esteira</span>` : `<span class="normal-case font-normal text-zinc-600">informe se tiver distância</span>`}
+            </div>
+            <input type="tel" inputmode="decimal" id="cardio-finish-distance"
+                   placeholder="${distKm >= 0.1 ? distKm.toFixed(2) : '0.00'}"
+                   class="input-ninja w-full py-2.5 rounded-lg text-xs font-mono" />
+          </div>
+
           <input type="text" id="cardio-finish-notes" placeholder="Notas (opcional)..."
                  class="input-ninja w-full py-2.5 rounded-lg text-xs font-mono" />
 
@@ -5612,10 +5622,13 @@ export class AppController {
       b.addEventListener('click', () => { finishEffort = b.dataset.finishEffort; syncEffort(); }));
 
     ml.querySelector('#save-cardio-finish')?.addEventListener('click', () => {
-      const notes = ml.querySelector('#cardio-finish-notes')?.value?.trim() || '';
+      const notes       = ml.querySelector('#cardio-finish-notes')?.value?.trim() || '';
+      const distRaw     = ml.querySelector('#cardio-finish-distance')?.value?.trim().replace(',', '.') || '';
+      const distKmInput = parseFloat(distRaw);
+      const distanceOverrideM = (!isNaN(distKmInput) && distKmInput > 0) ? distKmInput * 1000 : null;
       this.#stopCardioInterval();
       this.#stopCardioGPS();
-      const result = this.#cardioCtrl.finish({ effort: finishEffort, notes });
+      const result = this.#cardioCtrl.finish({ effort: finishEffort, notes, distanceOverrideM });
       this.#closeModal();
       if (result) this.#showCardioBattleReport(result);
       else this.#navigate('cardio');
