@@ -267,6 +267,32 @@ export function renderCardio(state, protocols) {
       ${block.instruction}
     </div>
 
+    <!-- Talk Test (aparece 2min+ em blocos moderado/forte, oculto após resposta) -->
+    <div id="cardio-talk-test" class="hidden w-full max-w-sm mb-3">
+      <div class="text-[9px] text-white/35 uppercase tracking-widest text-center mb-2">Checagem de esforço</div>
+      <div class="text-[11px] text-white/60 text-center mb-2.5">Você consegue falar frases completas?</div>
+      <div class="grid grid-cols-3 gap-1.5">
+        <button data-action="cardio-talk-test-answer" data-payload="frases_completas"
+          class="ripple-target py-2.5 px-1 rounded-xl bg-emerald-900/40 border border-emerald-700/50
+                 text-emerald-300 text-[8px] font-bold leading-snug active:scale-95 transition-all text-center">
+          Sim, consigo<br>conversar
+        </button>
+        <button data-action="cardio-talk-test-answer" data-payload="com_dificuldade"
+          class="ripple-target py-2.5 px-1 rounded-xl bg-amber-900/40 border border-amber-700/50
+                 text-amber-300 text-[8px] font-bold leading-snug active:scale-95 transition-all text-center">
+          Consigo,<br>com esforço
+        </button>
+        <button data-action="cardio-talk-test-answer" data-payload="apenas_palavras"
+          class="ripple-target py-2.5 px-1 rounded-xl bg-rose-900/40 border border-rose-700/50
+                 text-rose-300 text-[8px] font-bold leading-snug active:scale-95 transition-all text-center">
+          Não, poucas<br>palavras
+        </button>
+      </div>
+    </div>
+    <div id="cardio-talk-test-done" class="hidden text-[9px] text-white/30 text-center mb-2">
+      ✓ Checagem de esforço registrada
+    </div>
+
     <!-- Stats GPS -->
     <div class="grid grid-cols-3 gap-3 w-full max-w-sm mb-4">
       <div class="bg-white/5 rounded-xl p-3 text-center">
@@ -451,6 +477,23 @@ export function patchCardioTimer(state, protocols) {
     if (elEl) elEl.textContent = fmtSecs(s.blockElapsed);
   }
 
+  // Talk test: aparece 2min+ em blocos moderado/forte; oculto após resposta
+  const talkTestEl  = document.getElementById('cardio-talk-test');
+  const talkDoneEl  = document.getElementById('cardio-talk-test-done');
+  if (talkTestEl && talkDoneEl) {
+    const hasAnswered = (s.blockFeedback ?? []).some(f => f.blockIndex === blockIdx);
+    if (hasAnswered) {
+      talkTestEl.classList.add('hidden');
+      talkDoneEl.classList.remove('hidden');
+    } else if (block.effort !== 'fácil' && s.blockElapsed >= 120) {
+      talkTestEl.classList.remove('hidden');
+      talkDoneEl.classList.add('hidden');
+    } else {
+      talkTestEl.classList.add('hidden');
+      talkDoneEl.classList.add('hidden');
+    }
+  }
+
   // GPS stats
   const distM       = s.distanceM || 0;
   const durationMin = s.totalElapsed / 60;
@@ -469,6 +512,6 @@ export function patchCardioTimer(state, protocols) {
 
 export function mountCardio(container, handler) {
   delegate(container, '[data-action]', 'click', (e, el) => {
-    handler(el.dataset.action, el.dataset.protocolId);
+    handler(el.dataset.action, el.dataset.payload ?? el.dataset.protocolId);
   });
 }

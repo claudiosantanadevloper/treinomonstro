@@ -161,9 +161,50 @@ export class CardioController {
     });
   }
 
+  // ─── Feedback de bloco (talk test) ──────────────────────────────────
+
+  addBlockFeedback({ blockIndex, elapsedSec, effortScore = null, talkTest = null }) {
+    const s = this.#state.activeCardioSession;
+    if (!s) return;
+    const existing = (s.blockFeedback ?? []).filter(f => f.blockIndex !== blockIndex);
+    this.#store.setState({
+      activeCardioSession: {
+        ...s,
+        blockFeedback: [...existing, { blockIndex, elapsedSec, effortScore, talkTest }],
+      },
+    });
+  }
+
+  // ─── Progressão calculada ────────────────────────────────────────────
+
+  static #computeProgression(newEntry, history) {
+    const comparable = history
+      .filter(h => h.protocolId === newEntry.protocolId && h.effortScore != null)
+      .slice(0, 6);
+
+    if (comparable.length < 2) {
+      return { decision: 'repeat', reason: 'baseline_insufficient', confidence: 'low' };
+    }
+
+    const scores = [newEntry.effortScore, ...comparable.map(h => h.effortScore)].filter(v => v != null);
+    const avg3   = scores.slice(0, 3).reduce((a, b) => a + b, 0) / Math.min(3, scores.length);
+    // trend: diferença entre esforço mais recente e mais antigo (negativo = melhora)
+    const trend  = scores.length >= 3 ? scores[0] - scores[scores.length - 1] : 0;
+
+    if (avg3 >= 8)
+      return { decision: 'reduce',           reason: 'high_perceived_effort',   confidence: 'medium' };
+    if (avg3 <= 3 && comparable.length >= 3)
+      return { decision: 'increase_duration', reason: 'low_effort_consistent',   confidence: 'medium' };
+    if (trend <= -2 && avg3 <= 5 && comparable.length >= 3)
+      return { decision: 'increase_speed',   reason: 'effort_declining_at_speed', confidence: 'medium' };
+    if (comparable.length >= 3)
+      return { decision: 'repeat',           reason: 'stable',                  confidence: 'medium' };
+    return   { decision: 'repeat',           reason: 'insufficient_sessions',   confidence: 'low' };
+  }
+
   // ─── Finalizar e salvar ─────────────────────────────────────────────
 
-  finish({ effort, notes = '', distanceOverrideM = null, segments = null, effortScore = null } = {}) {
+  finish({ effort, notes = '', distanceOverrideM = null, segments = null, effortScore = null, recovery = null } = {}) {
     const s = this.#state.activeCardioSession;
     if (!s) return null;
 
@@ -197,6 +238,8 @@ export class CardioController {
       pace = `${mins}:${String(secs).padStart(2, '0')}`;
     }
 
+    const scoreNorm = effortScore != null ? Math.min(10, Math.max(1, Math.round(effortScore))) : null;
+
     const entry = {
       date:           new Date().toISOString(),
       type:           s.type || 'corrida',
@@ -206,13 +249,21 @@ export class CardioController {
       duration:       Math.round(durationMin * 100) / 100,
       pace,
       effort:         effort || (s.protocolId === 'zona2-30' || s.protocolId === 'zona2-45' ? 'moderado' : 'forte'),
-      effortScore:    effortScore != null ? Math.min(10, Math.max(1, Math.round(effortScore))) : null,
+      effortScore:    scoreNorm,
       segments:       validSegments ?? null,
+      blockFeedback:  (s.blockFeedback ?? []).length > 0 ? s.blockFeedback : null,
+      recovery:       recovery ?? null,
       notes,
       protocolId:     s.protocolId,
       protocolName:   protocol?.name ?? 'Livre',
       gpsTracked:     (s.gpsPoints || []).length > 0,
     };
+
+    // Calcular progressão recomendada (precisa de effortScore para ser confiável)
+    const progression = scoreNorm != null
+      ? CardioController.#computeProgression(entry, this.#state.cardioHistory ?? [])
+      : null;
+    if (progression) entry.progression = progression;
 
     const prev = this.#state.cardioHistory || [];
     const cardioHistory = [entry, ...prev].slice(0, 100);

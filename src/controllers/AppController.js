@@ -4511,6 +4511,18 @@ export class AppController {
         this.#cardioCtrl.skipBlock();
         break;
 
+      case "cardio-talk-test-answer": {
+        const session = this.#store.getState().activeCardioSession;
+        if (session) {
+          this.#cardioCtrl.addBlockFeedback({
+            blockIndex:  session.blockIndex,
+            elapsedSec:  session.totalElapsed,
+            talkTest:    payload,
+          });
+        }
+        break;
+      }
+
       case "cardio-finish":
         this.#showCardioFinishModal();
         break;
@@ -5623,6 +5635,22 @@ export class AppController {
             <input type="tel" inputmode="decimal" id="cardio-finish-distance" class="hidden" />`}
           </div>
 
+          <!-- Recuperação -->
+          <div class="grid grid-cols-2 gap-3">
+            <div>
+              <div class="text-[9px] text-zinc-500 font-bold uppercase tracking-wider mb-2">Fadiga geral</div>
+              <div id="fatigue-row" class="flex gap-1 justify-between">
+                ${[1,2,3,4,5].map(n => `<button data-fatigue="${n}" class="fatigue-btn flex-1 py-2 rounded-lg border border-zinc-800 text-zinc-500 text-[10px] font-black active:scale-95 transition-all">${n}</button>`).join('')}
+              </div>
+            </div>
+            <div>
+              <div class="text-[9px] text-zinc-500 font-bold uppercase tracking-wider mb-2">Pernas (desconforto)</div>
+              <div id="legs-row" class="flex gap-1 justify-between">
+                ${[1,2,3,4,5].map(n => `<button data-legs="${n}" class="legs-btn flex-1 py-2 rounded-lg border border-zinc-800 text-zinc-500 text-[10px] font-black active:scale-95 transition-all">${n}</button>`).join('')}
+              </div>
+            </div>
+          </div>
+
           <input type="text" id="cardio-finish-notes" placeholder="Notas (opcional)..."
                  class="input-ninja w-full py-2.5 rounded-lg text-xs font-mono" />
 
@@ -5667,6 +5695,24 @@ export class AppController {
     };
     ml.querySelectorAll('.effort-score-btn').forEach(b =>
       b.addEventListener('click', () => { effortScore = parseInt(b.dataset.effortScore); syncEffortScore(); }));
+
+    // ── Recuperação ─────────────────────────────────────────────────
+    let fatigueScore = null, legsScore = null;
+    const REC_COLORS = ['bg-emerald-900/40 border-emerald-700/50 text-emerald-300',
+                        'bg-amber-900/40  border-amber-700/50  text-amber-300',
+                        'bg-rose-900/40   border-rose-700/50   text-rose-300'];
+    const recColor = (n) => n <= 2 ? REC_COLORS[0] : n <= 3 ? REC_COLORS[1] : REC_COLORS[2];
+    const syncRec = (selector, current) => {
+      ml.querySelectorAll(selector).forEach(b => {
+        const n = parseInt(b.dataset.fatigue ?? b.dataset.legs);
+        const on = n === current;
+        b.className = `${b.className.split(' ')[0]} flex-1 py-2 rounded-lg border text-[10px] font-black active:scale-95 transition-all ${on ? recColor(n) : 'border-zinc-800 text-zinc-500 bg-transparent'}`;
+      });
+    };
+    ml.querySelectorAll('.fatigue-btn').forEach(b =>
+      b.addEventListener('click', () => { fatigueScore = parseInt(b.dataset.fatigue); syncRec('.fatigue-btn', fatigueScore); }));
+    ml.querySelectorAll('.legs-btn').forEach(b =>
+      b.addEventListener('click', () => { legsScore = parseInt(b.dataset.legs); syncRec('.legs-btn', legsScore); }));
 
     // ── Segmentos de velocidade ─────────────────────────────────────
     const segContainer = ml.querySelector('#segments-container');
@@ -5772,12 +5818,17 @@ export class AppController {
 
       this.#stopCardioInterval();
       this.#stopCardioGPS();
+      const recovery = (fatigueScore != null || legsScore != null)
+        ? { fatigueScore: fatigueScore ?? null, legDiscomfort: legsScore ?? null }
+        : null;
+
       const result = this.#cardioCtrl.finish({
         effort: finishEffort,
         notes,
         distanceOverrideM,
         segments: segments.length ? segments : null,
         effortScore,
+        recovery,
       });
       this.#closeModal();
       if (result) this.#showCardioBattleReport(result);
@@ -5868,6 +5919,35 @@ export class AppController {
           </div>
 
           ${achievementHtml}
+
+          ${(() => {
+            const p = entry.progression;
+            if (!p) return '';
+            const cfg = {
+              repeat:            { icon: 'rotate-ccw',  color: 'text-blue-400',    bg: 'bg-blue-900/20 border-blue-800/40',    label: 'Repetir o protocolo' },
+              increase_duration: { icon: 'trending-up', color: 'text-green-400',   bg: 'bg-green-900/20 border-green-800/40',  label: 'Aumentar duração' },
+              increase_speed:    { icon: 'zap',         color: 'text-cyan-400',    bg: 'bg-cyan-900/20 border-cyan-800/40',    label: 'Considerar velocidade maior' },
+              reduce:            { icon: 'arrow-down',  color: 'text-orange-400',  bg: 'bg-orange-900/20 border-orange-800/40', label: 'Reduzir intensidade' },
+            };
+            const reasons = {
+              baseline_insufficient: 'dados insuficientes para comparação — estabelecendo linha de base',
+              low_effort_consistent: 'esforço baixo em 3+ sessões — possível adaptação',
+              effort_declining_at_speed: 'esforço caindo com mesma velocidade — sinal de melhora',
+              high_perceived_effort:  'esforço percebido alto — priorize recuperação antes de progredir',
+              stable:                 'desempenho estável — mantenha o protocolo',
+              insufficient_sessions:  'menos de 3 sessões comparáveis — continue registrando',
+            };
+            const c = cfg[p.decision] ?? cfg.repeat;
+            return `<div class="${c.bg} border rounded-2xl p-4 mb-4">
+              <div class="text-[9px] font-black uppercase tracking-widest mb-2 flex items-center gap-1.5 ${c.color}">
+                <i data-lucide="${c.icon}" class="w-3.5 h-3.5"></i>Recomendação — próxima sessão
+                <span class="text-[8px] text-zinc-600 normal-case font-normal ml-auto">confiança: ${p.confidence}</span>
+              </div>
+              <div class="text-sm font-black text-white mb-1">${c.label}</div>
+              <div class="text-[10px] text-zinc-400">${reasons[p.reason] ?? p.reason}</div>
+              <div class="text-[8px] text-zinc-600 mt-2 italic">Esta sugestão é baseada em esforço percebido registrado. Confirme com seu profissional de saúde antes de alterar a prescrição.</div>
+            </div>`;
+          })()}
 
           ${quote ? `
           <div class="rounded-2xl border border-white/5 p-4 mb-4 text-center" style="background:rgba(255,255,255,0.02)">
