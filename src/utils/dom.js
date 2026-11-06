@@ -4,13 +4,13 @@ export const $$ = (sel, root = document) => Array.from(root.querySelectorAll(sel
 /**
  * Event delegation: ouve eventos no container, filtra por selector.
  */
-export function delegate(container, selector, eventType, handler) {
+export function delegate(container, selector, eventType, handler, options) {
   container.addEventListener(eventType, e => {
     const target = e.target.closest(selector);
     if (target && container.contains(target)) {
       handler(e, target);
     }
-  });
+  }, options);
 }
 
 /**

@@ -31,7 +31,7 @@ import { renderBattleReport } from "../views/BattleReportView.js";
 import { SPLIT_TEMPLATES, generateWorkoutsFromTemplate } from "../data/workoutTemplates.js";
 import { parsePDFWorkout } from "../services/PDFImportService.js";
 import { getExerciseMedia } from "../data/exerciseMedia.js";
-import { $, setHTML, show, hide, createRipple } from "../utils/dom.js";
+import { $, setHTML, show, hide, createRipple, delegate } from "../utils/dom.js";
 import { getLabels } from "../utils/labels.js";
 import {
   formatTime,
@@ -85,6 +85,11 @@ export class AppController {
   #obStep             = 0;
   #obData             = {};
   #restPill           = null;
+  #modalKey = null;
+  #modalReturnFocus = null;
+  #modalDrafts = new Map();
+  #runDismiss = null;
+  #celebrationClose = null;
 
   constructor({ store, workouts, cardioProtocols = [], timer, theme, storage, exportService }) {
     this.#store = store;
@@ -117,6 +122,39 @@ export class AppController {
   }
 
   init() {
+    // Uma delegação para todas as saídas; captura antes dos handlers legados.
+    for (const layer of [this.#modalLayer, this.#reportLayer]) {
+      delegate(layer, '[data-action="dismiss-modal"]', 'click', (e) => {
+        e.preventDefault();
+        e.stopImmediatePropagation();
+        this.#handleAction('dismiss-modal');
+      }, true);
+      delegate(layer, '[data-modal-backdrop]', 'click', (e, backdrop) => {
+        if (e.target !== backdrop) return;
+        e.stopImmediatePropagation();
+        this.#handleAction('dismiss-modal');
+      }, true);
+    }
+    document.addEventListener('keydown', e => {
+      const dialog = document.querySelector('#celebration-overlay[role="dialog"]')
+        ?? this.#reportLayer.querySelector('[role="dialog"]')
+        ?? this.#modalLayer.querySelector('[role="dialog"]');
+      if (!dialog) return;
+      if (e.key === 'Escape') {
+        e.preventDefault();
+        this.#handleAction('dismiss-modal');
+      } else if (e.key === 'Tab') {
+        const controls = [...dialog.querySelectorAll('button, input, textarea, select, a[href], [tabindex="0"]')]
+          .filter(el => !el.disabled && el.getClientRects().length);
+        const first = controls[0], last = controls.at(-1);
+        if (!first) { e.preventDefault(); dialog.focus(); return; }
+        if (e.shiftKey && (document.activeElement === first || !controls.includes(document.activeElement))) {
+          e.preventDefault(); last.focus();
+        } else if (!e.shiftKey && (document.activeElement === last || !controls.includes(document.activeElement))) {
+          e.preventDefault(); first.focus();
+        }
+      }
+    });
     // Delegação de eventos do header (setup único — sem acumulação de listeners)
     this.#header.addEventListener("click", (e) => {
       const btn = e.target.closest("button[data-action]");
@@ -178,7 +216,7 @@ export class AppController {
       Date.now() - state.workoutStartTime > 8 * 3600000
     ) {
       const hours = Math.round((Date.now() - state.workoutStartTime) / 3600000);
-      setTimeout(() => this.#showStaleSessionModal(hours), 200);
+      setTimeout(() => this.#openModal("stale-session", { hours }), 200);
     } else if (state.workoutId && state.workoutStartTime) {
       // Sessão recente (<8h): restaurar tab workout automaticamente
       this.#store.setState({ tab: 'workout' });
@@ -232,7 +270,7 @@ export class AppController {
         }) || (state.cardioHistory ?? []).some(c => {
           const d = new Date(c.date); return d >= _lastMon && d <= _lastSun;
         });
-        if (_hasData) setTimeout(() => this.#showWeeklyRetroModal(), 2000);
+        if (_hasData) setTimeout(() => this.#openModal("weekly-retro"), 2000);
       }
     }
   }
@@ -246,7 +284,7 @@ export class AppController {
 
       const tabChanged = state.tab !== prev.tab;
       const workoutChanged = state.workoutId !== prev.workoutId;
-      const modalChanged = state.activeModal !== prev.activeModal;
+      const modalChanged = state.activeModal !== prev.activeModal || state.modalData !== prev.modalData;
       const themeChanged = state.theme !== prev.theme;
       const logsChanged = state.logs !== prev.logs;
       const prsChanged = state.prs !== prev.prs;
@@ -396,7 +434,7 @@ export class AppController {
       if (state.completedCycles !== prev.completedCycles &&
           state.completedCycles > 0 &&
           state.completedCycles % 4 === 0) {
-        setTimeout(() => this.#showDeloadModal(state.completedCycles), 1200);
+        setTimeout(() => this.#openModal("deload", { cycleCount: state.completedCycles }), 1200);
       }
 
       // Re-render pontual quando dados do perfil mudam
@@ -521,8 +559,8 @@ export class AppController {
           this.#stopCardioGPS();
           // Abre modal de finalização automaticamente após 1.2s
           setTimeout(() => {
-            if (this.#store.getState().activeCardioSession?.completed) {
-              this.#showCardioFinishModal();
+            if (this.#store.getState().activeCardioSession?.completed && !this.#store.getState().activeModal) {
+              this.#openModal("cardio-finish");
             }
           }, 1200);
           return;
@@ -565,6 +603,8 @@ export class AppController {
     this.#updateNav(state);
     this.#renderHeader(state);
     this.#renderMain(state);
+    // O conteúdo pode sair cedo quando finishWorkout já limpou workoutId.
+    this.#renderModal(state);
     this.#syncIcons();
 
     if (state.tab === "workout" && state.workoutStartTime) {
@@ -1055,7 +1095,7 @@ export class AppController {
       });
       this.#header.querySelector('#timer-sub')?.addEventListener('click', () => this.#timer.adjustBy(-15));
       this.#header.querySelector('#timer-add')?.addEventListener('click', () => this.#timer.adjustBy(15));
-      this.#header.querySelector('#plate-calc-btn')?.addEventListener('click', () => this.#showPlateCalcModal());
+      this.#header.querySelector('#plate-calc-btn')?.addEventListener('click', () => this.#openModal("plate-calc"));
       this.#header.querySelector('#timer-restart-btn')?.addEventListener('click', () => {
         const rb = document.getElementById('timer-restart-btn');
         if (rb) hide(rb);
@@ -1204,13 +1244,144 @@ export class AppController {
 
   /* ─── Modais ──────────────────────────────────────────────────── */
 
+  #getModalKey(state) {
+    const session = state.activeModal === 'cardio-finish' ? state.activeCardioSession?.startTime
+      : ['notes', 'ex-note'].includes(state.activeModal) ? state.workoutStartTime : null;
+    return JSON.stringify([state.activeModal, state.modalData, session]);
+  }
+
+  #openModal(activeModal, modalData = null) {
+    const state = this.#store.getState();
+    if (activeModal === 'cardio-finish' && !state.activeCardioSession) return;
+    if (['stale-session', 'weekly-retro', 'deload'].includes(activeModal) && state.activeModal) return;
+    this.#store.setState({ activeModal, modalData });
+  }
+
+  #setModalBackground(open) {
+    for (const el of [this.#main, this.#header, this.#nav]) el.inert = open;
+    document.documentElement.classList.toggle('modal-open', open);
+  }
+
+  #prepareModal(layer, state) {
+    const backdrop = layer.firstElementChild;
+    if (!backdrop) return;
+    const dialog = backdrop.querySelector(':scope > .glass-card') ?? backdrop;
+    backdrop.dataset.modalBackdrop = '';
+    dialog.classList.add('modal-dialog');
+    dialog.setAttribute('role', 'dialog');
+    dialog.setAttribute('aria-modal', 'true');
+    dialog.tabIndex = -1;
+    const title = dialog.querySelector('h2, h3');
+    if (title) {
+      title.id ||= 'active-modal-title';
+      dialog.setAttribute('aria-labelledby', title.id);
+    } else {
+      const labels = {
+        'cardio-presession': 'Iniciar sessão de cardio', 'cardio-finish': 'Finalizar sessão de cardio',
+        'cardio-report': 'Relatório de cardio', 'battle-report': 'Relatório do treino',
+        'run-tracker': 'Rastreio GPS', 'exercise-focus': 'Foco no exercício',
+        'plate-calc': 'Calculadora de anilhas', calendar: 'Calendário de treinos', hub: 'Central de treino',
+      };
+      dialog.setAttribute('aria-label', labels[state.activeModal] ?? 'Detalhes do treino');
+    }
+    // Reaproveita os X existentes, incluindo os já transformados em SVG pelo Lucide.
+    const closeButtons = [...dialog.querySelectorAll('button')].filter(button =>
+      (button.querySelector('[data-lucide="x"]') && !button.matches('.pdf-ex-remove, .seg-remove')) ||
+      ['confirm-no', 'cancel-finish', 'cancel-finish-btn', 'demo-close2', 'retro-close',
+        'deload-ok', 'hint-close', 'cardio-report-close-btn', 'end-operation'].includes(button.id));
+    if (!closeButtons.some(button => button.querySelector('[data-lucide="x"]'))) {
+      const row = document.createElement('div');
+      row.className = 'modal-dismiss-row';
+      row.innerHTML = '<button type="button" data-action="dismiss-modal" class="modal-close-control ripple-target" aria-label="Fechar janela" title="Fechar"><i data-lucide="x" aria-hidden="true"></i></button>';
+      dialog.prepend(row);
+    }
+    for (const button of closeButtons) {
+      button.dataset.action = 'dismiss-modal';
+      button.type = 'button';
+      if (button.querySelector('[data-lucide="x"]')) {
+        button.classList.add('modal-close-control');
+        button.setAttribute('aria-label', 'Fechar janela');
+        button.title = 'Fechar';
+      }
+    }
+    dialog.querySelectorAll('button').forEach(button => button.classList.add('ripple-target', 'modal-touch-target'));
+    if (state.activeModal === 'cardio-finish' && state.activeCardioSession) {
+      const session = state.activeCardioSession;
+      const sec = session.totalElapsed, km = (session.distanceM || 0) / 1000;
+      const bike = session.type === 'bike';
+      const pace = km >= 0.05 && sec >= 6 ? (bike ? (km * 3600 / sec).toFixed(1) : formatTime(Math.round(sec / km))) : (bike ? '--' : '--:--');
+      dialog.querySelector('[data-review-time]').textContent = formatTime(sec);
+      dialog.querySelector('[data-review-distance]').textContent = km >= 0.1 ? `${km.toFixed(2)}km` : `${Math.round(session.distanceM || 0)}m`;
+      dialog.querySelector('[data-review-pace]').textContent = pace;
+    }
+    this.#setModalBackground(true);
+    if (window.lucide) lucide.createIcons({ nodes: [layer] });
+    dialog.focus({ preventScroll: true });
+  }
+
+  #dismissModal() {
+    if (this.#celebrationClose) { this.#celebrationClose(); return; }
+    const state = this.#store.getState();
+    if (state.activeModal === 'run-tracker' && this.#runDismiss && !this.#runDismiss()) return;
+    this.#rememberModalDraft();
+    if (state.activeModal === 'battle-report' || state.activeModal === 'cardio-report') this.#closeReport();
+    else this.#closeModal();
+  }
+
+  #rememberModalDraft() {
+    if (!this.#modalKey || !this.#modalLayer.firstElementChild) return;
+    const [id, data] = JSON.parse(this.#modalKey);
+    // DOM completo preserva valores, segmentos e seleções com seus handlers locais.
+    // Apenas memória: nenhum log, histórico ou sessão é alterado ao dispensar.
+    if (['notes', 'ex-note', 'cardio-log', 'commute-run-log', 'cardio-finish', 'cardio-presession'].includes(id)
+        || (id === 'pdf-import' && !data?.loading)) {
+      const draft = document.createDocumentFragment();
+      draft.append(...this.#modalLayer.childNodes);
+      this.#modalDrafts.set(this.#modalKey, draft);
+    }
+  }
+
   #renderModal(state) {
     if (!state.activeModal) {
-      this.#modalLayer.innerHTML = "";
+      this.#modalLayer.replaceChildren();
+      this.#reportLayer.replaceChildren();
+      this.#modalKey = null;
+      this.#setModalBackground(false);
+      const opener = this.#modalReturnFocus;
+      this.#modalReturnFocus = null;
+      if (opener?.isConnected) opener.focus({ preventScroll: true });
+      return;
+    }
+    const key = this.#getModalKey(state);
+    if (key === this.#modalKey && (this.#modalLayer.firstElementChild || this.#reportLayer.firstElementChild)) return;
+    if (!this.#modalKey) this.#modalReturnFocus = document.activeElement;
+    this.#rememberModalDraft();
+    this.#modalLayer.replaceChildren();
+    this.#reportLayer.replaceChildren();
+    this.#modalKey = key;
+    const draft = this.#modalDrafts.get(key);
+    if (draft) {
+      this.#modalDrafts.delete(key);
+      this.#modalLayer.append(draft);
+      this.#prepareModal(this.#modalLayer, state);
       return;
     }
 
     switch (state.activeModal) {
+      case 'cardio-protocol': this.#showCardioProtocolModal(); break;
+      case 'cardio-presession': this.#showCardioPreSessionModal(state.modalData.protocolId); break;
+      case 'cardio-finish': this.#showCardioFinishModal(); break;
+      case 'cardio-report': this.#showCardioBattleReport(state.modalData); break;
+      case 'stale-session': this.#showStaleSessionModal(state.modalData.hours); break;
+      case 'weekly-retro': this.#showWeeklyRetroModal(); break;
+      case 'deload': this.#showDeloadModal(state.modalData.cycleCount); break;
+      case 'plate-calc': this.#showPlateCalcModal(); break;
+      case 'hint': this.#showHintModal(state.modalData.key); break;
+      case 'ex-note': this.#showExNoteModal(state.modalData.exId, state.modalData.wId); break;
+      case 'warmup': this.#showWarmupModal(state.modalData); break;
+      case 'run-tracker': this.#showRunTrackerModal(); break;
+      case 'workout-history': this.#showWorkoutHistoryModal(state.modalData.workout, state.history); break;
+      case 'pdf-import': this.#showPDFImportModal(state.modalData); break;
       case "confirm":
         this.#showConfirmModal(state.modalData);
         break;
@@ -1251,6 +1422,8 @@ export class AppController {
         this.#showCommuteRunModal(state.modalData);
         break;
     }
+    this.#prepareModal(state.activeModal === 'battle-report' || state.activeModal === 'cardio-report'
+      ? this.#reportLayer : this.#modalLayer, state);
   }
 
 
@@ -1388,7 +1561,7 @@ export class AppController {
           <h3 class="text-white font-black uppercase italic text-xl mb-2">Tem certeza?</h3>
           <p class="text-zinc-400 text-sm mb-6 font-mono">${data.message ?? "Essa ação não pode ser desfeita."}</p>
           <div class="flex gap-3">
-            <button id="confirm-no"  class="flex-1 py-3 bg-zinc-900 border border-zinc-700 rounded-xl text-zinc-400 font-bold text-sm uppercase active:scale-95">Não</button>
+            <button id="confirm-no"  class="flex-1 py-3 bg-zinc-900 border border-zinc-700 rounded-xl text-zinc-400 font-bold text-sm uppercase active:scale-95">Cancelar</button>
             <button id="confirm-yes" class="flex-1 py-3 bg-theme-primary text-black font-black text-sm uppercase rounded-xl shadow-[0_0_15px_var(--theme-primary)] active:scale-95">SIM</button>
           </div>
         </div>
@@ -2015,7 +2188,7 @@ export class AppController {
     const syncType = () => {
       ml.querySelectorAll('.type-btn').forEach(b => {
         const on = b.dataset.typeBtn === selectedType;
-        b.className = `type-btn flex flex-col items-center gap-1.5 py-3 rounded-xl border transition-all active:scale-95 ${on ? 'bg-theme-dim border-theme-accent text-theme-primary' : 'bg-zinc-900 border-zinc-800 text-zinc-500'}`;
+        b.className = `type-btn ripple-target flex flex-col items-center gap-1.5 py-3 rounded-xl border transition-all active:scale-95 ${on ? 'bg-theme-dim border-theme-accent text-theme-primary' : 'bg-zinc-900 border-zinc-800 text-zinc-500'}`;
       });
       const ls = ml.querySelector('#local-section');
       if (ls) ls.style.display = selectedType === 'outro' ? 'none' : '';
@@ -2024,14 +2197,14 @@ export class AppController {
     const syncLocal = () => {
       ml.querySelectorAll('.local-btn').forEach(b => {
         const on = b.dataset.localBtn === selectedLocal;
-        b.className = `local-btn flex items-center justify-center gap-2 py-2.5 rounded-xl border transition-all active:scale-95 ${on ? 'bg-theme-dim border-theme-accent text-theme-primary' : 'bg-zinc-900 border-zinc-800 text-zinc-500'}`;
+        b.className = `local-btn ripple-target flex items-center justify-center gap-2 py-2.5 rounded-xl border transition-all active:scale-95 ${on ? 'bg-theme-dim border-theme-accent text-theme-primary' : 'bg-zinc-900 border-zinc-800 text-zinc-500'}`;
       });
     };
 
     const syncDist = () => {
       ml.querySelectorAll('.dist-btn').forEach(b => {
         const on = !customDistMode && parseInt(b.dataset.distBtn) === selectedDist;
-        b.className = `dist-btn px-3 py-2 rounded-lg text-xs font-black border transition-all active:scale-95 ${on ? 'bg-theme-dim border-theme-accent text-theme-primary' : 'bg-zinc-900 border-zinc-800 text-zinc-500'}`;
+        b.className = `dist-btn ripple-target px-3 py-2 rounded-lg text-xs font-black border transition-all active:scale-95 ${on ? 'bg-theme-dim border-theme-accent text-theme-primary' : 'bg-zinc-900 border-zinc-800 text-zinc-500'}`;
       });
       const ci = ml.querySelector('#dist-custom-input');
       if (ci) ci.classList.toggle('hidden', !customDistMode);
@@ -2045,7 +2218,7 @@ export class AppController {
     const syncEffort = () => {
       ml.querySelectorAll('.effort-btn').forEach(b => {
         const on = b.dataset.effortBtn === selectedEffort;
-        b.className = `effort-btn py-2.5 rounded-xl border text-xs font-black transition-all active:scale-95 ${on ? EFFORT_COLORS[b.dataset.effortBtn] : 'bg-zinc-900 border-zinc-800 text-zinc-500'}`;
+        b.className = `effort-btn ripple-target py-2.5 rounded-xl border text-xs font-black transition-all active:scale-95 ${on ? EFFORT_COLORS[b.dataset.effortBtn] : 'bg-zinc-900 border-zinc-800 text-zinc-500'}`;
       });
     };
 
@@ -2828,13 +3001,13 @@ export class AppController {
     const syncSaveLocal = () => {
       ml.querySelectorAll('.save-local-btn').forEach(b => {
         const on = b.dataset.saveLocal === saveLocal;
-        b.className = `save-local-btn flex items-center justify-center gap-2 py-2.5 rounded-xl border transition-all active:scale-95 ${on ? 'bg-theme-dim border-theme-accent text-theme-primary' : 'bg-zinc-900 border-zinc-800 text-zinc-500'}`;
+        b.className = `save-local-btn ripple-target flex items-center justify-center gap-2 py-2.5 rounded-xl border transition-all active:scale-95 ${on ? 'bg-theme-dim border-theme-accent text-theme-primary' : 'bg-zinc-900 border-zinc-800 text-zinc-500'}`;
       });
     };
     const syncSaveEffort = () => {
       ml.querySelectorAll('.save-effort-btn').forEach(b => {
         const on = b.dataset.saveEffort === saveEffort;
-        b.className = `save-effort-btn py-2.5 rounded-xl border text-xs font-black transition-all active:scale-95 ${on ? EFFORT_COLORS[b.dataset.saveEffort] : 'bg-zinc-900 border-zinc-800 text-zinc-500'}`;
+        b.className = `save-effort-btn ripple-target py-2.5 rounded-xl border text-xs font-black transition-all active:scale-95 ${on ? EFFORT_COLORS[b.dataset.saveEffort] : 'bg-zinc-900 border-zinc-800 text-zinc-500'}`;
       });
     };
 
@@ -2909,16 +3082,22 @@ export class AppController {
       this.#store.setState(s => ({
         cardioHistory: [entry, ...(s.cardioHistory ?? [])].slice(0, 100),
       }));
+      clearInterval(timerHandle);
+      releaseWakeLock();
+      if (watchId !== null) { navigator.geolocation.clearWatch(watchId); watchId = null; }
+      this.#runDismiss = null;
       this.#closeModal();
     });
 
     // ── Close ─────────────────────────────────────────────────────────
-    $('#close-run-modal')?.addEventListener('click', () => {
+    this.#runDismiss = () => {
+      if ((running || elapsed > 0 || distMeters > 0) &&
+          !confirm('Descartar este rastreio GPS sem salvar? Cancele para continuar e usar Encerrar → Salvar.')) return false;
       clearInterval(timerHandle);
       releaseWakeLock();
       if (watchId !== null) { navigator.geolocation.clearWatch(watchId); watchId = null; }
-      this.#closeModal();
-    });
+      return true;
+    };
 
     startGPS();
   }
@@ -3078,7 +3257,7 @@ export class AppController {
         if (weight < bar) weight = bar;
         ml.querySelectorAll('.bar-btn').forEach(b => {
           const active = parseFloat(b.dataset.bar) === bar;
-          b.className = `bar-btn flex-1 py-1.5 text-[11px] font-black rounded-lg border transition-all active:scale-90 ${
+          b.className = `bar-btn ripple-target flex-1 py-1.5 text-[11px] font-black rounded-lg border transition-all active:scale-90 ${
             active ? 'border-theme-accent bg-theme-dim text-theme-primary' : 'border-zinc-800 bg-zinc-900 text-zinc-500'
           }`;
         });
@@ -3946,13 +4125,15 @@ export class AppController {
   }
 
   #closeModal() {
+    this.#runDismiss = null;
     this.#store.setState({ activeModal: null, modalData: null });
     this.#modalLayer.innerHTML = "";
   }
 
   #closeReport() {
-    this.#reportLayer.innerHTML = "";
-    this.#store.setState({ activeModal: null, modalData: null });
+    this.#closeModal();
+    const state = this.#store.getState();
+    if (state.tab === 'workout' && !state.workoutId) this.#navigate('treinar');
   }
 
   /* ─── Confirm actions ─────────────────────────────────────────── */
@@ -3982,38 +4163,6 @@ export class AppController {
         this.#workoutCtrl.startNewWeek();
         this.#render(this.#store.getState());
         break;
-      case "open-cycle-modal":
-        this.#store.setState({ activeModal: 'cycle-overview', modalData: null });
-        break;
-      case "open-workout-picker":
-        this.#store.setState({ activeModal: 'workout-picker', modalData: null });
-        break;
-      case "open-rest-picker":
-        this.#store.setState({ activeModal: 'rest-picker', modalData: payload });
-        break;
-      case "set-ex-rest": {
-        const { wId: rWId, exId: rExId, rest: rRest } = payload ?? {};
-        if (!rWId || !rExId) break;
-        this.#store.setState(s => ({
-          restOverrides: {
-            ...s.restOverrides,
-            [rWId]: { ...(s.restOverrides?.[rWId] ?? {}), [rExId]: rRest },
-          },
-          activeModal: null,
-          modalData: null,
-        }));
-        break;
-      }
-      case "clear-ex-rest": {
-        const { wId: cwId, exId: cExId } = payload ?? {};
-        if (!cwId || !cExId) break;
-        this.#store.setState(s => {
-          const updated = { ...(s.restOverrides?.[cwId] ?? {}) };
-          delete updated[cExId];
-          return { restOverrides: { ...s.restOverrides, [cwId]: updated }, activeModal: null, modalData: null };
-        });
-        break;
-      }
       case "undo-mission":
         this.#workoutCtrl.undoMission(payload);
         this.#render(this.#store.getState());
@@ -4063,6 +4212,44 @@ export class AppController {
 
   #handleAction(action, payload) {
     switch (action) {
+      case 'dismiss-modal':
+        this.#dismissModal();
+        break;
+      case 'dismiss-celebration':
+        this.#celebrationClose?.();
+        break;
+      case "open-cycle-modal":
+        this.#store.setState({ activeModal: 'cycle-overview', modalData: null });
+        break;
+      case "open-workout-picker":
+        this.#store.setState({ activeModal: 'workout-picker', modalData: null });
+        break;
+      case "open-rest-picker":
+        this.#store.setState({ activeModal: 'rest-picker', modalData: payload });
+        break;
+      case "set-ex-rest": {
+        const { wId: rWId, exId: rExId, rest: rRest } = payload ?? {};
+        if (!rWId || !rExId) break;
+        this.#store.setState(s => ({
+          restOverrides: {
+            ...s.restOverrides,
+            [rWId]: { ...(s.restOverrides?.[rWId] ?? {}), [rExId]: rRest },
+          },
+          activeModal: null,
+          modalData: null,
+        }));
+        break;
+      }
+      case "clear-ex-rest": {
+        const { wId: cwId, exId: cExId } = payload ?? {};
+        if (!cwId || !cExId) break;
+        this.#store.setState(s => {
+          const updated = { ...(s.restOverrides?.[cwId] ?? {}) };
+          delete updated[cExId];
+          return { restOverrides: { ...s.restOverrides, [cwId]: updated }, activeModal: null, modalData: null };
+        });
+        break;
+      }
       case "start-workout": {
         this.#usedWorkoutPhrases.clear();
         this.#workoutCtrl.startWorkout(payload);
@@ -4212,7 +4399,7 @@ export class AppController {
         this.#navigate("settings");
         break;
       case "show-hint":
-        this.#showHintModal(payload);
+        this.#openModal("hint", { key: payload });
         break;
       case "goto-tab":
         this.#navigate(payload);
@@ -4270,13 +4457,13 @@ export class AppController {
 
       case "open-ex-note": {
         const { exId, wId } = typeof payload === 'string' ? JSON.parse(payload) : payload;
-        this.#showExNoteModal(exId, wId);
+        this.#openModal("ex-note", { exId, wId });
         break;
       }
 
       case "open-warmup": {
         const p = typeof payload === 'string' ? JSON.parse(payload) : payload;
-        this.#showWarmupModal(p);
+        this.#openModal("warmup", p);
         break;
       }
 
@@ -4439,7 +4626,7 @@ export class AppController {
         this.#store.setState({ activeModal: "cardio-log", modalData: null });
         break;
       case "start-run-tracker":
-        this.#showRunTrackerModal();
+        this.#openModal("run-tracker");
         break;
       case "delete-cardio": {
         const dateToRemove = payload;
@@ -4629,11 +4816,11 @@ export class AppController {
 
       /* ── Cardio guiado ──────────────────────────────────────────── */
       case "open-cardio-protocol-modal":
-        this.#showCardioProtocolModal();
+        this.#openModal("cardio-protocol");
         break;
 
       case "start-cardio-protocol":
-        this.#showCardioPreSessionModal(payload);
+        this.#openModal("cardio-presession", { protocolId: payload });
         break;
 
       case "cardio-pause":
@@ -4668,7 +4855,7 @@ export class AppController {
       }
 
       case "cardio-finish":
-        this.#showCardioFinishModal();
+        this.#openModal("cardio-finish");
         break;
 
       case "cardio-abandon":
@@ -4741,7 +4928,7 @@ export class AppController {
         const state = this.#store.getState();
         const workout = this.#allWorkouts().find((w) => w.id === workoutId);
         if (!workout) break;
-        this.#showWorkoutHistoryModal(workout, state.history);
+        this.#openModal("workout-history", { workout });
         break;
       }
 
@@ -4824,9 +5011,13 @@ export class AppController {
         input.onchange = async (e) => {
           const file = e.target.files[0];
           if (!file) return;
-          this.#showPDFImportModal({ loading: true, fileName: file.name });
+          this.#openModal("pdf-import", { loading: true, fileName: file.name });
           const result = await parsePDFWorkout(file);
-          this.#showPDFImportModal({ ...result, fileName: file.name });
+          // Se o usuário fechou a leitura, não reabrir a janela quando ela terminar.
+          const current = this.#store.getState();
+          if (current.activeModal === 'pdf-import' && current.modalData?.fileName === file.name) {
+            this.#openModal("pdf-import", { ...result, fileName: file.name });
+          }
         };
         input.click();
         break;
@@ -5282,7 +5473,7 @@ export class AppController {
   #showCelebrationOverlay(id) {
     const a = ACHIEVEMENT_MAP[id];
     if (!a) return;
-    document.querySelector('#celebration-overlay')?.remove();
+    this.#celebrationClose?.();
 
     const palette = ['bg-theme-primary','bg-amber-400','bg-rose-400','bg-cyan-400','bg-emerald-400','bg-violet-400'];
     const particles = Array.from({ length: 12 }, (_, i) =>
@@ -5293,7 +5484,14 @@ export class AppController {
     const el = document.createElement('div');
     el.id = 'celebration-overlay';
     el.className = 'fixed inset-0 z-[300] flex items-center justify-center bg-black/85 backdrop-blur-sm';
+    el.classList.add('modal-dialog');
+    el.setAttribute('role', 'dialog');
+    el.setAttribute('aria-modal', 'true');
+    el.setAttribute('aria-label', 'Conquista desbloqueada');
+    el.tabIndex = -1;
     el.innerHTML = `
+      <button type="button" data-action="dismiss-celebration" aria-label="Fechar conquista" title="Fechar"
+              class="modal-close-control ripple-target absolute right-4 top-4"><i data-lucide="x" aria-hidden="true"></i></button>
       <div class="animate-zoom-in flex flex-col items-center gap-6 px-8 py-12 text-center max-w-xs w-full">
         <div class="relative">
           <div class="celebration-burst">${particles}</div>
@@ -5311,7 +5509,7 @@ export class AppController {
           <div class="text-3xl font-black text-white glitch-text" data-text="${a.name}">${a.name}</div>
           <div class="text-sm text-zinc-400 font-mono">${a.desc}</div>
         </div>
-        <button id="close-celebration"
+        <button id="close-celebration" data-action="dismiss-celebration"
                 class="ripple-target mt-2 px-10 py-3 rounded-xl border border-theme-accent
                        bg-theme-dim text-theme-primary font-black text-sm uppercase tracking-widest
                        hover:bg-theme-primary hover:text-black transition-all active:scale-95">
@@ -5322,12 +5520,22 @@ export class AppController {
     document.body.appendChild(el);
     if (window.lucide) lucide.createIcons({ nodes: [el] });
 
+    const returnFocus = document.activeElement;
+    this.#setModalBackground(true);
+    this.#modalLayer.inert = true;
+    this.#reportLayer.inert = true;
+    el.focus({ preventScroll: true });
     const close = () => {
-      el.style.transition = 'opacity 0.4s ease';
-      el.style.opacity = '0';
-      setTimeout(() => el.remove(), 400);
+      if (!el.isConnected) return;
+      el.remove();
+      this.#celebrationClose = null;
+      this.#modalLayer.inert = false;
+      this.#reportLayer.inert = false;
+      this.#setModalBackground(!!this.#store.getState().activeModal);
+      if (returnFocus?.isConnected) returnFocus.focus({ preventScroll: true });
     };
-    el.querySelector('#close-celebration').addEventListener('click', close);
+    this.#celebrationClose = close;
+    delegate(el, '[data-action="dismiss-celebration"]', 'click', () => this.#handleAction('dismiss-celebration'));
     el.addEventListener('click', e => { if (e.target === el) close(); });
     setTimeout(close, 9000);
   }
@@ -5631,6 +5839,7 @@ export class AppController {
           <div class="grid grid-cols-3 gap-2" id="presession-btns">
             ${renderBtns()}
           </div>
+          <button data-action="dismiss-modal" class="ripple-target w-full py-3 rounded-xl border border-zinc-700 text-zinc-300 font-bold">Cancelar</button>
           <button id="presession-confirm"
                   class="w-full py-4 bg-theme-primary text-black font-black text-sm uppercase rounded-2xl
                          shadow-[0_0_15px_var(--theme-primary)] active:scale-95 transition-all">
@@ -5646,7 +5855,7 @@ export class AppController {
     const syncBtns = () => {
       ml.querySelectorAll('.presession-btn').forEach(b => {
         const on = b.dataset.presessionMode === selected;
-        b.className = `presession-btn flex flex-col items-center gap-1.5 py-4 rounded-2xl border transition-all active:scale-95
+        b.className = `presession-btn ripple-target flex flex-col items-center gap-1.5 py-4 rounded-2xl border transition-all active:scale-95
           ${on ? 'bg-theme-dim border-theme-accent text-theme-primary' : 'bg-zinc-900/40 border-zinc-800 text-zinc-500'}`;
         const span = b.querySelectorAll('span')[1];
         if (span) span.className = `text-[9px] font-bold pointer-events-none ${on ? 'text-theme-primary/70' : 'text-zinc-600'}`;
@@ -5671,7 +5880,6 @@ export class AppController {
   #showCardioFinishModal() {
     const s = this.#store.getState().activeCardioSession;
     if (!s) return;
-    if (this.#modalLayer.innerHTML.trim() !== '') return;
 
     const EFFORT_COLORS = {
       'fácil':    'text-green-400 bg-green-900/20 border-green-900/40',
@@ -5718,15 +5926,15 @@ export class AppController {
 
           <div class="grid grid-cols-3 gap-2 text-center">
             <div class="bg-white/5 rounded-xl p-3">
-              <div class="text-lg font-black text-white font-mono">${fmtSecs(s.totalElapsed)}</div>
+              <div data-review-time class="text-lg font-black text-white font-mono">${fmtSecs(s.totalElapsed)}</div>
               <div class="text-[9px] text-white/40 mt-0.5 uppercase">Tempo</div>
             </div>
             <div class="bg-white/5 rounded-xl p-3">
-              <div class="text-lg font-black text-white">${distKm >= 0.1 ? distKm.toFixed(2)+'km' : Math.round(s.distanceM||0)+'m'}</div>
+              <div data-review-distance class="text-lg font-black text-white">${distKm >= 0.1 ? distKm.toFixed(2)+'km' : Math.round(s.distanceM||0)+'m'}</div>
               <div class="text-[9px] text-white/40 mt-0.5 uppercase">Distância</div>
             </div>
             <div class="bg-white/5 rounded-xl p-3">
-              <div class="text-lg font-black text-[var(--theme-accent)]">${paceFmt()}</div>
+              <div data-review-pace class="text-lg font-black text-[var(--theme-accent)]">${paceFmt()}</div>
               <div class="text-[9px] text-white/40 mt-0.5 uppercase">${isBike ? 'km/h' : 'Pace/km'}</div>
             </div>
           </div>
@@ -5746,7 +5954,7 @@ export class AppController {
               <i data-lucide="activity" class="w-3 h-3"></i>Esforço percebido
               <span class="normal-case font-normal text-zinc-600">1 = muito fácil · 10 = exaustão</span>
             </div>
-            <div id="effort-score-row" class="flex gap-1 justify-between">
+            <div id="effort-score-row" class="grid grid-cols-5 gap-1">
               ${[1,2,3,4,5,6,7,8,9,10].map(n => `
                 <button data-effort-score="${n}"
                   class="effort-score-btn flex-1 py-2 rounded-lg border text-[10px] font-black transition-all active:scale-95
@@ -5780,7 +5988,7 @@ export class AppController {
           </div>
 
           <!-- Recuperação -->
-          <div class="grid grid-cols-2 gap-3">
+          <div class="grid grid-cols-1 gap-3">
             <div>
               <div class="text-[9px] text-zinc-500 font-bold uppercase tracking-wider mb-2">Fadiga geral</div>
               <div id="fatigue-row" class="flex gap-1 justify-between">
@@ -5798,6 +6006,7 @@ export class AppController {
           <input type="text" id="cardio-finish-notes" placeholder="Notas (opcional)..."
                  class="input-ninja w-full py-2.5 rounded-lg text-xs font-mono" />
 
+          <button data-action="dismiss-modal" class="ripple-target w-full py-3 rounded-xl border border-zinc-700 text-zinc-300 font-bold">Voltar à sessão</button>
           <button id="save-cardio-finish"
                   class="w-full py-4 bg-[var(--theme-accent)] text-black font-black text-sm uppercase rounded-2xl
                          shadow-[0_0_15px_var(--theme-accent)] active:scale-95 transition-all">
@@ -5814,7 +6023,7 @@ export class AppController {
     const syncEffort = () => {
       ml.querySelectorAll('.finish-effort-btn').forEach(b => {
         const on = b.dataset.finishEffort === finishEffort;
-        b.className = `finish-effort-btn py-2.5 rounded-xl border text-xs font-black transition-all active:scale-95
+        b.className = `finish-effort-btn ripple-target py-2.5 rounded-xl border text-xs font-black transition-all active:scale-95
           ${on ? EFFORT_COLORS[b.dataset.finishEffort] : 'bg-zinc-900 border-zinc-800 text-zinc-500'}`;
       });
     };
@@ -5834,7 +6043,7 @@ export class AppController {
         const n = parseInt(b.dataset.effortScore);
         const on = n === effortScore;
         const col = n <= 4 ? ESCORE_COLORS.low : n <= 7 ? ESCORE_COLORS.mid : ESCORE_COLORS.high;
-        b.className = `effort-score-btn flex-1 py-2 rounded-lg border text-[10px] font-black transition-all active:scale-95 ${on ? col : 'border-zinc-800 text-zinc-500 bg-transparent'}`;
+        b.className = `effort-score-btn ripple-target flex-1 py-2 rounded-lg border text-[10px] font-black transition-all active:scale-95 ${on ? col : 'border-zinc-800 text-zinc-500 bg-transparent'}`;
       });
     };
     ml.querySelectorAll('.effort-score-btn').forEach(b =>
@@ -5850,7 +6059,7 @@ export class AppController {
       ml.querySelectorAll(selector).forEach(b => {
         const n = parseInt(b.dataset.fatigue ?? b.dataset.legs);
         const on = n === current;
-        b.className = `${b.className.split(' ')[0]} flex-1 py-2 rounded-lg border text-[10px] font-black active:scale-95 transition-all ${on ? recColor(n) : 'border-zinc-800 text-zinc-500 bg-transparent'}`;
+        b.className = `${b.className.split(' ')[0]} ripple-target flex-1 py-2 rounded-lg border text-[10px] font-black active:scale-95 transition-all ${on ? recColor(n) : 'border-zinc-800 text-zinc-500 bg-transparent'}`;
       });
     };
     ml.querySelectorAll('.fatigue-btn').forEach(b =>
@@ -5875,7 +6084,7 @@ export class AppController {
         }
       });
       if (totalM > 0) {
-        const sessionSec = s.totalElapsed ?? 0;
+        const sessionSec = this.#store.getState().activeCardioSession?.totalElapsed ?? 0;
         const diffSec    = totalSegSec - sessionSec;
         const tolerance  = 90;
         const durInfo    = sessionSec > 0
@@ -5905,7 +6114,7 @@ export class AppController {
           <input type="tel" inputmode="decimal" value="${dur}" placeholder="min"
                  class="seg-dur input-ninja w-full py-2 rounded-lg text-xs font-mono text-center" />
         </div>
-        <button class="seg-remove w-7 h-7 flex items-center justify-center rounded-lg bg-zinc-800 text-zinc-400 text-xs active:scale-95">×</button>`;
+        <button aria-label="Remover segmento" class="seg-remove ripple-target w-8 h-8 flex items-center justify-center rounded-lg bg-zinc-800 text-zinc-400 text-xs active:scale-95">×</button>`;
       row.querySelector('.seg-remove').addEventListener('click', () => { row.remove(); updateSegPreview(); });
       row.querySelectorAll('input').forEach(inp => inp.addEventListener('input', updateSegPreview));
       segContainer.appendChild(row);
@@ -5975,7 +6184,7 @@ export class AppController {
         recovery,
       });
       this.#closeModal();
-      if (result) this.#showCardioBattleReport(result);
+      if (result) this.#openModal("cardio-report", result);
       else this.#navigate('cardio');
     });
   }
@@ -6116,10 +6325,7 @@ export class AppController {
     `;
     if (window.lucide) lucide.createIcons({ nodes: [this.#reportLayer] });
 
-    const closeReport = () => {
-      this.#reportLayer.innerHTML = '';
-      this.#navigate('cardio');
-    };
+    const closeReport = () => this.#closeReport();
     this.#reportLayer.querySelector('#close-cardio-report')?.addEventListener('click', closeReport);
     this.#reportLayer.querySelector('#cardio-report-close-btn')?.addEventListener('click', closeReport);
   }

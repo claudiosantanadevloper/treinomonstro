@@ -1,4 +1,4 @@
-const CACHE       = 'monstro-v47';
+const CACHE       = 'monstro-v49';
 const MEDIA_CACHE = 'monstro-media-v1';
 const MEDIA_MAX   = 20;
 
@@ -7,7 +7,10 @@ const LOCAL_ASSETS = [
   './index.html',
   './instalar.html',
   './manifest.json',
+  './favicon.ico',
   './icons/icon.svg',
+  './icons/icon-192.png',
+  './icons/icon-512.png',
   './src/app.js',
   './src/styles/main.css',
   './src/store/store.js',

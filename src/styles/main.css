@@ -506,3 +506,15 @@ body[data-theme="gulfman"] .glass-card {
 body[data-theme="gulfman"] .btn-akatsuki { border-radius: 6px !important; }
 body[data-theme="gulfman"] .input-ninja  { border-radius: 6px !important; background: #050805 !important; }
 body[data-theme="gulfman"] .nav-dock     { border-radius: 10px !important; backdrop-filter: none !important; }
+/* Saídas consistentes em diálogos e folhas, inclusive em telas baixas. */
+html.modal-open { overflow: hidden; }
+.modal-dialog[role="dialog"] { max-height: 100dvh; overflow-y: auto; overscroll-behavior: contain; }
+.modal-dialog button { min-width: 32px; min-height: 32px; }
+.modal-dialog .modal-close-control {
+  display: inline-flex; align-items: center; justify-content: center;
+  flex-shrink: 0; width: 40px; height: 40px; min-width: 40px; min-height: 40px;
+  color: #d4d4d8; background: #18181b; border: 1px solid #52525b; border-radius: 999px;
+}
+.modal-close-control svg { width: 20px; height: 20px; pointer-events: none; }
+.modal-dismiss-row { display: flex; justify-content: flex-end; padding: 8px; }
+.modal-dialog :focus-visible { outline: 2px solid var(--theme-primary); outline-offset: 3px; }
