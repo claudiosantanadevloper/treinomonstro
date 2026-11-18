@@ -30,15 +30,32 @@ const MASTERY = [
   { text: 'Não tema o homem que praticou dez mil chutes uma vez. Tema aquele que praticou um único chute dez mil vezes.', author: 'Bruce Lee' },
 ];
 
-const ALL_NAMED = [...STOICISM, ...PATH, ...IDENTITY, ...OVERCOMING, ...MASTERY];
+const ANIME = [
+  { text: 'Quando decidi seguir meu sonho, eu já tinha descartado minha vida.',                                            author: 'Zoro' },
+  { text: 'Somente aqueles que sofreram por muito tempo conseguem ver luz através das sombras.',                            author: 'Zoro' },
+  { text: 'O mais bravo não é aquele que ganha, mas sim aquele que encara seus medos.',                                    author: 'Zoro' },
+  { text: 'Há alguém que devo encontrar de novo. Até esse dia, nem mesmo a morte pode tirar minha vida.',                  author: 'Zoro' },
+  { text: 'Não importa o que o mundo diz de mim — nunca fiz nada que contrariasse meus princípios e nunca farei.',        author: 'Zoro' },
+  { text: 'A lâmina mais forte é aquela que pode proteger o que você quer proteger e cortar o que você quer cortar.',     author: 'Zoro' },
+  { text: 'Eu serei o maior espadachim do mundo. Meu nome pode ser infame, mas vai abalar o mundo.',                      author: 'Zoro' },
+  { text: 'Você é fraco. Te falta ódio.',                                                                                  author: 'Itachi Uchiha' },
+  { text: 'Ninguém que nasceu neste mundo tem o direito de dizer que não pode fazer nada.',                                author: 'Itachi Uchiha' },
+  { text: 'Perdão, Sasuke. É a última vez.',                                                                               author: 'Itachi Uchiha' },
+  { text: 'Acreditar em si mesmo é o meu ninjutsu.',                                                                       author: 'Naruto Uzumaki' },
+  { text: 'Nunca vou desistir. É o meu jeito ninja.',                                                                      author: 'Naruto Uzumaki' },
+  { text: 'Se você não compartilha a dor de alguém, você nunca poderá entendê-la.',                                       author: 'Naruto Uzumaki' },
+  { text: 'O trabalho duro supera o talento quando o talento não trabalha duro.',                                          author: 'Rock Lee' },
+];
+
+const ALL_NAMED = [...STOICISM, ...PATH, ...IDENTITY, ...OVERCOMING, ...MASTERY, ...ANIME];
 
 // ─── Mapa de contexto → arquétipo ───────────────────────────────────────────
 
 const CONTEXT_MAP = {
   first_workout:      IDENTITY,
-  new_pr:             [...OVERCOMING, ...PATH],
-  streak_7:           [...STOICISM, ...IDENTITY],
-  cycle_complete:     [...MASTERY, ...PATH],
+  new_pr:             [...OVERCOMING, ...PATH, ...ANIME],
+  streak_7:           [...STOICISM, ...IDENTITY, ...ANIME],
+  cycle_complete:     [...MASTERY, ...PATH, ...ANIME],
   return_after_pause: STOICISM,
   battle_report:      ALL_NAMED,
 };
@@ -199,6 +216,27 @@ export const QUOTES = [
   'O desconforto de hoje é o progresso de amanhã.',
   'Cada sessão é uma promessa cumprida.',
   'Você não precisa ser extremo. Precisa ser consistente.',
+  // ── Anime ──────────────────────────────────────────────────────────────────
+  'Quando decidi seguir meu sonho, eu já tinha descartado minha vida.',
+  'O mais bravo não é aquele que ganha, mas aquele que encara seus medos.',
+  'Somente aqueles que sofreram por muito tempo conseguem ver luz através das sombras.',
+  'Eu nunca vou perder de novo.',
+  'Acreditar em si mesmo é o meu ninjutsu.',
+  'Se você não compartilha a dor de alguém, você nunca poderá entendê-la.',
+  'Nunca vou desistir. É o meu jeito ninja.',
+  'O trabalho duro supera o talento quando o talento não trabalha duro.',
+  'Você é fraco. Te falta ódio.',
+  'Ninguém que nasceu neste mundo tem o direito de dizer que não pode fazer nada.',
+  'Não importa o que o mundo diz de mim — nunca fiz nada que contrariasse meus princípios.',
+  'Há alguém que devo encontrar. Até esse dia, nem mesmo a morte pode tirar minha vida.',
+  'A lâmina mais forte protege o que você quer proteger e corta o que você quer cortar.',
+  'Meu nome pode ser infame, mas vai abalar o mundo.',
+  'Perdão. É a última vez.',
+  'Minha vontade de fogo nunca se apagará.',
+  'A tripulação que perde o respeito pelo capitão facilmente será destruída.',
+  'Acreditar em si mesmo não é moleza. É exatamente por isso que vale a pena.',
+  'Existe algo de errado em perseguir o sonho mais impossível do mundo.',
+  'Seu destino está escrito pela sua espada, não pelo seu passado.',
 ];
 
 // Retrocompatibilidade — HomeView usa getDailyQuote internamente
@@ -247,6 +285,10 @@ export const WORKOUT_PHRASES = [
   'O próximo set define a sessão.',
   'Disciplina em ação.',
   'Cada pausa tem um propósito.',
+  'Você é fraco. Te falta ódio.',
+  'Eu nunca vou perder de novo.',
+  'Quando decidi seguir meu sonho, eu já tinha descartado minha vida.',
+  'O trabalho duro supera o talento quando o talento não trabalha duro.',
 ];
 
 export function getWorkoutPhrase(usedSet = new Set()) {
