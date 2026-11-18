@@ -45,6 +45,13 @@ const ANIME = [
   { text: 'Nunca vou desistir. É o meu jeito ninja.',                                                                      author: 'Naruto Uzumaki' },
   { text: 'Se você não compartilha a dor de alguém, você nunca poderá entendê-la.',                                       author: 'Naruto Uzumaki' },
   { text: 'O trabalho duro supera o talento quando o talento não trabalha duro.',                                          author: 'Rock Lee' },
+  { text: 'Alguém que não pode proteger o que quer proteger não merece ser chamado de Rei dos Piratas.',                   author: 'Monkey D. Luffy' },
+  { text: 'Vou me tornar o Rei dos Piratas. Essa é a minha promessa.',                                                     author: 'Monkey D. Luffy' },
+  { text: 'Pode me chamar de idiota. Mas quando eu prometo algo, eu cumpro.',                                               author: 'Monkey D. Luffy' },
+  { text: 'Não tenho medo de morrer. Tenho medo de não ter feito o que vim fazer.',                                        author: 'Monkey D. Luffy' },
+  { text: 'O sonho é meu. Ninguém vai me tirar isso.',                                                                     author: 'Monkey D. Luffy' },
+  { text: 'Não me importo com o que os outros pensam. Só sei que não posso parar agora.',                                  author: 'Monkey D. Luffy' },
+  { text: 'Mesmo que meu corpo quebre, não vou parar enquanto ainda estiver respirando.',                                  author: 'Monkey D. Luffy' },
 ];
 
 const ALL_NAMED = [...STOICISM, ...PATH, ...IDENTITY, ...OVERCOMING, ...MASTERY, ...ANIME];
@@ -237,6 +244,13 @@ export const QUOTES = [
   'Acreditar em si mesmo não é moleza. É exatamente por isso que vale a pena.',
   'Existe algo de errado em perseguir o sonho mais impossível do mundo.',
   'Seu destino está escrito pela sua espada, não pelo seu passado.',
+  'Alguém que não pode proteger o que quer proteger não merece ser chamado de Rei dos Piratas.',
+  'Vou me tornar o Rei dos Piratas. Essa é a minha promessa.',
+  'Pode me chamar de idiota. Mas quando eu prometo algo, eu cumpro.',
+  'Não tenho medo de morrer. Tenho medo de não ter feito o que vim fazer.',
+  'O sonho é meu. Ninguém vai me tirar isso.',
+  'Não me importo com o que os outros pensam. Só sei que não posso parar agora.',
+  'Mesmo que meu corpo quebre, não vou parar enquanto ainda estiver respirando.',
 ];
 
 // Retrocompatibilidade — HomeView usa getDailyQuote internamente
@@ -289,6 +303,9 @@ export const WORKOUT_PHRASES = [
   'Eu nunca vou perder de novo.',
   'Quando decidi seguir meu sonho, eu já tinha descartado minha vida.',
   'O trabalho duro supera o talento quando o talento não trabalha duro.',
+  'Alguém que não pode proteger o que quer proteger não merece ser chamado de Rei dos Piratas.',
+  'Mesmo que meu corpo quebre, não vou parar enquanto ainda estiver respirando.',
+  'O sonho é meu. Ninguém vai me tirar isso.',
 ];
 
 export function getWorkoutPhrase(usedSet = new Set()) {
